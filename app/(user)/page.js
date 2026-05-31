@@ -14,7 +14,7 @@ function Home() {
 
   return (
     <main className="min-h-screen bg-gray-50">
-      <section className="relative min-h-[560px] overflow-hidden md:min-h-[680px]">
+      <section className="relative min-h-140 overflow-hidden md:min-h-170">
         <video
           className="absolute inset-0 h-full w-full object-cover"
           autoPlay
@@ -27,7 +27,7 @@ function Home() {
 
         <div className="absolute inset-0 bg-black/45" />
 
-        <div className="relative z-10 flex min-h-[560px] flex-col justify-center px-6 text-white md:min-h-[680px] md:px-16">
+        <div className="relative z-10 flex min-h-140 flex-col justify-center px-6 text-white md:min-h-170 md:px-16">
           <p className="mb-3 text-sm font-semibold uppercase tracking-wide text-orange-100">
             FoodRush delivery
           </p>
