@@ -1,3 +1,5 @@
+// Controlled input component — the parent owns the value and onChange logic.
+// This keeps the input reusable for search, login, forms, and admin fields.
 function Input({
   type = "text",
   name,

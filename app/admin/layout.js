@@ -1,11 +1,15 @@
+// Client Component boundary — needed because this layout uses usePathname(),
+// which reads browser navigation state and cannot run in a Server Component.
 "use client";
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
+//Nested admin layout - gives every /admin route the same dashboard shell.
 export default function AdminLayout({ children }) {
+  //usePathname() reads the current URL so the active sidebar link can be styled.
   const pathname = usePathname();
-
+  //Derived class helper - keeps active/inactive nav styling in one place instead of repeating logic for each Link
   function navLinkClass(href) {
     const isActive = pathname === href;
 

@@ -1,3 +1,5 @@
+// Reusable display component — one loading UI can describe different waiting states.
+// Default prop pattern — see components/Button.js
 export default function Loading({ message = "Loading..." }) {
   return (
     <div className="flex min-h-64 flex-col items-center justify-center gap-3 text-gray-600">

@@ -16,6 +16,9 @@
 - Point out mistakes clearly and explain WHY it's wrong
 - Build my muscle memory — I should be able to write code myself eventually
 - No unnecessary theory — keep it practical and real
+- For revision/comment sessions: ask me the WHY first, then give me the clean
+  comment to paste/type myself. Do not directly edit comments into files unless
+  I explicitly ask.
 
 ## FoodRush As My Reference Project — IMPORTANT
 - FoodRush is not just a learning project — it is my personal reference bible
@@ -33,6 +36,8 @@
 - Comment complex logic always
 - Comment after each session — not at the end of the whole project
 - Tailwind/styling → NO comments needed, AI handles that anyway
+- Outside JSX use `// comment`.
+- Inside JSX use `{/* comment */}` because JSX needs `{}` to enter JavaScript mode.
 
 ### Good comment example:
 // generateStaticParams — tells Next.js which dynamic routes to
@@ -87,6 +92,66 @@ public
 - `useRouter`, `usePathname`, `useSearchParams` hooks
 - SSR vs SSG vs CSR (intro)
 - Next.js fetch caching basics (default, no-store, revalidate)
+
+## 🔄 Current Revision Strategy
+- Pause deeper Next.js topics for now.
+- Finish React fundamentals first using FoodRush files as the reference.
+- Work concept-by-concept, not file-by-file.
+- For each concept:
+  1. Name the concept and file.
+  2. Ask me why the pattern exists.
+  3. Correct my explanation.
+  4. Give a clean comment for me to paste/type.
+  5. Check code quality in that same area.
+- Skip React Router because FoodRush now uses Next.js routing and future projects will use Next.js.
+
+## ✅ React Revision Covered In Latest Session
+- Reusable component + props + `children`
+  - Original reference: `components/Button.js`
+- Default props
+  - Original reference: `components/Button.js`
+  - Repeated reference: `components/Loading.js`
+- Variant map pattern
+  - Original reference: `components/Button.js`
+- Controlled input component
+  - Original reference: `components/Input.js`
+  - Repeated reference: `components/RestaurantsClient.js`
+- Reusable display/feedback components
+  - `components/EmptyState.js`
+  - `components/Loading.js`
+  - `components/ErrorMessage.js`
+- Conditional rendering
+  - `message && (...)` in `components/EmptyState.js`
+  - `return null` in `components/ErrorMessage.js`
+- List rendering with `.map()` and stable `key`
+  - Reference area: `components/RestaurantsClient.js`
+- Filtering and sorting list data
+  - `.filter()` in `components/RestaurantsClient.js`
+  - copy before `.sort()` using `[...filteredRestaurants]`
+- Derived data
+  - `displayRestaurants` calculated from props + UI state
+- `useMemo`
+  - `cuisines` recalculates only when `restaurants` changes
+  - `displayRestaurants` recalculates when restaurants/search/filter/sort inputs change
+- Event handlers
+  - `onChange={(e) => setSearchText(e.target.value)}`
+  - Important idea: pass a function reference so React calls it later during the event.
+
+## ⏭️ Next React Revision Topics
+- Continue in `context/CartContext.js`.
+- Next concept to start with: `.find()` in `addToCart`.
+- Then cover:
+  - `useState` for cart and toast state
+  - immutable updates with `map`, `filter`, and spread
+  - `.reduce()` for `cartCount` and `totalCartPrice`
+  - `useEffect` for `localStorage`
+  - `useEffect` cleanup for toast timeout
+  - `useContext` and Provider mental model
+  - shared cart state across `RestaurantCard`, `AddToCartButton`, and `cart/page.js`
+  - event handlers for add/remove/increase/decrease quantity
+  - custom hook `hooks/useRestaurants.js`
+  - forms + validation in `app/(user)/login/page.js`
+  - reusable component quality pass for `Navbar`, `Footer`, `Toast`, `ScrollToTop`
 
 ## Full Learning Roadmap
 
@@ -165,11 +230,15 @@ public
 - Mini checkout app: cart + order flow
 
 ## Last Session Covered
-- Next.js fetch caching basics (default, no-store, revalidate)
-- SSR vs SSG vs CSR concepts
-- useRouter, usePathname, useSearchParams hooks
-- Set up AGENTS.md system
-- Commenting strategy decided
+- Started React-first revision instead of continuing deeper Next.js.
+- Covered reusable components, props, children, default props, controlled inputs,
+  conditional rendering, list rendering, array filtering/sorting, derived data,
+  `useMemo`, and event-handler basics.
+- Decided comments should be added by Darshan after answering the WHY, not written
+  directly by the assistant.
+- Clarified JSX comment syntax: use `{/* ... */}` inside JSX.
 
 ## What's Next
-- comment notes in the whole project , the goal is to revision, improve quality and review what we build so far , and need to understand deeply 
+- Resume with `context/CartContext.js`.
+- First question: why does `addToCart` use `.find()` before adding a restaurant?
+- Keep reviewing code quality while learning each React concept.

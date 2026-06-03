@@ -1,4 +1,7 @@
+// Reusable feedback component — keeps error UI consistent across forms and pages.
+// The parent decides the message; this component decides how an error looks.
 function ErrorMessage({ message }) {
+  // Conditional rendering — returning null means React renders nothing when there is no error message.
   if (!message) {
     return null;
   }
