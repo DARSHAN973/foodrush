@@ -1,66 +1,45 @@
-"use client" ;
-import { useState, useEffect, useContext } from "react";
-import { CartContext } from "@/context/CartContext";
-import Loading from "@/components/Loading";
-import Button from "@/components/Button";
 import Link from "next/link";
-import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
+import { notFound } from "next/navigation";
+import AddToCartButton from "@/components/AddToCartButton";
 
-function RestaurantDetails() {
-  const { id } = useParams();
+export async function generateStaticParams() {
+  const response = await fetch("https://dummyjson.com/recipes?limit=10");
 
-  const [loading, setLoading] = useState(true);
+  const data = await response.json();
 
-  const [error, setError] = useState(null);
+  return data.recipes.map((restaurant) => ({
+    id: String(restaurant.id),
+  }));
+}
 
-  const [restaurant, setRestaurants] = useState(null);
+async function getRestaurant(id) {
+  const response = await fetch(`https://dummyjson.com/recipes/${id}`);
 
-  const { addToCart } = useContext(CartContext);
-
-  const router = useRouter();
-
-  useEffect(() => {
-    const fetchRestaurantDetails = async () => {
-      try {
-        setLoading(true);
-
-        const response = await fetch(`https://dummyjson.com/recipes/${id}`);
-
-        if (!response.ok) {
-          throw new Error("Failed to fetch restaurant details");
-        }
-
-        const data = await response.json();
-        setRestaurants(data);
-      } catch (error) {
-        setError("Failed to load restaurant details");
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchRestaurantDetails();
-  }, [id]);
-  if (loading) {
-    return (
-      <main className="min-h-screen bg-gray-50 px-6 py-8">
-        <Loading message="Loading details..." />
-      </main>
-    );
+  if (response.status === 404) {
+    notFound();
   }
 
-  if (error) {
-    return (
-      <main className="min-h-screen bg-gray-50 px-6 py-8">
-        <h2 className="rounded-lg bg-red-50 p-4 text-red-600">{error}</h2>
-      </main>
-    );
+  if (!response.ok) {
+    throw new Error("Failed to fetch restaurant details");
   }
 
-  const handleAddToCart = () => {
-    addToCart(restaurant);
-    router.push("/cart");
+  return response.json();
+}
+
+export async function generateMetadata({ params }) {
+  const { id } = await params;
+  const restaurant = await getRestaurant(id);
+
+  return {
+    title: `${restaurant.name} | FoodRush`,
+    description: `Order from ${restaurant.name} on FoodRush`,
   };
+}
+
+export default async function RestaurantDetails({ params }) {
+  const { id } = await params;
+  const restaurant = await getRestaurant(id);
 
   return (
     <main className="min-h-screen bg-gray-50 px-6 py-8">
@@ -132,7 +111,7 @@ function RestaurantDetails() {
             </div>
 
             <div className="mt-8">
-              <Button onClick={handleAddToCart}>Add to Cart</Button>
+              <AddToCartButton restaurant={restaurant} />
             </div>
           </div>
         </section>
@@ -162,5 +141,3 @@ function RestaurantDetails() {
     </main>
   );
 }
-
-export default RestaurantDetails;

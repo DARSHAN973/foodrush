@@ -24,9 +24,9 @@ export default function CartProvider({ children }) {
   }, [cart]);
 
   const addToCart = (restaurant) => {
-    const exstingItem = cart.find((item) => item.id === restaurant.id);
+    const existingItem = cart.find((item) => item.id === restaurant.id);
 
-    if (exstingItem) {
+    if (existingItem) {
       setCart(
         cart.map((item) =>
           item.id === restaurant.id
@@ -88,8 +88,6 @@ export default function CartProvider({ children }) {
     (total, item) => total + item.price * item.quantity,
     0,
   );
-
-
 
   return (
     <CartContext.Provider
