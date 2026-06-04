@@ -6,6 +6,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 export default function Navbar() {
+  // Shared cart state — see context/CartContext.js.
   const { cartCount } = useContext(CartContext);
   const pathname = usePathname();
   return (
@@ -18,13 +19,11 @@ export default function Navbar() {
           <li>
             <Link
               href="/"
-              className={
-                `rounded-md px-3 py-2 text-sm font-semibold transition sm:text-base ${
-                  pathname === "/"
-                    ? "bg-white text-orange-600"
-                    : "text-white hover:bg-orange-700"
-                }`
-              }
+              className={`rounded-md px-3 py-2 text-sm font-semibold transition sm:text-base ${
+                pathname === "/"
+                  ? "bg-white text-orange-600"
+                  : "text-white hover:bg-orange-700"
+              }`}
             >
               Home
             </Link>
@@ -32,13 +31,11 @@ export default function Navbar() {
           <li>
             <Link
               href="/restaurants"
-              className={
-                `rounded-md px-3 py-2 text-sm font-semibold transition sm:text-base ${
-                  pathname === "/restaurants"
-                    ? "bg-white text-orange-600"
-                    : "text-white hover:bg-orange-700"
-                }`
-              }
+              className={`rounded-md px-3 py-2 text-sm font-semibold transition sm:text-base ${
+                pathname === "/restaurants"
+                  ? "bg-white text-orange-600"
+                  : "text-white hover:bg-orange-700"
+              }`}
             >
               Restaurants
             </Link>
@@ -46,13 +43,11 @@ export default function Navbar() {
           <li>
             <Link
               href="/login"
-              className={
-                `rounded-md px-3 py-2 text-sm font-semibold transition sm:text-base ${
-                  pathname === "/login"
-                    ? "bg-white text-orange-600"
-                    : "text-white hover:bg-orange-700"
-                }`
-              }
+              className={`rounded-md px-3 py-2 text-sm font-semibold transition sm:text-base ${
+                pathname === "/login"
+                  ? "bg-white text-orange-600"
+                  : "text-white hover:bg-orange-700"
+              }`}
             >
               Login
             </Link>
@@ -60,13 +55,11 @@ export default function Navbar() {
           <li>
             <Link
               href="/cart"
-              className={
-                `relative rounded-md px-3 py-2 text-sm font-semibold transition sm:text-base ${
-                  pathname === "/cart"
-                    ? "bg-white text-orange-600"
-                    : "text-white hover:bg-orange-700"
-                }`
-              }
+              className={`relative rounded-md px-3 py-2 text-sm font-semibold transition sm:text-base ${
+                pathname === "/cart"
+                  ? "bg-white text-orange-600"
+                  : "text-white hover:bg-orange-700"
+              }`}
             >
               Cart
               {cartCount > 0 && (
@@ -81,4 +74,3 @@ export default function Navbar() {
     </nav>
   );
 }
-

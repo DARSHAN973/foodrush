@@ -2,12 +2,11 @@
 
 import { useEffect, useState } from "react";
 
-
+// Custom hook — extracts reusable restaurant-fetching state logic
+// so components can use restaurants, loading, and error without duplicating fetch code.
 function useRestaurants() {
   const [loading, setLoading] = useState(true);
-
   const [error, setError] = useState(null);
-
   const [restaurants, setRestaurants] = useState([]);
 
   useEffect(() => {
@@ -18,13 +17,13 @@ function useRestaurants() {
         const response = await fetch("https://dummyjson.com/recipes");
 
         if (!response.ok) {
-          throw new Error("failed to fetch restaurants");
+          throw new Error("Failed to fetch restaurants");
         }
 
         const data = await response.json();
-        
+
         setRestaurants(data.recipes);
-      } catch (error) {
+      } catch {
         setError("Failed to fetch restaurants. Please try again later.");
       } finally {
         setLoading(false);
@@ -32,7 +31,7 @@ function useRestaurants() {
     };
     fetchRestaurants();
   }, []);
-  return {restaurants , loading , error};
+  return { restaurants, loading, error };
 }
 
 export default useRestaurants;

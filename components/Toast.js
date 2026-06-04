@@ -2,6 +2,7 @@ import { useContext } from "react";
 import { CartContext } from "../context/CartContext";
 
 function Toast() {
+  // Shared cart state — see context/CartContext.js.
   const { toastMessage } = useContext(CartContext);
 
   if (!toastMessage) {

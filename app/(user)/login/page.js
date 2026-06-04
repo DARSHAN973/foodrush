@@ -7,7 +7,8 @@ import ErrorMessage from "@/components/ErrorMessage";
 
 function Login() {
   const [isSignup, setIsSignup] = useState(false);
-
+  // Form state object — keeps related input values together so one
+  // change handler can update any field by its name.
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -17,7 +18,8 @@ function Login() {
   });
 
   const [errors, setErrors] = useState({});
-
+  // Dynamic form update — use the input's name as the object key
+  // so one handler can update email, password, phone, or any other field.
   const handleChange = (e) => {
     const { name, value } = e.target;
 
@@ -28,10 +30,14 @@ function Login() {
   };
 
   const handleSubmit = (e) => {
+    // Form submit control — stop the browser's default page reload
+    // so React can validate and handle the form in state.
     e.preventDefault();
-
+    // Validation errors object — collect all field errors first,
+    // then update error state once so the form shows every issue together.
     const newError = {};
-
+    // Mode-specific validation — signup-only fields are checked only
+    // when the form is in signup mode, not during login.
     if (isSignup && formData.name.trim() === "") {
       newError.name = "Name is required";
     }
@@ -59,9 +65,12 @@ function Login() {
     }
 
     setErrors(newError);
-
+    // Submit gate — continue only when validation found no field errors.
     if (Object.keys(newError).length === 0) {
-      console.log(isSignup ? "signup successful" : "login successful", formData);
+      console.log(
+        isSignup ? "signup successful" : "login successful",
+        formData,
+      );
     }
   };
 
@@ -185,18 +194,18 @@ function Login() {
 
             {!isSignup && (
               <div className="flex items-center justify-between text-sm">
-              <label className="flex items-center gap-2 text-gray-600">
-                <input type="checkbox" className="rounded border-gray-300" />
-                Remember me
-              </label>
+                <label className="flex items-center gap-2 text-gray-600">
+                  <input type="checkbox" className="rounded border-gray-300" />
+                  Remember me
+                </label>
 
-              <button
-                type="button"
-                className="font-medium text-orange-600 hover:text-orange-700"
-              >
-                Forgot password?
-              </button>
-            </div>
+                <button
+                  type="button"
+                  className="font-medium text-orange-600 hover:text-orange-700"
+                >
+                  Forgot password?
+                </button>
+              </div>
             )}
 
             <Button type="submit" variant="primary" className="w-full">

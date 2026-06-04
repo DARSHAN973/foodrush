@@ -4,9 +4,11 @@ import { useMemo } from "react";
 import useRestaurants from "../../hooks/useRestaurants";
 import RestaurantCard from "../../components/RestaurantCard";
 import Loading from "../../components/Loading";
+import ErrorMessage from "../../components/ErrorMessage";
 
 function Home() {
-  const { restaurants, loading } = useRestaurants();
+  // Custom hook usage — see hooks/useRestaurants.js for reusable fetch-state logic.
+  const { restaurants, loading, error } = useRestaurants();
 
   const trendingRestaurants = useMemo(() => {
     return [...restaurants].sort((a, b) => b.rating - a.rating).slice(0, 4);
@@ -80,6 +82,8 @@ function Home() {
 
           {loading ? (
             <Loading message="Loading trending restaurants..." />
+          ) : error ? (
+            <ErrorMessage message={error} />
           ) : (
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
               {trendingRestaurants.map((restaurant) => (

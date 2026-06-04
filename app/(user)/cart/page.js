@@ -15,6 +15,7 @@ export default function Cart() {
     increaseQty,
     decreaseQty,
     totalCartPrice,
+    // Shared cart state — see context/CartContext.js.
   } = useContext(CartContext);
 
   if (cartCount === 0) {

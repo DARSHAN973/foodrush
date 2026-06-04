@@ -105,7 +105,7 @@ public
   5. Check code quality in that same area.
 - Skip React Router because FoodRush now uses Next.js routing and future projects will use Next.js.
 
-## ✅ React Revision Covered In Latest Session
+## ✅ React Revision Covered So Far
 - Reusable component + props + `children`
   - Original reference: `components/Button.js`
 - Default props
@@ -136,22 +136,82 @@ public
 - Event handlers
   - `onChange={(e) => setSearchText(e.target.value)}`
   - Important idea: pass a function reference so React calls it later during the event.
+- Array lookup with `.find()`
+  - Original reference: `context/CartContext.js` → `addToCart`
+  - Used to check whether the same restaurant already exists in cart before adding.
+- `useState` for changing UI data
+  - Original cart/toast reference: `context/CartContext.js`
+  - Important idea: React must own changing UI data so updates re-render the UI.
+- Immutable state updates
+  - Original reference: `context/CartContext.js`
+  - Covered `map`, `filter`, spread, and the mental model:
+    copy state → change the copy → set the new value.
+- Derived values with `.reduce()`
+  - Original reference: `context/CartContext.js`
+  - `cartCount` sums quantities; `totalCartPrice` sums `price * quantity`.
+- `useEffect` for side effects
+  - Original localStorage reference: `context/CartContext.js`
+  - Covered syncing cart to `localStorage` after cart changes.
+- Lazy `useState` initializer
+  - Original reference: `context/CartContext.js`
+  - Used to read `localStorage` only once when cart state starts.
+- `JSON.stringify` / `JSON.parse`
+  - Original reference: `context/CartContext.js`
+  - Used because `localStorage` stores only strings.
+- `useEffect` cleanup
+  - Original toast timer reference: `context/CartContext.js`
+  - Cleanup clears the previous timeout so old timers do not affect newer toast messages.
+- Context Provider mental model
+  - Original reference: `context/CartContext.js`
+  - One provider owns shared cart state/actions so separate components stay in sync.
+- `useContext` consumer
+  - Original reference: `components/AddToCartButton.js`
+  - Repeated references: `components/RestaurantCard.js`, `components/Navbar.js`,
+    `components/Toast.js`, `app/(user)/cart/page.js`
+- Shared cart state across separate components
+  - `AddToCartButton` / `RestaurantCard` update cart.
+  - `Navbar` reads `cartCount`.
+  - `Toast` reads `toastMessage`.
+  - `cart/page.js` reads cart data and calls cart actions.
+- Custom hook
+  - Original reference: `hooks/useRestaurants.js`
+  - Repeated usage: `app/(user)/page.js`
+  - Important idea: extract reusable stateful logic, not reusable UI.
+- Custom hook consumer states
+  - `app/(user)/page.js` now reads `restaurants`, `loading`, and `error`.
+  - This avoids silently showing an empty trending section when fetch fails.
+- Form state object
+  - Original reference: `app/(user)/login/page.js`
+  - Related login/signup fields live in one `formData` object.
+- Dynamic form updates with computed property names
+  - Original reference: `app/(user)/login/page.js` → `[name]: value`
+  - One change handler updates any input whose `name` matches a `formData` key.
+- Form submit control
+  - Original reference: `app/(user)/login/page.js` → `e.preventDefault()`
+  - Prevents browser reload so React can validate and handle the form in state.
+- Validation errors object
+  - Original reference: `app/(user)/login/page.js`
+  - Collects all field errors first, then updates error state once.
+- Mode-specific validation
+  - Original reference: `app/(user)/login/page.js`
+  - Signup-only fields are validated only when `isSignup` is true.
+- Submit gate
+  - Original reference: `app/(user)/login/page.js`
+  - Continue only when `Object.keys(newError).length === 0`.
 
 ## ⏭️ Next React Revision Topics
-- Continue in `context/CartContext.js`.
-- Next concept to start with: `.find()` in `addToCart`.
-- Then cover:
-  - `useState` for cart and toast state
-  - immutable updates with `map`, `filter`, and spread
-  - `.reduce()` for `cartCount` and `totalCartPrice`
-  - `useEffect` for `localStorage`
-  - `useEffect` cleanup for toast timeout
-  - `useContext` and Provider mental model
-  - shared cart state across `RestaurantCard`, `AddToCartButton`, and `cart/page.js`
-  - event handlers for add/remove/increase/decrease quantity
-  - custom hook `hooks/useRestaurants.js`
-  - forms + validation in `app/(user)/login/page.js`
-  - reusable component quality pass for `Navbar`, `Footer`, `Toast`, `ScrollToTop`
+- Finish `app/(user)/login/page.js`
+  - `switchMode` logic: why switching login/signup clears errors, and whether it should reset form values.
+  - `Remember me` checkbox: decide whether to keep it UI-only or make it controlled state.
+- Cover behavior-only component pattern
+  - Reference: `components/ScrollToTop.js`
+  - Concepts: route-change side effect, `usePathname`, `useSearchParams`, and `return null`.
+- Reusable component quality pass
+  - Files: `Navbar`, `Footer`, `Toast`, `ScrollToTop`.
+  - Keep comments minimal; add only concept/reference comments where useful.
+- Final React cleanup pass
+  - Check comments are concept/WHY comments, not obvious/junk comments.
+  - Prefer one full original-reference comment and short repeated-reference comments.
 
 ## Full Learning Roadmap
 
@@ -230,15 +290,27 @@ public
 - Mini checkout app: cart + order flow
 
 ## Last Session Covered
-- Started React-first revision instead of continuing deeper Next.js.
-- Covered reusable components, props, children, default props, controlled inputs,
-  conditional rendering, list rendering, array filtering/sorting, derived data,
-  `useMemo`, and event-handler basics.
-- Decided comments should be added by Darshan after answering the WHY, not written
-  directly by the assistant.
-- Clarified JSX comment syntax: use `{/* ... */}` inside JSX.
+- Continued React-first revision using FoodRush files as the reference.
+- Covered cart state and actions in `context/CartContext.js`:
+  `.find()`, `useState`, immutable updates, `.reduce()`, `useEffect`,
+  lazy initializer, `localStorage`, serialization, and timeout cleanup.
+- Covered Context:
+  `CartContext.Provider`, `useContext`, shared cart state, and cart consumers in
+  `AddToCartButton`, `RestaurantCard`, `Navbar`, `Toast`, and `cart/page.js`.
+- Covered custom hook:
+  `hooks/useRestaurants.js` as reusable fetch-state logic, and homepage usage with
+  `restaurants`, `loading`, and `error`.
+- Covered form fundamentals in `app/(user)/login/page.js`:
+  `formData` object, dynamic `[name]: value`, `preventDefault`, validation
+  errors object, signup-only validation, and submit gate.
+- Corrected the revision workflow:
+  work concept-by-concept, ask Darshan the WHY first, then polish explanation and
+  provide clean comments. Avoid drifting line-by-line through a file.
 
 ## What's Next
-- Resume with `context/CartContext.js`.
-- First question: why does `addToCart` use `.find()` before adding a restaurant?
-- Keep reviewing code quality while learning each React concept.
+- Finish remaining React cleanup:
+  `switchMode`, `Remember me` checkbox decision, `ScrollToTop`, reusable component
+  quality pass, and final comment cleanup.
+- Then resume Next.js fundamentals:
+  start with `generateMetadata`, then SSR vs SSG vs CSR final revision, fetch
+  caching deeper practice, and route handlers/API routes.
