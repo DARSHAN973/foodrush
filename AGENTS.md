@@ -90,12 +90,12 @@ public
 - Migrated FoodRush to Next.js App Router
 - Client vs Server components (basics)
 - `useRouter`, `usePathname`, `useSearchParams` hooks
-- SSR vs SSG vs CSR (intro)
-- Next.js fetch caching basics (default, no-store, revalidate)
+- `generateMetadata` basics and dynamic metadata
+- SSR vs SSG vs CSR final revision
+- Next.js fetch caching basics and deeper practice (`revalidate`, `no-store`, shared server cache)
 
 ## 🔄 Current Revision Strategy
-- Pause deeper Next.js topics for now.
-- Finish React fundamentals first using FoodRush files as the reference.
+- Continue Next.js fundamentals using FoodRush files as the reference.
 - Work concept-by-concept, not file-by-file.
 - For each concept:
   1. Name the concept and file.
@@ -175,11 +175,11 @@ public
   - `cart/page.js` reads cart data and calls cart actions.
 - Custom hook
   - Original reference: `hooks/useRestaurants.js`
-  - Repeated usage: `app/(user)/page.js`
+  - Historical usage: `app/(user)/page.js` before the homepage moved to server fetching.
   - Important idea: extract reusable stateful logic, not reusable UI.
 - Custom hook consumer states
-  - `app/(user)/page.js` now reads `restaurants`, `loading`, and `error`.
-  - This avoids silently showing an empty trending section when fetch fails.
+  - Historical reference: `app/(user)/page.js` used to read `restaurants`, `loading`, and `error`.
+  - This remains useful as a React/CSR reference, but homepage initial data now prefers server fetching.
 - Form state object
   - Original reference: `app/(user)/login/page.js`
   - Related login/signup fields live in one `formData` object.
@@ -198,27 +198,28 @@ public
 - Submit gate
   - Original reference: `app/(user)/login/page.js`
   - Continue only when `Object.keys(newError).length === 0`.
-
-## ⏭️ Next React Revision Topics
-- Finish `app/(user)/login/page.js`
-  - `switchMode` logic: why switching login/signup clears errors, and whether it should reset form values.
-  - `Remember me` checkbox: decide whether to keep it UI-only or make it controlled state.
-- Cover behavior-only component pattern
-  - Reference: `components/ScrollToTop.js`
-  - Concepts: route-change side effect, `usePathname`, `useSearchParams`, and `return null`.
-- Reusable component quality pass
-  - Files: `Navbar`, `Footer`, `Toast`, `ScrollToTop`.
-  - Keep comments minimal; add only concept/reference comments where useful.
-- Final React cleanup pass
-  - Check comments are concept/WHY comments, not obvious/junk comments.
-  - Prefer one full original-reference comment and short repeated-reference comments.
+- Mode switch cleanup
+  - Original reference: `app/(user)/login/page.js` → `switchMode`
+  - Validation errors belong to the current form mode and should clear when switching login/signup.
+- UI-only checkbox decision
+  - Original reference: `app/(user)/login/page.js` → Remember me
+  - Real remember-me behavior should be handled by auth/session logic, not by storing passwords.
+- Behavior-only component pattern
+  - Original reference: `components/ScrollToTop.js`
+  - Route-change side effect uses `usePathname`/`useSearchParams`; component returns `null`.
+- Active route styling
+  - Original reference: `components/Navbar.js`
+  - `usePathname()` reads the current URL so the matching nav link can receive active styles.
+- React reusable component quality pass
+  - Checked `Navbar`, `Footer`, `Toast`, and `ScrollToTop`.
+  - Final React comment cleanup completed.
 
 ## Full Learning Roadmap
 
 ### 🔄 Phase 1 — Next.js Fundamentals (In Progress)
-- [ ] 1. generateMetadata properly (SEO titles/descriptions)
-- [ ] 2. SSR vs SSG vs CSR final revision
-- [ ] 3. fetch caching deeper practice
+- [x] 1. generateMetadata properly (SEO titles/descriptions)
+- [x] 2. SSR vs SSG vs CSR final revision
+- [x] 3. fetch caching deeper practice
 - [ ] 4. Route handlers / API routes (GET /api/restaurants, GET /api/restaurants/[id], POST /api/orders)
 - [ ] 5. Environment variables basics
 - [ ] 6. Middleware + protected route basics
@@ -230,10 +231,19 @@ public
 
 ### 🔄 Phase 2 — FoodRush UI Polish & Next.js Upgrade
 - [ ] 12. Finish converting restaurant detail special files (loading, error, not-found)
-- [ ] 13. Improve homepage with server fetching
-- [ ] 14. Improve filters/search using searchParams or client state
+- [x] 13. Improve homepage with server fetching
+- [ ] 14. Improve filters/search using `searchParams`
 - [ ] 15. Polish Next Image usage
 - [ ] 16. Mobile responsive pass
+
+### 🧹 Future FoodRush Refactor Tasks
+- Extract shared server restaurant helpers into a reusable module, likely `lib/restaurants.js`.
+  - Move repeated `getRestaurants()` logic there so homepage and restaurants page use the same URL, error handling, and `revalidate` option.
+  - Consider moving `getRestaurant(id)` there too so restaurant detail page and `generateMetadata` share the same helper.
+- Practice `searchParams` by converting restaurant filters/search/sort into URL state.
+  - Example target URL: `/restaurants?cuisine=Italian&sort=rating`.
+  - Goal: refresh/share/back-button should preserve selected filters.
+- Keep `cache: "no-store"` as a future real-code comment only when FoodRush actually uses it for user/admin/payment data.
 
 ### ⏳ Phase 3 — Web & Browser Fundamentals (Don't skip)
 - [ ] 17. How HTTP works (request, response, status codes)
@@ -290,27 +300,29 @@ public
 - Mini checkout app: cart + order flow
 
 ## Last Session Covered
-- Continued React-first revision using FoodRush files as the reference.
-- Covered cart state and actions in `context/CartContext.js`:
-  `.find()`, `useState`, immutable updates, `.reduce()`, `useEffect`,
-  lazy initializer, `localStorage`, serialization, and timeout cleanup.
-- Covered Context:
-  `CartContext.Provider`, `useContext`, shared cart state, and cart consumers in
-  `AddToCartButton`, `RestaurantCard`, `Navbar`, `Toast`, and `cart/page.js`.
-- Covered custom hook:
-  `hooks/useRestaurants.js` as reusable fetch-state logic, and homepage usage with
-  `restaurants`, `loading`, and `error`.
-- Covered form fundamentals in `app/(user)/login/page.js`:
-  `formData` object, dynamic `[name]: value`, `preventDefault`, validation
-  errors object, signup-only validation, and submit gate.
-- Corrected the revision workflow:
-  work concept-by-concept, ask Darshan the WHY first, then polish explanation and
-  provide clean comments. Avoid drifting line-by-line through a file.
+- Finished React revision cleanup:
+  `switchMode`, Remember me decision, behavior-only `ScrollToTop`, active route
+  styling with `usePathname`, Toast `return null`, and reusable component quality pass.
+- Finalized comments for already-learned Next.js concepts:
+  root/nested layouts, route groups, `page.js`, server/client split, route-level
+  loading/error/not-found, `notFound()`, Next Image remote config, dynamic params,
+  `generateMetadata`, `generateStaticParams`, and fetch cache comments.
+- Covered `generateMetadata` properly:
+  dynamic metadata uses `params`, page UI and metadata have different jobs, and
+  identical server fetches can be memoized by Next.js.
+- Completed SSR vs SSG vs CSR final revision:
+  server render, static generation, client render after hydration, route-level
+  loading/error vs client loading/error, and why initial page data should be
+  fetched on the server when possible.
+- Completed fetch caching deeper practice:
+  `revalidate: 60`, stale vs realtime data, `cache: "no-store"` for future
+  admin/user/payment data, and same URL + same options server fetch cache reuse.
+- Started FoodRush Next.js upgrade:
+  converted `app/(user)/page.js` homepage to server fetching for initial trending
+  restaurant data and removed the old CSR loading/error pattern from that page.
 
 ## What's Next
-- Finish remaining React cleanup:
-  `switchMode`, `Remember me` checkbox decision, `ScrollToTop`, reusable component
-  quality pass, and final comment cleanup.
-- Then resume Next.js fundamentals:
-  start with `generateMetadata`, then SSR vs SSG vs CSR final revision, fetch
-  caching deeper practice, and route handlers/API routes.
+- Continue Next.js fundamentals with Route handlers / API routes:
+  `GET /api/restaurants`, `GET /api/restaurants/[id]`, and later `POST /api/orders`.
+- Future practical tasks:
+  extract shared restaurant fetch helpers and practice URL filters with `searchParams`.

@@ -39,13 +39,22 @@ async function getRestaurant(id) {
 // Dynamic routes can use params so each restaurant gets its own title/description.
 export async function generateMetadata({ params }) {
   const { id } = await params;
-  const restaurant = await getRestaurant(id);
+  // Next.js can memoize identical server fetches during the same render,
+  // so generateMetadata and the page can safely request the same data.
+  try {
+    const restaurant = await getRestaurant(id);
 
-  return {
-    title: `${restaurant.name} | FoodRush`,
-    description: `Order from ${restaurant.name} on FoodRush`,
-  };
-}
+    return {
+      title: `${restaurant.name} | FoodRush`,
+      description: `Order from ${restaurant.name} on FoodRush`,
+    };
+  } catch {
+    return {
+      title: "Restaurant | FoodRush",
+      description: "View restaurant details on FoodRush",
+    };
+  }
+};
 
 // Dynamic route params — [id] in the folder name becomes params.id,
 // so one page component can render different restaurant detail pages.

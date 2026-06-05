@@ -1,19 +1,25 @@
-"use client";
 import Link from "next/link";
-import { useMemo } from "react";
-import useRestaurants from "../../hooks/useRestaurants";
 import RestaurantCard from "../../components/RestaurantCard";
-import Loading from "../../components/Loading";
-import ErrorMessage from "../../components/ErrorMessage";
 
-function Home() {
-  // Client loading/error state — needed for CSR fetching because the browser
-  // starts with no data and updates the UI after the request finishes.
-  const { restaurants, loading, error } = useRestaurants();
+async function getRestaurants() {
+  const res = await fetch("https://dummyjson.com/recipes", {
+    next: { revalidate: 60 },
+  });
 
-  const trendingRestaurants = useMemo(() => {
-    return [...restaurants].sort((a, b) => b.rating - a.rating).slice(0, 4);
-  }, [restaurants]);
+  if (!res.ok) {
+    throw new Error("Failed to fetch restaurants");
+  }
+
+  const data = await res.json();
+  return data.recipes;
+}
+
+export default async function Home() {
+  const restaurants = await getRestaurants();
+
+  const trendingRestaurants = [...restaurants]
+    .sort((a, b) => b.rating - a.rating)
+    .slice(0, 4);
 
   return (
     <main className="min-h-screen bg-gray-50">
@@ -83,17 +89,11 @@ function Home() {
             </Link>
           </div>
 
-          {loading ? (
-            <Loading message="Loading trending restaurants..." />
-          ) : error ? (
-            <ErrorMessage message={error} />
-          ) : (
-            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-              {trendingRestaurants.map((restaurant) => (
-                <RestaurantCard key={restaurant.id} restaurant={restaurant} />
-              ))}
-            </div>
-          )}
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            {trendingRestaurants.map((restaurant) => (
+              <RestaurantCard key={restaurant.id} restaurant={restaurant} />
+            ))}
+          </div>
         </section>
 
         <section className="mt-10">
@@ -224,5 +224,3 @@ function Home() {
     </main>
   );
 }
-
-export default Home;
