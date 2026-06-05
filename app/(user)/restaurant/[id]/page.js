@@ -3,19 +3,27 @@ import Image from "next/image";
 import { notFound } from "next/navigation";
 import AddToCartButton from "@/components/AddToCartButton";
 
+// generateStaticParams — tells Next.js which dynamic routes to pre-build
+// at build time. This is SSG for known restaurant detail pages.
 export async function generateStaticParams() {
   const response = await fetch("https://dummyjson.com/recipes?limit=10");
 
   const data = await response.json();
 
+  // Each returned id becomes one pre-built route, like /restaurant/1.
   return data.recipes.map((restaurant) => ({
+    // Dynamic route params must be strings.
     id: String(restaurant.id),
   }));
 }
 
+// Server fetching in page.js — this runs before the page HTML is sent,
+// so the route can render with restaurant data already available.
 async function getRestaurant(id) {
   const response = await fetch(`https://dummyjson.com/recipes/${id}`);
 
+  // notFound() — stops rendering this page and shows the nearest not-found.js
+  // when the requested restaurant does not exist.
   if (response.status === 404) {
     notFound();
   }
@@ -27,6 +35,8 @@ async function getRestaurant(id) {
   return response.json();
 }
 
+// generateMetadata — builds page-specific SEO data on the server.
+// Dynamic routes can use params so each restaurant gets its own title/description.
 export async function generateMetadata({ params }) {
   const { id } = await params;
   const restaurant = await getRestaurant(id);
@@ -37,7 +47,10 @@ export async function generateMetadata({ params }) {
   };
 }
 
+// Dynamic route params — [id] in the folder name becomes params.id,
+// so one page component can render different restaurant detail pages.
 export default async function RestaurantDetails({ params }) {
+  // params contains the dynamic URL values for this route, like /restaurant/5.
   const { id } = await params;
   const restaurant = await getRestaurant(id);
 
@@ -52,6 +65,8 @@ export default async function RestaurantDetails({ params }) {
         </Link>
 
         <section className="grid gap-8 rounded-lg bg-white p-6 shadow-sm lg:grid-cols-2">
+          {/* Next Image — optimizes image loading, but remote image URLs must be
+              allowed in next.config.js before Next.js can render them. */}
           <Image
             src={restaurant.image}
             alt={restaurant.name}

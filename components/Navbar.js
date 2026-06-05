@@ -8,6 +8,8 @@ import { usePathname } from "next/navigation";
 export default function Navbar() {
   // Shared cart state — see context/CartContext.js.
   const { cartCount } = useContext(CartContext);
+  // Active route state — read the current URL path so the matching nav link
+  // can receive active styles instead of hardcoding one active item.
   const pathname = usePathname();
   return (
     <nav className="sticky top-0 z-50 flex flex-col gap-3 bg-orange-600 px-4 py-4 text-white shadow-md sm:flex-row sm:items-center sm:justify-between sm:px-6">
@@ -17,6 +19,7 @@ export default function Navbar() {
       <div>
         <ul className="flex flex-wrap items-center justify-center gap-2 sm:gap-4">
           <li>
+            {/* Next Link — navigates between App Router pages without a full browser reload. */}
             <Link
               href="/"
               className={`rounded-md px-3 py-2 text-sm font-semibold transition sm:text-base ${
@@ -62,6 +65,8 @@ export default function Navbar() {
               }`}
             >
               Cart
+              {/* Conditional badge — show cart count only when there are items,
+                  so the navbar stays clean when the cart is empty. */}
               {cartCount > 0 && (
                 <span className="absolute -right-1 -top-2 flex h-5 min-w-5 items-center justify-center rounded-full bg-gray-900 px-1 text-xs font-bold text-white shadow-sm">
                   {cartCount}

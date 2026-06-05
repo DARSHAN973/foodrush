@@ -73,7 +73,8 @@ function Login() {
       );
     }
   };
-
+  // Mode switch cleanup — validation errors belong to the current form mode,
+  // so clear them when moving between login and signup.
   const switchMode = () => {
     setIsSignup(!isSignup);
     setErrors({});
@@ -195,6 +196,8 @@ function Login() {
             {!isSignup && (
               <div className="flex items-center justify-between text-sm">
                 <label className="flex items-center gap-2 text-gray-600">
+                  {/* UI-only checkbox for now — real "remember me" behavior should be handled
+                      by the auth/session system, not by storing passwords in React state. */}
                   <input type="checkbox" className="rounded border-gray-300" />
                   Remember me
                 </label>

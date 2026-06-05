@@ -7,7 +7,8 @@ import Loading from "../../components/Loading";
 import ErrorMessage from "../../components/ErrorMessage";
 
 function Home() {
-  // Custom hook usage — see hooks/useRestaurants.js for reusable fetch-state logic.
+  // Client loading/error state — needed for CSR fetching because the browser
+  // starts with no data and updates the UI after the request finishes.
   const { restaurants, loading, error } = useRestaurants();
 
   const trendingRestaurants = useMemo(() => {
@@ -24,6 +25,8 @@ function Home() {
           loop
           playsInline
         >
+          {/* Public asset path — files inside /public are served from the site root,
+              so public/videos/hero-video.mp4 is referenced as /videos/hero-video.mp4. */}
           <source src="/videos/hero-video.mp4" type="video/mp4" />
         </video>
 

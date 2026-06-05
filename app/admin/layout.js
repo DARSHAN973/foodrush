@@ -5,11 +5,13 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-//Nested admin layout - gives every /admin route the same dashboard shell.
+// Nested admin layout — gives every /admin route the same dashboard shell.
 export default function AdminLayout({ children }) {
-  //usePathname() reads the current URL so the active sidebar link can be styled.
+  // Active route state — see components/Navbar.js.
   const pathname = usePathname();
-  //Derived class helper - keeps active/inactive nav styling in one place instead of repeating logic for each Link
+
+  // Derived class helper — keeps active/inactive nav styling in one place
+  // instead of repeating logic for each Link.
   function navLinkClass(href) {
     const isActive = pathname === href;
 

@@ -1,5 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // Remote image config — Next Image only renders external images
+  // from domains that are explicitly allowed here.
   images: {
     remotePatterns: [
       {

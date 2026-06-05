@@ -5,6 +5,7 @@ function Toast() {
   // Shared cart state — see context/CartContext.js.
   const { toastMessage } = useContext(CartContext);
 
+  // return null pattern — see components/ErrorMessage.js.
   if (!toastMessage) {
     return null;
   }

@@ -1,4 +1,6 @@
 "use client";
+// Client Component boundary — needed because this file uses React state/effects
+// and browser-only APIs like localStorage after hydration.
 
 import { createContext, useEffect, useState } from "react";
 
