@@ -19,23 +19,25 @@
 - For revision/comment sessions: ask me the WHY first, then give me the clean
   comment to paste/type myself. Do not directly edit comments into files unless
   I explicitly ask.
-- dont change any code without my permission.
+- Do not change code without my permission.
+
 ## FoodRush As My Reference Project — IMPORTANT
-- FoodRush is not just a learning project — it is my personal reference bible
-- Every concept I learn gets commented properly in the actual file where it first appears
-- Future projects I will read FoodRush code instead of docs or AI for patterns
-- So code quality must always be clean, production-grade, and well structured
-- Always help me write code I can be proud of and reuse
+- FoodRush is not just a learning project — it is my personal reference bible.
+- Every concept I learn gets commented properly in the actual file where it first appears.
+- Future projects I will read FoodRush code instead of docs or AI for patterns.
+- So code quality must always be clean, production-grade, and well structured.
+- Always help me write code I can be proud of and reuse.
+- Keep `mysql.md` and `prisma.md` updated after database/Prisma learning sessions.
 
 ## Commenting Strategy — ALWAYS FOLLOW THIS
-- Comment the WHY and the concept name, not the obvious what
-- First time a concept appears → full explanation comment
+- Comment the WHY and the concept name, not the obvious what.
+- First time a concept appears → full explanation comment.
 - Same concept in another file → one line + reference like:
   // See app/(user)/restaurants/page.js → generateStaticParams
-- Never comment obvious things like "this is a useState" or "this adds 1"
-- Comment complex logic always
-- Comment after each session — not at the end of the whole project
-- Tailwind/styling → NO comments needed, AI handles that anyway
+- Never comment obvious things like "this is a useState" or "this adds 1".
+- Comment complex logic always.
+- Comment after each session — not at the end of the whole project.
+- Tailwind/styling → NO comments needed, AI handles that anyway.
 - Outside JSX use `// comment`.
 - Inside JSX use `{/* comment */}` because JSX needs `{}` to enter JavaScript mode.
 
@@ -52,7 +54,7 @@ export async function generateStaticParams() {
 ## My Current Project
 - Name: FoodRush (food delivery app like Swiggy/Zomato)
 - Path: `/home/darshan/darshan/web_development_revision/foodrush`
-- Stack: Next.js App Router, Tailwind CSS, React
+- Stack: Next.js App Router, Tailwind CSS, React, MySQL, Prisma
 - Product identity: FoodRush is a food ordering app, not a recipe finder.
   Temporary DummyJSON recipe data is only placeholder data.
 - Correct future product flow:
@@ -91,9 +93,38 @@ context
 └── CartContext.js
 hooks
 └── useRestaurants.js
+lib
+├── restaurants.js
+└── generated Prisma client output removed in favor of standard @prisma/client
+prisma
+├── schema.prisma
+├── seed.js
+└── migrations
 public
 └── videos/hero-video.mp4
 ```
+
+## Current Database / Prisma State
+- MySQL is installed and running locally.
+- phpMyAdmin is installed and used for visual MySQL practice.
+- `foodrush_db` is the local Prisma-owned database.
+- Prisma version: `7.8.0`.
+- Prisma 7 requires a driver adapter; FoodRush uses `@prisma/adapter-mariadb`.
+- Current Prisma models: `Restaurant`, `MenuItem`.
+- Current schema has:
+  - `Restaurant` → `MenuItem[]`
+  - `MenuItem.restaurantId` → `Restaurant.id`
+  - native decimal types: `rating @db.Decimal(2, 1)`, `price @db.Decimal(10, 2)`
+  - `imageUrl String?`
+  - `isActive` and `isAvailable`
+  - `createdAt` and `updatedAt`
+- Current seed file:
+  - uses Prisma 7 MariaDB adapter
+  - uses `deleteMany()` to clear child rows before parent rows
+  - uses nested create for one restaurant and one menu item
+- Reference files:
+  - `mysql.md` for SQL/MySQL notes
+  - `prisma.md` for Prisma notes
 
 ## ✅ Already Covered
 - React basics
@@ -107,6 +138,17 @@ public
 - Next.js fetch caching basics and deeper practice (`revalidate`, `no-store`, shared server cache)
 - Route handler GET basics: `GET /api/restaurants`, `GET /api/restaurants/[id]`,
   `Response.json()`, dynamic `params`, and `200`/`404`/`500` responses
+- MySQL basics with FoodRush examples:
+  database, table, row, column, data types, constraints, primary key, foreign key,
+  CRUD SQL, joins, aliases, aggregate functions, `GROUP BY`, `LEFT JOIN`,
+  `HAVING`, basic transaction idea, indexes, many-to-many, NULL vs NOT NULL,
+  and schema design basics
+- Prisma basics so far:
+  setup, MySQL connection, Prisma 7 adapter, migrations, native DB types,
+  timestamps, active flags, image URL strategy, seed basics, `deleteMany`,
+  `findMany`, `findUnique`, `create`, `update`, `delete`, `createMany`,
+  `where`, `orderBy`, `include`, `select`, stale client fix with
+  `npx prisma generate`, and nested create basics
 
 ## Full Learning Roadmap
 
@@ -124,19 +166,12 @@ public
 - [ ] 11. generateStaticParams for dynamic restaurant pages
 
 ### 🔄 Temporary Learning Order Update
-- Start Phase 4 now before finishing all remaining Phase 1 backend topics.
-- Reason: MySQL + Prisma will make route handlers, orders, admin CRUD, and auth
+- Phase 4 was started before finishing all remaining Phase 1 backend topics.
+- Reason: MySQL + Prisma makes route handlers, orders, admin CRUD, and auth
   more real instead of practicing fake POST routes without persistence.
-- Learn environment variables naturally during Prisma setup because Prisma needs
-  `DATABASE_URL`.
-- Current database learning order:
-  1. Finish Prisma setup files/packages in the FoodRush project.
-  2. Revise MySQL basics using FoodRush examples: database, table, row, column,
-     primary key, foreign key, and one-to-many relations.
-  3. Write Prisma schema only after the MySQL meaning is clear.
-  4. Run the first migration and inspect the created MySQL tables.
-- Park serious `POST /api/orders`, CRUD APIs, middleware, cookies, and auth until
-  after the database foundation is in place.
+- Environment variables are being learned naturally through Prisma `DATABASE_URL`.
+- Park serious `POST /api/orders`, full CRUD APIs, middleware, cookies, and auth
+  until Prisma/database foundations are stronger.
 
 ### 🔄 Phase 2 — FoodRush UI Polish & Next.js Upgrade
 - [ ] 12. Finish converting restaurant detail special files (loading, error, not-found)
@@ -154,6 +189,8 @@ public
   - Example target URL: `/restaurants?cuisine=Italian&sort=rating`.
   - Goal: refresh/share/back-button should preserve selected filters.
 - Keep `cache: "no-store"` as a future real-code comment only when FoodRush actually uses it for user/admin/payment data.
+- Replace DummyJSON recipe-shaped data with real FoodRush database data.
+- Refactor restaurant detail page from recipe ingredients/instructions to real restaurant menu items.
 
 ### ⏳ Phase 3 — Web & Browser Fundamentals (Don't skip)
 - [ ] 17. How HTTP works (request, response, status codes)
@@ -164,17 +201,31 @@ public
 - [ ] 22. CORS — what it is and why it breaks things
 - [ ] 23. Fetch API deeply vs Axios
 
-### ⏳ Phase 4 — MySQL + Prisma
-- [ ] 24. MySQL basics
-- [ ] 25. Prisma setup + connect to MySQL
+### 🔄 Phase 4 — MySQL + Prisma (In Progress)
+- [x] 24. MySQL basics
+- [x] 25. Prisma setup + connect to MySQL
 - [ ] 26. Schema design (User, Restaurant, MenuItem, Order, OrderItem, Cart)
+  - Current schema has `Restaurant` and `MenuItem`.
+  - `Order`, `OrderItem`, `Cart/CartItem`, and `User` are still pending.
 - [ ] 27. Prisma CRUD operations
+  - Basics started: `findMany`, `findUnique`, `create`, `update`, `delete`,
+    `deleteMany`, `createMany`, `where`, `orderBy`, `include`, `select`.
+  - Still need more practical FoodRush use cases.
 - [ ] 28. Relations & joins properly
+  - MySQL joins covered.
+  - Prisma relation queries started with `include` and `select`.
+  - Still need `connect`, `connectOrCreate`, and deeper relation practice.
 - [ ] 29. Transactions in Prisma
 - [ ] 30. Seed database with dummy data
+  - Basic seed file started.
+  - Still need multiple restaurants/menu items and real image URLs.
 - [ ] 31. Replace dummyjson API with real database
 - [ ] 32. Build backend APIs
 - [ ] 32a. Return to real route handlers with database-backed CRUD
+- [ ] 32b. Revisit deeper MySQL topics after Prisma basics:
+  indexes in Prisma, many-to-many in Prisma, deeper transactions,
+  normalization, performance, locks/concurrency, views, stored procedures,
+  and triggers.
 
 ### ⏳ Phase 5 — Authentication + Cart + Orders
 - [ ] 33. NextAuth.js setup
@@ -210,42 +261,56 @@ public
 - Auth notes app: protected routes
 - Mini checkout app: cart + order flow
 
+## Current Prisma Topics Pending For Next Session
+Resume here:
+
+```txt
+1. Finish nested create with multiple menu items
+2. Seed multiple restaurants and menu items
+3. createMany vs nested create
+4. connect and connectOrCreate basics
+5. findUnique with select/include for restaurant detail pages
+6. Practical update queries
+7. delete vs soft delete with isActive/isAvailable
+8. Reusable Prisma Client helper for Next.js
+9. Using Prisma inside route handlers/server code
+10. Prisma error handling
+11. Build database-backed GET /api/restaurants
+12. Build database-backed GET /api/restaurants/[id]
+```
+
 ## Last Session Covered
-- Finished React revision cleanup:
-  `switchMode`, Remember me decision, behavior-only `ScrollToTop`, active route
-  styling with `usePathname`, Toast `return null`, and reusable component quality pass.
-- Finalized comments for already-learned Next.js concepts:
-  root/nested layouts, route groups, `page.js`, server/client split, route-level
-  loading/error/not-found, `notFound()`, Next Image remote config, dynamic params,
-  `generateMetadata`, `generateStaticParams`, and fetch cache comments.
-- Covered `generateMetadata` properly:
-  dynamic metadata uses `params`, page UI and metadata have different jobs, and
-  identical server fetches can be memoized by Next.js.
-- Completed SSR vs SSG vs CSR final revision:
-  server render, static generation, client render after hydration, route-level
-  loading/error vs client loading/error, and why initial page data should be
-  fetched on the server when possible.
-- Completed fetch caching deeper practice:
-  `revalidate: 60`, stale vs realtime data, `cache: "no-store"` for future
-  admin/user/payment data, and same URL + same options server fetch cache reuse.
-- Started FoodRush Next.js upgrade:
-  converted `app/(user)/page.js` homepage to server fetching for initial trending
-  restaurant data and removed the old CSR loading/error pattern from that page.
-- Completed shared restaurant helper refactor:
-  moved reusable restaurant fetching into `lib/restaurants.js`, updated homepage,
-  restaurants page, restaurant detail page, and `generateMetadata` to use helpers.
 - Completed route handler GET basics:
-  built `GET /api/restaurants` and `GET /api/restaurants/[id]`, practiced
-  `Response.json()`, dynamic route params, Thunder Client testing, `404` for
-  missing detail data, and `500` for unexpected fetch/server failures.
+  `GET /api/restaurants`, `GET /api/restaurants/[id]`, `Response.json()`,
+  dynamic route params, Thunder Client testing, `404` for missing detail data,
+  and `500` for unexpected fetch/server failures.
 - Updated client-side `useRestaurants()` reference hook to fetch from
   `/api/restaurants` instead of calling DummyJSON directly.
+- Reset/repaired local MySQL setup and got `sudo mysql` working again.
+- Installed/used phpMyAdmin for visual MySQL practice.
+- Practiced MySQL topics in `foodrush_db`: table creation, inserts, selects,
+  filters, sorting, updates, deletes, data types, constraints, foreign keys,
+  joins, aliases, aggregates, `GROUP BY`, `LEFT JOIN`, `HAVING`,
+  `ON DELETE`, basic transactions, indexes, many-to-many, NULL vs NOT NULL,
+  and schema design.
+- Created `mysql.md` with SQL revision notes.
+- Installed Prisma and connected it to local MySQL.
+- Added Prisma 7 MariaDB adapter because `new PrismaClient()` alone fails in Prisma 7.
+- Created/migrated current Prisma models: `Restaurant` and `MenuItem`.
+- Practiced Prisma migrations for decimal native types, timestamps,
+  active flags, menu item images, and `updatedAt` defaults.
+- Created `prisma.md` with Prisma revision notes.
+- Started seed script with repeat-safe cleanup and nested create.
+- Practiced Prisma read queries through `prisma/test-query.js`:
+  `findMany`, `where`, `orderBy`, `include`, `select`, and stale client
+  regeneration with `npx prisma generate`.
 
 ## What's Next
-- Start MySQL + Prisma foundation now:
-  finish Prisma setup, revise MySQL basics, create `DATABASE_URL`, design the
-  first real FoodRush ordering schema, run the first migration, and open Prisma Studio.
-- Return to `POST /api/orders` and real CRUD route handlers after Prisma/database
-  basics are understood.
-- Future practical tasks:
-  practice URL filters with `searchParams`.
+- Continue Prisma topic-wise from nested create.
+- Expand seed data to multiple restaurants and menu items with real image URLs.
+- Learn `createMany`, `connect`, `connectOrCreate`, updates, soft deletes,
+  and a reusable Prisma Client helper.
+- Then replace DummyJSON with database-backed helpers/API routes.
+- Tomorrow/revision idea:
+  read `mysql.md` and `prisma.md`, then do a quiz plus small practical tasks.
+

@@ -412,3 +412,429 @@ ON m.restaurant_id = r.id
 GROUP BY r.id, r.name;
 ```
 
+## LEFT JOIN
+
+Normal `JOIN` only shows rows that have a match in both tables.
+
+`LEFT JOIN` keeps every row from the left table, even if the right table has no match.
+
+Example: show every restaurant, including restaurants with zero menu items.
+
+```sql
+SELECT
+  r.name AS restaurant,
+  COUNT(m.id) AS total_items
+FROM restaurants AS r
+LEFT JOIN menu_items AS m
+ON m.restaurant_id = r.id
+GROUP BY r.id, r.name;
+```
+
+Memory:
+
+```txt
+JOIN      = only matching rows
+LEFT JOIN = all left-table rows, plus matching right-table rows when available
+```
+
+## COALESCE
+
+`COALESCE(value, fallback)` returns the fallback when the value is `NULL`.
+
+Example: average menu item price per restaurant. Restaurants with no menu items get `0` instead of `NULL`.
+
+```sql
+SELECT
+  r.name AS restaurant,
+  COALESCE(AVG(m.price), 0) AS average_price
+FROM restaurants AS r
+LEFT JOIN menu_items AS m
+ON m.restaurant_id = r.id
+GROUP BY r.id, r.name;
+```
+
+## HAVING
+
+`WHERE` filters normal rows before grouping.
+
+`HAVING` filters grouped results after aggregate functions like `COUNT`, `SUM`, and `AVG`.
+
+Show only restaurants that have 2 or more menu items:
+
+```sql
+SELECT
+  r.name AS restaurant,
+  COUNT(m.id) AS total_items
+FROM restaurants AS r
+LEFT JOIN menu_items AS m
+ON m.restaurant_id = r.id
+GROUP BY r.id, r.name
+HAVING COUNT(m.id) >= 2;
+```
+
+Show restaurants with zero menu items:
+
+```sql
+SELECT
+  r.name AS restaurant,
+  COUNT(m.id) AS total_items
+FROM restaurants AS r
+LEFT JOIN menu_items AS m
+ON m.restaurant_id = r.id
+GROUP BY r.id, r.name
+HAVING COUNT(m.id) = 0;
+```
+
+Memory:
+
+```txt
+WHERE  = filter rows before GROUP BY
+HAVING = filter groups after GROUP BY
+```
+
+## UNIQUE Constraint
+
+`UNIQUE` prevents duplicate values.
+
+Example for future auth:
+
+```sql
+CREATE TABLE users (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(100) NOT NULL,
+  email VARCHAR(255) NOT NULL UNIQUE,
+  password VARCHAR(255) NOT NULL
+);
+```
+
+Meaning:
+
+```txt
+email is required
+email cannot repeat
+```
+
+## ON DELETE Behavior
+
+A foreign key does not automatically delete child rows.
+
+This foreign key protects data:
+
+```sql
+FOREIGN KEY (restaurant_id) REFERENCES restaurants(id)
+```
+
+If menu items still reference a restaurant, MySQL blocks deleting that restaurant.
+
+Example error:
+
+```txt
+Cannot delete or update a parent row: a foreign key constraint fails
+```
+
+To automatically delete child rows, the relationship must use `ON DELETE CASCADE`:
+
+```sql
+FOREIGN KEY (restaurant_id)
+REFERENCES restaurants(id)
+ON DELETE CASCADE
+```
+
+Meaning:
+
+```txt
+If restaurant is deleted, delete its menu items too.
+```
+
+For order history, be more careful. Old orders should usually survive even if menu items change or get deleted.
+
+Better order-item design stores snapshots:
+
+```txt
+menu_item_id nullable
+item_name snapshot
+price_at_order_time snapshot
+quantity
+```
+
+Then `menu_item_id` can use `ON DELETE SET NULL`, while old order details stay readable.
+
+## Transactions
+
+A transaction keeps multiple database changes together.
+
+Memory:
+
+```txt
+START TRANSACTION = open temporary work area
+COMMIT            = save all changes permanently
+ROLLBACK          = undo all pending changes
+```
+
+Safe rollback practice:
+
+```sql
+START TRANSACTION;
+
+INSERT INTO restaurants (name, cuisine, rating, delivery_time, image_url)
+VALUES ('Rollback Cafe', 'Cafe', 4.1, 20, 'https://example.com/rollback.jpg');
+
+SELECT *
+FROM restaurants
+WHERE name = 'Rollback Cafe';
+
+ROLLBACK;
+```
+
+After rollback, this should return no rows:
+
+```sql
+SELECT *
+FROM restaurants
+WHERE name = 'Rollback Cafe';
+```
+
+Simple order relationship:
+
+```txt
+orders table      = one row per order
+order_items table = food items inside that order
+
+orders.id
+  -> order_items.order_id
+```
+
+Transactions matter for order placement because one order usually needs multiple inserts. If one insert fails, the whole order should be rolled back so there is no half-created order.
+
+## Index Basics
+
+An index is a separate lookup helper that helps MySQL find rows faster.
+
+It does not rearrange the real table rows.
+
+Memory:
+
+```txt
+Table = real data
+Index = separate lookup map
+```
+
+Example:
+
+```sql
+CREATE INDEX idx_restaurants_cuisine
+ON restaurants (cuisine);
+```
+
+This helps queries like:
+
+```sql
+SELECT *
+FROM restaurants
+WHERE cuisine = 'Italian';
+```
+
+See indexes on a table:
+
+```sql
+SHOW INDEXES FROM restaurants;
+```
+
+Delete an index:
+
+```sql
+DROP INDEX idx_restaurants_cuisine
+ON restaurants;
+```
+
+Useful index targets:
+
+```txt
+columns used often in WHERE
+columns used often in JOIN
+columns used often in ORDER BY
+```
+
+Tradeoff:
+
+```txt
+Indexes make reads faster.
+Indexes make writes slightly slower.
+Indexes take extra storage.
+```
+
+## Many-to-Many Relationships
+
+Many-to-many means:
+
+```txt
+one record can connect to many records
+and each of those records can connect back to many records
+```
+
+FoodRush example:
+
+```txt
+one menu item can have many tags
+one tag can belong to many menu items
+```
+
+So we need a middle table:
+
+```txt
+menu_items
+tags
+menu_item_tags
+```
+
+Create tags:
+
+```sql
+CREATE TABLE tags (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(50) NOT NULL UNIQUE
+);
+```
+
+Create middle table:
+
+```sql
+CREATE TABLE menu_item_tags (
+  menu_item_id INT NOT NULL,
+  tag_id INT NOT NULL,
+  PRIMARY KEY (menu_item_id, tag_id),
+  FOREIGN KEY (menu_item_id) REFERENCES menu_items(id),
+  FOREIGN KEY (tag_id) REFERENCES tags(id)
+);
+```
+
+`PRIMARY KEY (menu_item_id, tag_id)` prevents the same pair from repeating.
+
+Insert tags:
+
+```sql
+INSERT INTO tags (name)
+VALUES
+('Veg'),
+('Spicy'),
+('Bestseller'),
+('Pizza');
+```
+
+Connect menu item `1` with tags `1`, `3`, and `4`:
+
+```sql
+INSERT INTO menu_item_tags (menu_item_id, tag_id)
+VALUES
+(1, 1),
+(1, 3),
+(1, 4);
+```
+
+Read tags for menu item `1`:
+
+```sql
+SELECT
+  m.name AS menu_item,
+  t.name AS tag
+FROM menu_items AS m
+JOIN menu_item_tags AS mt
+ON mt.menu_item_id = m.id
+JOIN tags AS t
+ON mt.tag_id = t.id
+WHERE m.id = 1;
+```
+
+## NULL vs NOT NULL
+
+Use `NOT NULL` when the app cannot work without that value.
+
+Use nullable columns when the value is genuinely optional.
+
+Examples:
+
+```sql
+name VARCHAR(100) NOT NULL
+price DECIMAL(10,2) NOT NULL
+restaurant_id INT NOT NULL
+```
+
+These are required because a menu item needs a name, price, and restaurant.
+
+Nullable examples:
+
+```sql
+description TEXT
+image_url VARCHAR(255)
+delivery_note TEXT
+```
+
+These are optional because the app can still work without them.
+
+Order history example:
+
+```txt
+order_items.menu_item_id can be nullable if item_name and price_at_order_time are stored as snapshots.
+```
+
+## Schema Design Basics
+
+Basic rules:
+
+```txt
+1. One table per real thing.
+2. Avoid comma-separated data in one column.
+3. Use foreign keys for relationships.
+4. Store snapshots for historical data like orders.
+5. Use NOT NULL for required app data.
+6. Use UNIQUE for values that must not repeat.
+7. Prefer soft delete for business data when history matters.
+```
+
+FoodRush starter schema:
+
+```txt
+restaurants
+menu_items
+orders
+order_items
+```
+
+Later:
+
+```txt
+users
+cart_items
+payments
+admin roles
+```
+
+## MySQL to Prisma Mapping Preview
+
+Same database idea, different syntax.
+
+```txt
+CREATE TABLE restaurants -> model Restaurant
+id INT PRIMARY KEY      -> id Int @id
+AUTO_INCREMENT          -> @default(autoincrement())
+VARCHAR/TEXT            -> String
+INT                     -> Int
+DECIMAL                 -> Decimal
+NULL allowed            -> ?
+NOT NULL                -> no ?
+FOREIGN KEY             -> @relation(...)
+```
+
+## Learn Later
+
+These topics are important, but should be revisited after Prisma/schema design makes them more concrete:
+
+```txt
+transactions deeply
+normalization
+database performance
+locks/concurrency
+views
+stored procedures
+triggers
+```
