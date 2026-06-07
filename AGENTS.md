@@ -53,6 +53,16 @@ export async function generateStaticParams() {
 - Name: FoodRush (food delivery app like Swiggy/Zomato)
 - Path: `/home/darshan/darshan/web_development_revision/foodrush`
 - Stack: Next.js App Router, Tailwind CSS, React
+- Product identity: FoodRush is a food ordering app, not a recipe finder.
+  Temporary DummyJSON recipe data is only placeholder data.
+- Correct future product flow:
+  user browses restaurants → opens a restaurant → sees menu items →
+  adds menu items to cart → places an order.
+- Future database/schema should model real ordering concepts:
+  `Restaurant`, `MenuItem`, `Cart/CartItem`, `Order`, `OrderItem`, and later `User`.
+- Do not design Prisma schema around DummyJSON recipe-only fields like
+  `ingredients` and `instructions`; those can disappear when real FoodRush data
+  replaces the placeholder API.
 
 ### Project Structure
 ```txt
@@ -63,13 +73,15 @@ app
 │   ├── layout.js
 │   ├── page.js
 │   ├── restaurants/page.js, loading.js, error.js
-│   ├── restaurant/[id]/page.js, loading.js, error.js, not-found.js
+│   ├── restaurants/[id]/page.js, loading.js, error.js, not-found.js
 │   ├── cart/page.js
 │   └── login/page.js
 ├── admin
 │   ├── layout.js, page.js
 │   ├── orders/page.js
 │   └── restaurants/page.js
+├── api
+│   └── restaurants/route.js, [id]/route.js
 components
 ├── AddToCartButton.js, Button.js, EmptyState.js
 ├── ErrorMessage.js, Footer.js, Input.js
@@ -93,6 +105,8 @@ public
 - `generateMetadata` basics and dynamic metadata
 - SSR vs SSG vs CSR final revision
 - Next.js fetch caching basics and deeper practice (`revalidate`, `no-store`, shared server cache)
+- Route handler GET basics: `GET /api/restaurants`, `GET /api/restaurants/[id]`,
+  `Response.json()`, dynamic `params`, and `200`/`404`/`500` responses
 
 ## Full Learning Roadmap
 
@@ -100,7 +114,7 @@ public
 - [x] 1. generateMetadata properly (SEO titles/descriptions)
 - [x] 2. SSR vs SSG vs CSR final revision
 - [x] 3. fetch caching deeper practice
-- [ ] 4. Route handlers / API routes (GET /api/restaurants, GET /api/restaurants/[id], POST /api/orders)
+- [x] 4. Route handlers / API routes GET basics (`GET /api/restaurants`, `GET /api/restaurants/[id]`)
 - [ ] 5. Environment variables basics
 - [ ] 6. Middleware + protected route basics
 - [ ] 7. Cookies & headers in Next.js (`cookies()`, `headers()`)
@@ -108,6 +122,21 @@ public
 - [ ] 9. Client vs Server components (deep dive)
 - [ ] 10. Streaming & Suspense
 - [ ] 11. generateStaticParams for dynamic restaurant pages
+
+### 🔄 Temporary Learning Order Update
+- Start Phase 4 now before finishing all remaining Phase 1 backend topics.
+- Reason: MySQL + Prisma will make route handlers, orders, admin CRUD, and auth
+  more real instead of practicing fake POST routes without persistence.
+- Learn environment variables naturally during Prisma setup because Prisma needs
+  `DATABASE_URL`.
+- Current database learning order:
+  1. Finish Prisma setup files/packages in the FoodRush project.
+  2. Revise MySQL basics using FoodRush examples: database, table, row, column,
+     primary key, foreign key, and one-to-many relations.
+  3. Write Prisma schema only after the MySQL meaning is clear.
+  4. Run the first migration and inspect the created MySQL tables.
+- Park serious `POST /api/orders`, CRUD APIs, middleware, cookies, and auth until
+  after the database foundation is in place.
 
 ### 🔄 Phase 2 — FoodRush UI Polish & Next.js Upgrade
 - [ ] 12. Finish converting restaurant detail special files (loading, error, not-found)
@@ -145,6 +174,7 @@ public
 - [ ] 30. Seed database with dummy data
 - [ ] 31. Replace dummyjson API with real database
 - [ ] 32. Build backend APIs
+- [ ] 32a. Return to real route handlers with database-backed CRUD
 
 ### ⏳ Phase 5 — Authentication + Cart + Orders
 - [ ] 33. NextAuth.js setup
@@ -204,11 +234,18 @@ public
 - Completed shared restaurant helper refactor:
   moved reusable restaurant fetching into `lib/restaurants.js`, updated homepage,
   restaurants page, restaurant detail page, and `generateMetadata` to use helpers.
-- Route handlers/API routes were started experimentally but are not marked covered.
-  Resume them in a fresh chat as a separate topic from shared helpers.
+- Completed route handler GET basics:
+  built `GET /api/restaurants` and `GET /api/restaurants/[id]`, practiced
+  `Response.json()`, dynamic route params, Thunder Client testing, `404` for
+  missing detail data, and `500` for unexpected fetch/server failures.
+- Updated client-side `useRestaurants()` reference hook to fetch from
+  `/api/restaurants` instead of calling DummyJSON directly.
 
 ## What's Next
-- Restart Next.js Route handlers / API routes from the beginning:
-  `GET /api/restaurants`, `GET /api/restaurants/[id]`, and later `POST /api/orders`.
+- Start MySQL + Prisma foundation now:
+  finish Prisma setup, revise MySQL basics, create `DATABASE_URL`, design the
+  first real FoodRush ordering schema, run the first migration, and open Prisma Studio.
+- Return to `POST /api/orders` and real CRUD route handlers after Prisma/database
+  basics are understood.
 - Future practical tasks:
   practice URL filters with `searchParams`.
