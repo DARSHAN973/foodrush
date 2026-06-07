@@ -1,18 +1,6 @@
 import Link from "next/link";
 import RestaurantCard from "../../components/RestaurantCard";
-
-async function getRestaurants() {
-  const res = await fetch("https://dummyjson.com/recipes", {
-    next: { revalidate: 60 },
-  });
-
-  if (!res.ok) {
-    throw new Error("Failed to fetch restaurants");
-  }
-
-  const data = await res.json();
-  return data.recipes;
-}
+import { getRestaurants } from "@/lib/restaurants";
 
 export default async function Home() {
   const restaurants = await getRestaurants();

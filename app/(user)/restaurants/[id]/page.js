@@ -2,47 +2,34 @@ import Link from "next/link";
 import Image from "next/image";
 import { notFound } from "next/navigation";
 import AddToCartButton from "@/components/AddToCartButton";
+import { getRestaurants, getRestaurant } from "@/lib/restaurants";
 
 // generateStaticParams — tells Next.js which dynamic routes to pre-build
 // at build time. This is SSG for known restaurant detail pages.
 export async function generateStaticParams() {
-  const response = await fetch("https://dummyjson.com/recipes?limit=10");
+  const restaurants = await getRestaurants();
 
-  const data = await response.json();
-
-  // Each returned id becomes one pre-built route, like /restaurant/1.
-  return data.recipes.map((restaurant) => ({
+  // Each returned id becomes one pre-built route, like /restaurants/1.
+  return restaurants.slice(0,10).map((restaurant) => ({
     // Dynamic route params must be strings.
     id: String(restaurant.id),
   }));
-}
-
-// Server fetching in page.js — this runs before the page HTML is sent,
-// so the route can render with restaurant data already available.
-async function getRestaurant(id) {
-  const response = await fetch(`https://dummyjson.com/recipes/${id}`);
-
-  // notFound() — stops rendering this page and shows the nearest not-found.js
-  // when the requested restaurant does not exist.
-  if (response.status === 404) {
-    notFound();
-  }
-
-  if (!response.ok) {
-    throw new Error("Failed to fetch restaurant details");
-  }
-
-  return response.json();
 }
 
 // generateMetadata — builds page-specific SEO data on the server.
 // Dynamic routes can use params so each restaurant gets its own title/description.
 export async function generateMetadata({ params }) {
   const { id } = await params;
-  // Next.js can memoize identical server fetches during the same render,
-  // so generateMetadata and the page can safely request the same data.
+
   try {
     const restaurant = await getRestaurant(id);
+
+    if (restaurant === null) {
+      return {
+        title: "Restaurant | FoodRush",
+        description: "View restaurant details on FoodRush",
+      };
+    }
 
     return {
       title: `${restaurant.name} | FoodRush`,
@@ -54,14 +41,19 @@ export async function generateMetadata({ params }) {
       description: "View restaurant details on FoodRush",
     };
   }
-};
+}
 
 // Dynamic route params — [id] in the folder name becomes params.id,
 // so one page component can render different restaurant detail pages.
 export default async function RestaurantDetails({ params }) {
-  // params contains the dynamic URL values for this route, like /restaurant/5.
+  // params contains the dynamic URL values for this route, like /restaurants/5.
   const { id } = await params;
   const restaurant = await getRestaurant(id);
+  // notFound() belongs in the page, not the shared helper.
+  // The helper returns null for missing data; the page decides to show not-found.js.
+  if (restaurant === null) {
+    notFound();
+  }
 
   return (
     <main className="min-h-screen bg-gray-50 px-6 py-8">

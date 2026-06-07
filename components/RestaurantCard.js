@@ -44,7 +44,7 @@ function RestaurantCard({ restaurant }) {
       <div className="mt-5 flex items-center justify-center gap-3">
         <Link
           className="rounded-md border border-orange-600 px-4 py-2 text-sm font-medium text-orange-600 transition hover:bg-orange-50"
-          href={`/restaurant/${restaurant.id}`}
+          href={`/restaurants/${restaurant.id}`}
         >
           View Details
         </Link>

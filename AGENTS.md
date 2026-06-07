@@ -19,7 +19,7 @@
 - For revision/comment sessions: ask me the WHY first, then give me the clean
   comment to paste/type myself. Do not directly edit comments into files unless
   I explicitly ask.
-
+- dont change any code without my permission.
 ## FoodRush As My Reference Project — IMPORTANT
 - FoodRush is not just a learning project — it is my personal reference bible
 - Every concept I learn gets commented properly in the actual file where it first appears
@@ -94,126 +94,6 @@ public
 - SSR vs SSG vs CSR final revision
 - Next.js fetch caching basics and deeper practice (`revalidate`, `no-store`, shared server cache)
 
-## 🔄 Current Revision Strategy
-- Continue Next.js fundamentals using FoodRush files as the reference.
-- Work concept-by-concept, not file-by-file.
-- For each concept:
-  1. Name the concept and file.
-  2. Ask me why the pattern exists.
-  3. Correct my explanation.
-  4. Give a clean comment for me to paste/type.
-  5. Check code quality in that same area.
-- Skip React Router because FoodRush now uses Next.js routing and future projects will use Next.js.
-
-## ✅ React Revision Covered So Far
-- Reusable component + props + `children`
-  - Original reference: `components/Button.js`
-- Default props
-  - Original reference: `components/Button.js`
-  - Repeated reference: `components/Loading.js`
-- Variant map pattern
-  - Original reference: `components/Button.js`
-- Controlled input component
-  - Original reference: `components/Input.js`
-  - Repeated reference: `components/RestaurantsClient.js`
-- Reusable display/feedback components
-  - `components/EmptyState.js`
-  - `components/Loading.js`
-  - `components/ErrorMessage.js`
-- Conditional rendering
-  - `message && (...)` in `components/EmptyState.js`
-  - `return null` in `components/ErrorMessage.js`
-- List rendering with `.map()` and stable `key`
-  - Reference area: `components/RestaurantsClient.js`
-- Filtering and sorting list data
-  - `.filter()` in `components/RestaurantsClient.js`
-  - copy before `.sort()` using `[...filteredRestaurants]`
-- Derived data
-  - `displayRestaurants` calculated from props + UI state
-- `useMemo`
-  - `cuisines` recalculates only when `restaurants` changes
-  - `displayRestaurants` recalculates when restaurants/search/filter/sort inputs change
-- Event handlers
-  - `onChange={(e) => setSearchText(e.target.value)}`
-  - Important idea: pass a function reference so React calls it later during the event.
-- Array lookup with `.find()`
-  - Original reference: `context/CartContext.js` → `addToCart`
-  - Used to check whether the same restaurant already exists in cart before adding.
-- `useState` for changing UI data
-  - Original cart/toast reference: `context/CartContext.js`
-  - Important idea: React must own changing UI data so updates re-render the UI.
-- Immutable state updates
-  - Original reference: `context/CartContext.js`
-  - Covered `map`, `filter`, spread, and the mental model:
-    copy state → change the copy → set the new value.
-- Derived values with `.reduce()`
-  - Original reference: `context/CartContext.js`
-  - `cartCount` sums quantities; `totalCartPrice` sums `price * quantity`.
-- `useEffect` for side effects
-  - Original localStorage reference: `context/CartContext.js`
-  - Covered syncing cart to `localStorage` after cart changes.
-- Lazy `useState` initializer
-  - Original reference: `context/CartContext.js`
-  - Used to read `localStorage` only once when cart state starts.
-- `JSON.stringify` / `JSON.parse`
-  - Original reference: `context/CartContext.js`
-  - Used because `localStorage` stores only strings.
-- `useEffect` cleanup
-  - Original toast timer reference: `context/CartContext.js`
-  - Cleanup clears the previous timeout so old timers do not affect newer toast messages.
-- Context Provider mental model
-  - Original reference: `context/CartContext.js`
-  - One provider owns shared cart state/actions so separate components stay in sync.
-- `useContext` consumer
-  - Original reference: `components/AddToCartButton.js`
-  - Repeated references: `components/RestaurantCard.js`, `components/Navbar.js`,
-    `components/Toast.js`, `app/(user)/cart/page.js`
-- Shared cart state across separate components
-  - `AddToCartButton` / `RestaurantCard` update cart.
-  - `Navbar` reads `cartCount`.
-  - `Toast` reads `toastMessage`.
-  - `cart/page.js` reads cart data and calls cart actions.
-- Custom hook
-  - Original reference: `hooks/useRestaurants.js`
-  - Historical usage: `app/(user)/page.js` before the homepage moved to server fetching.
-  - Important idea: extract reusable stateful logic, not reusable UI.
-- Custom hook consumer states
-  - Historical reference: `app/(user)/page.js` used to read `restaurants`, `loading`, and `error`.
-  - This remains useful as a React/CSR reference, but homepage initial data now prefers server fetching.
-- Form state object
-  - Original reference: `app/(user)/login/page.js`
-  - Related login/signup fields live in one `formData` object.
-- Dynamic form updates with computed property names
-  - Original reference: `app/(user)/login/page.js` → `[name]: value`
-  - One change handler updates any input whose `name` matches a `formData` key.
-- Form submit control
-  - Original reference: `app/(user)/login/page.js` → `e.preventDefault()`
-  - Prevents browser reload so React can validate and handle the form in state.
-- Validation errors object
-  - Original reference: `app/(user)/login/page.js`
-  - Collects all field errors first, then updates error state once.
-- Mode-specific validation
-  - Original reference: `app/(user)/login/page.js`
-  - Signup-only fields are validated only when `isSignup` is true.
-- Submit gate
-  - Original reference: `app/(user)/login/page.js`
-  - Continue only when `Object.keys(newError).length === 0`.
-- Mode switch cleanup
-  - Original reference: `app/(user)/login/page.js` → `switchMode`
-  - Validation errors belong to the current form mode and should clear when switching login/signup.
-- UI-only checkbox decision
-  - Original reference: `app/(user)/login/page.js` → Remember me
-  - Real remember-me behavior should be handled by auth/session logic, not by storing passwords.
-- Behavior-only component pattern
-  - Original reference: `components/ScrollToTop.js`
-  - Route-change side effect uses `usePathname`/`useSearchParams`; component returns `null`.
-- Active route styling
-  - Original reference: `components/Navbar.js`
-  - `usePathname()` reads the current URL so the matching nav link can receive active styles.
-- React reusable component quality pass
-  - Checked `Navbar`, `Footer`, `Toast`, and `ScrollToTop`.
-  - Final React comment cleanup completed.
-
 ## Full Learning Roadmap
 
 ### 🔄 Phase 1 — Next.js Fundamentals (In Progress)
@@ -237,9 +117,10 @@ public
 - [ ] 16. Mobile responsive pass
 
 ### 🧹 Future FoodRush Refactor Tasks
-- Extract shared server restaurant helpers into a reusable module, likely `lib/restaurants.js`.
-  - Move repeated `getRestaurants()` logic there so homepage and restaurants page use the same URL, error handling, and `revalidate` option.
-  - Consider moving `getRestaurant(id)` there too so restaurant detail page and `generateMetadata` share the same helper.
+- [x] Extract shared server restaurant helpers into `lib/restaurants.js`.
+  - `getRestaurants()` is shared by homepage, restaurants page, and `/api/restaurants`.
+  - `getRestaurant(id)` is shared by restaurant detail page and `generateMetadata`.
+  - Helpers fetch data only; pages decide when missing data should call `notFound()`.
 - Practice `searchParams` by converting restaurant filters/search/sort into URL state.
   - Example target URL: `/restaurants?cuisine=Italian&sort=rating`.
   - Goal: refresh/share/back-button should preserve selected filters.
@@ -320,9 +201,14 @@ public
 - Started FoodRush Next.js upgrade:
   converted `app/(user)/page.js` homepage to server fetching for initial trending
   restaurant data and removed the old CSR loading/error pattern from that page.
+- Completed shared restaurant helper refactor:
+  moved reusable restaurant fetching into `lib/restaurants.js`, updated homepage,
+  restaurants page, restaurant detail page, and `generateMetadata` to use helpers.
+- Route handlers/API routes were started experimentally but are not marked covered.
+  Resume them in a fresh chat as a separate topic from shared helpers.
 
 ## What's Next
-- Continue Next.js fundamentals with Route handlers / API routes:
+- Restart Next.js Route handlers / API routes from the beginning:
   `GET /api/restaurants`, `GET /api/restaurants/[id]`, and later `POST /api/orders`.
 - Future practical tasks:
-  extract shared restaurant fetch helpers and practice URL filters with `searchParams`.
+  practice URL filters with `searchParams`.

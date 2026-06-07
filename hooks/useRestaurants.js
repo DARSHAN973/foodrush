@@ -17,7 +17,7 @@ function useRestaurants() {
       try {
         setLoading(true);
 
-        const response = await fetch("https://dummyjson.com/recipes");
+        const response = await fetch("/api/restaurants");
 
         if (!response.ok) {
           throw new Error("Failed to fetch restaurants");
@@ -25,7 +25,7 @@ function useRestaurants() {
 
         const data = await response.json();
 
-        setRestaurants(data.recipes);
+        setRestaurants(data);
       } catch {
         setError("Failed to fetch restaurants. Please try again later.");
       } finally {
