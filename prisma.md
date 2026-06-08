@@ -260,6 +260,417 @@ updatedAt       -> set initial time on create and update automatically on Prisma
 @updatedAt      -> Prisma updates this field when the row changes
 ```
 
+## Nested Create For Relational Seed Data
+
+FoodRush seed data is relational:
+
+```txt
+Restaurant -> MenuItem[]
+```
+
+When creating one restaurant with its menu items, use nested create:
+
+```js
+await prisma.restaurant.create({
+  data: {
+    name: "Pizza Palace",
+    cuisine: "Italian",
+    rating: 4.5,
+    deliveryTime: 25,
+    menuItems: {
+      create: [
+        {
+          name: "Margherita Pizza",
+          price: 249,
+          category: "Pizza",
+          isVeg: true,
+        },
+      ],
+    },
+  },
+});
+```
+
+Meaning:
+
+```txt
+Create the Restaurant row first.
+Then create MenuItem rows connected to that restaurant.
+```
+
+For multiple restaurants with their own menu items, use an array plus a loop:
+
+```js
+for (const restaurant of restaurants) {
+  await prisma.restaurant.create({
+    data: {
+      name: restaurant.name,
+      cuisine: restaurant.cuisine,
+      rating: restaurant.rating,
+      deliveryTime: restaurant.deliveryTime,
+      imageUrl: restaurant.imageUrl,
+      menuItems: {
+        create: restaurant.menuItems,
+      },
+    },
+  });
+}
+```
+
+Memory line:
+
+```txt
+Loop creates each parent Restaurant.
+Nested create creates each restaurant's child MenuItems.
+```
+
+## createMany vs Nested Create
+
+`createMany` is for bulk inserting many rows into one table:
+
+```js
+await prisma.restaurant.createMany({
+  data: [
+    {
+      name: "Pizza Palace",
+      cuisine: "Italian",
+      rating: 4.5,
+      deliveryTime: 25,
+    },
+    {
+      name: "Burger Barn",
+      cuisine: "American",
+      rating: 4.3,
+      deliveryTime: 30,
+    },
+  ],
+});
+```
+
+`createMany` does not allow nested relation writes like:
+
+```js
+menuItems: {
+  create: [...]
+}
+```
+
+Why:
+
+```txt
+createMany = many rows, one table
+nested create = related rows, multiple tables
+```
+
+FoodRush seed data needs relations, so the cleaner choice is:
+
+```txt
+loop + restaurant.create() + nested menuItems.create
+```
+
+## connect and connectOrCreate
+
+`connect` creates a row and connects it to an existing related row.
+
+FoodRush example:
+
+```js
+await prisma.menuItem.create({
+  data: {
+    name: "Cheese Burst Pizza",
+    price: 399,
+    category: "Pizza",
+    isVeg: true,
+    restaurant: {
+      connect: {
+        id: 1,
+      },
+    },
+  },
+});
+```
+
+Meaning:
+
+```txt
+Create this MenuItem and attach it to the Restaurant where id = 1.
+```
+
+`connect` requires the related row to already exist.
+
+`connectOrCreate` needs two parts:
+
+```js
+restaurant: {
+  connectOrCreate: {
+    where: {
+      id: 1,
+    },
+    create: {
+      name: "Pizza Palace",
+      cuisine: "Italian",
+      deliveryTime: 25,
+    },
+  },
+}
+```
+
+Meaning:
+
+```txt
+where  -> how Prisma checks if the related row exists
+create -> backup data Prisma uses if the row does not exist
+```
+
+In real apps, `connectOrCreate` is usually better with stable unique fields
+like `email` or `slug`, not hardcoded auto-increment ids.
+
+## findUnique, findFirst, include, and select
+
+`findUnique` searches using a unique field:
+
+```js
+await prisma.restaurant.findUnique({
+  where: {
+    id: 1,
+  },
+});
+```
+
+Use `findFirst` when normal filters are needed:
+
+```js
+await prisma.restaurant.findFirst({
+  where: {
+    id: 1,
+    isActive: true,
+  },
+});
+```
+
+Why FoodRush uses `findFirst` for active restaurant detail:
+
+```txt
+id is unique, but isActive is a normal filter.
+findFirst can combine both.
+```
+
+`include` adds related data:
+
+```js
+await prisma.restaurant.findFirst({
+  where: {
+    id: 1,
+    isActive: true,
+  },
+  include: {
+    menuItems: {
+      where: {
+        isAvailable: true,
+      },
+    },
+  },
+});
+```
+
+`select` chooses exact fields:
+
+```js
+await prisma.restaurant.findMany({
+  where: {
+    isActive: true,
+  },
+  select: {
+    id: true,
+    name: true,
+    cuisine: true,
+    rating: true,
+    deliveryTime: true,
+    imageUrl: true,
+  },
+});
+```
+
+Memory line:
+
+```txt
+include = add related data
+select = choose exact fields
+nested select = choose exact fields from related data
+```
+
+## Update, updateMany, and Soft Delete
+
+`update` edits one unique row and throws if it does not exist:
+
+```js
+await prisma.restaurant.update({
+  where: {
+    id: 2,
+  },
+  data: {
+    deliveryTime: 28,
+  },
+});
+```
+
+`updateMany` edits every row matching the filter and returns a count:
+
+```js
+await prisma.menuItem.updateMany({
+  where: {
+    restaurantId: 1,
+  },
+  data: {
+    isAvailable: true,
+  },
+});
+```
+
+Hard delete removes the row:
+
+```js
+await prisma.restaurant.delete({
+  where: {
+    id: 2,
+  },
+});
+```
+
+Soft delete keeps the row but hides/disables it:
+
+```js
+await prisma.restaurant.update({
+  where: {
+    id: 2,
+  },
+  data: {
+    isActive: false,
+  },
+});
+```
+
+Why soft delete matters in FoodRush:
+
+```txt
+Restaurants may reopen later.
+Old orders and admin history should not lose their restaurant reference.
+```
+
+## Reusable Prisma Client Helper
+
+FoodRush uses `lib/prisma.js` so server code can import one shared Prisma
+Client instead of repeating adapter setup everywhere.
+
+```js
+import { PrismaMariaDb } from "@prisma/adapter-mariadb";
+import { PrismaClient } from "@prisma/client";
+
+const globalForPrisma = globalThis;
+
+const adapter = new PrismaMariaDb(process.env.DATABASE_URL);
+
+export const prisma =
+  globalForPrisma.prisma || new PrismaClient({ adapter });
+
+if (process.env.NODE_ENV !== "production") {
+  globalForPrisma.prisma = prisma;
+}
+```
+
+Meaning:
+
+```txt
+adapter      -> knows how to connect Prisma 7 to MySQL/MariaDB
+PrismaClient -> gives query methods like findMany/create/update
+globalThis   -> stores one reusable client during development hot reload
+```
+
+This cache is not query/data caching. It stores the Prisma Client instance,
+not old restaurant data.
+
+FoodRush server usage:
+
+```js
+import { prisma } from "@/lib/prisma";
+
+const restaurants = await prisma.restaurant.findMany();
+```
+
+Do not import Prisma directly in Client Components. Prisma belongs in server
+code such as route handlers, Server Components, server actions, and server
+helpers because it uses database connection secrets and talks to MySQL.
+
+## Database-Backed getRestaurants
+
+`lib/restaurants.js` has started replacing DummyJSON with Prisma.
+
+Current list helper idea:
+
+```js
+export async function getRestaurants() {
+  const restaurants = await prisma.restaurant.findMany({
+    where: {
+      isActive: true,
+    },
+    select: {
+      id: true,
+      name: true,
+      cuisine: true,
+      rating: true,
+      deliveryTime: true,
+      imageUrl: true,
+    },
+    orderBy: {
+      rating: "desc",
+    },
+  });
+
+  return restaurants.map((restaurant) => ({
+    ...restaurant,
+    rating: Number(restaurant.rating),
+  }));
+}
+```
+
+Why `select`:
+
+```txt
+The restaurant list/card only needs a few fields.
+Do not send createdAt, updatedAt, isActive, or unused data to UI/API code.
+```
+
+Why `Number(restaurant.rating)`:
+
+```txt
+Prisma returns Decimal fields as Decimal objects.
+UI/API data should use plain serializable values.
+```
+
+`findMany` returns an array, so use `.map()` on the result.
+`findFirst`/`findUnique` return one object or `null`, so do not use `.map()`
+directly on that result.
+
+For a restaurant detail query, `menuItems` is an array inside one restaurant
+object, so mapping `restaurant.menuItems.map(...)` is correct.
+
+## Current Next Step
+
+Resume by finishing the restaurant detail page:
+
+```txt
+Replace DummyJSON recipe UI fields:
+image, cookTimeMinutes, prepTimeMinutes, servings, tags,
+ingredients, instructions
+
+With FoodRush database fields:
+imageUrl, deliveryTime, menuItems
+```
+
+After the UI shape is clear, tighten `getRestaurant(id)` with `select`,
+nested `select`, invalid id validation, and Decimal conversion for `rating`
+and menu item `price`.
+
 Migration lesson:
 
 ```txt

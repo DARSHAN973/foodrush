@@ -11,7 +11,7 @@ function RestaurantCard({ restaurant }) {
   return (
     <article className="flex h-full w-full flex-col rounded-lg border border-gray-200 bg-white p-5 shadow-sm transition hover:-translate-y-1 hover:shadow-md">
       <Image
-        src={restaurant.image}
+        src={restaurant.imageUrl}
         alt={restaurant.name}
         width={400}
         height={320}
@@ -35,7 +35,7 @@ function RestaurantCard({ restaurant }) {
           <div className="rounded-md bg-gray-50 p-3">
             <p className="text-xs text-gray-500">Delivery</p>
             <p className="font-semibold text-gray-900">
-              {restaurant.cookTimeMinutes} mins
+              {restaurant.deliveryTime} mins
             </p>
           </div>
         </div>

@@ -94,6 +94,7 @@ context
 hooks
 └── useRestaurants.js
 lib
+├── prisma.js
 ├── restaurants.js
 └── generated Prisma client output removed in favor of standard @prisma/client
 prisma
@@ -121,7 +122,17 @@ public
 - Current seed file:
   - uses Prisma 7 MariaDB adapter
   - uses `deleteMany()` to clear child rows before parent rows
-  - uses nested create for one restaurant and one menu item
+  - seeds multiple restaurants with multiple menu items
+  - uses a loop with `restaurant.create()` and nested `menuItems.create`
+- `lib/prisma.js` is the reusable Prisma Client helper for Next.js server code.
+  It uses `@prisma/adapter-mariadb` and a `globalThis` Prisma Client cache
+  to avoid creating too many clients during development hot reloads.
+- `lib/restaurants.js` has started replacing DummyJSON with Prisma:
+  - `getRestaurants()` reads active restaurants from MySQL.
+  - It uses `select` to return only list-card fields.
+  - It converts `rating` from Prisma Decimal to a plain number before UI/API use.
+  - `getRestaurant(id)` uses `findFirst`, includes available `menuItems`,
+    returns `null` for missing data, and converts `rating`/`price` decimals.
 - Reference files:
   - `mysql.md` for SQL/MySQL notes
   - `prisma.md` for Prisma notes
@@ -147,8 +158,10 @@ public
   setup, MySQL connection, Prisma 7 adapter, migrations, native DB types,
   timestamps, active flags, image URL strategy, seed basics, `deleteMany`,
   `findMany`, `findUnique`, `create`, `update`, `delete`, `createMany`,
-  `where`, `orderBy`, `include`, `select`, stale client fix with
-  `npx prisma generate`, and nested create basics
+  `updateMany`, `where`, `orderBy`, `include`, `select`, `findFirst`,
+  `connect`, `connectOrCreate`, stale client fix with `npx prisma generate`,
+  nested create basics, soft delete basics, reusable Prisma Client helper,
+  and Decimal-to-number serialization for UI/API data.
 
 ## Full Learning Roadmap
 
@@ -207,19 +220,23 @@ public
 - [ ] 26. Schema design (User, Restaurant, MenuItem, Order, OrderItem, Cart)
   - Current schema has `Restaurant` and `MenuItem`.
   - `Order`, `OrderItem`, `Cart/CartItem`, and `User` are still pending.
-- [ ] 27. Prisma CRUD operations
-  - Basics started: `findMany`, `findUnique`, `create`, `update`, `delete`,
-    `deleteMany`, `createMany`, `where`, `orderBy`, `include`, `select`.
-  - Still need more practical FoodRush use cases.
-- [ ] 28. Relations & joins properly
+- [x] 27. Prisma CRUD operations
+  - Covered: `findMany`, `findUnique`, `findFirst`, `create`, `update`,
+    `updateMany`, `delete`, `deleteMany`, `createMany`, `where`, `orderBy`,
+    `include`, `select`, and Decimal conversion before UI/API responses.
+- [x] 28. Relations & joins properly
   - MySQL joins covered.
-  - Prisma relation queries started with `include` and `select`.
-  - Still need `connect`, `connectOrCreate`, and deeper relation practice.
+  - Prisma relation queries covered with nested create, `include`, `select`,
+    `connect`, and `connectOrCreate` basics.
 - [ ] 29. Transactions in Prisma
-- [ ] 30. Seed database with dummy data
-  - Basic seed file started.
-  - Still need multiple restaurants/menu items and real image URLs.
+- [x] 30. Seed database with dummy data
+  - Seed file now creates multiple FoodRush restaurants and menu items with
+    real image URLs using a loop plus nested `menuItems.create`.
 - [ ] 31. Replace dummyjson API with real database
+  - Started: `getRestaurants()` is database-backed and `/api/restaurants`
+    works in Thunder Client.
+  - Still pending: finish restaurant detail UI and final database-backed
+    `/api/restaurants/[id]` behavior.
 - [ ] 32. Build backend APIs
 - [ ] 32a. Return to real route handlers with database-backed CRUD
 - [ ] 32b. Revisit deeper MySQL topics after Prisma basics:
@@ -265,52 +282,50 @@ public
 Resume here:
 
 ```txt
-1. Finish nested create with multiple menu items
-2. Seed multiple restaurants and menu items
-3. createMany vs nested create
-4. connect and connectOrCreate basics
-5. findUnique with select/include for restaurant detail pages
-6. Practical update queries
-7. delete vs soft delete with isActive/isAvailable
-8. Reusable Prisma Client helper for Next.js
-9. Using Prisma inside route handlers/server code
-10. Prisma error handling
-11. Build database-backed GET /api/restaurants
-12. Build database-backed GET /api/restaurants/[id]
+1. Finish converting restaurant detail page from DummyJSON recipe UI to
+   FoodRush menu-item UI.
+2. Decide exact restaurant detail data needs, then tighten `getRestaurant(id)`
+   with `select`/nested `select`.
+3. Add invalid id validation for `getRestaurant(id)` and
+   `/api/restaurants/[id]`.
+4. Confirm database-backed `GET /api/restaurants/[id]` in Thunder Client.
+5. Run app and fix any remaining UI fields from DummyJSON:
+   `image`, `cookTimeMinutes`, `prepTimeMinutes`, `servings`, `tags`,
+   `ingredients`, `instructions`.
+6. Prisma error handling basics for route handlers/server helpers.
+7. Update comments in changed files after the route/detail integration is clean.
 ```
 
 ## Last Session Covered
-- Completed route handler GET basics:
-  `GET /api/restaurants`, `GET /api/restaurants/[id]`, `Response.json()`,
-  dynamic route params, Thunder Client testing, `404` for missing detail data,
-  and `500` for unexpected fetch/server failures.
-- Updated client-side `useRestaurants()` reference hook to fetch from
-  `/api/restaurants` instead of calling DummyJSON directly.
-- Reset/repaired local MySQL setup and got `sudo mysql` working again.
-- Installed/used phpMyAdmin for visual MySQL practice.
-- Practiced MySQL topics in `foodrush_db`: table creation, inserts, selects,
-  filters, sorting, updates, deletes, data types, constraints, foreign keys,
-  joins, aliases, aggregates, `GROUP BY`, `LEFT JOIN`, `HAVING`,
-  `ON DELETE`, basic transactions, indexes, many-to-many, NULL vs NOT NULL,
-  and schema design.
-- Created `mysql.md` with SQL revision notes.
-- Installed Prisma and connected it to local MySQL.
-- Added Prisma 7 MariaDB adapter because `new PrismaClient()` alone fails in Prisma 7.
-- Created/migrated current Prisma models: `Restaurant` and `MenuItem`.
-- Practiced Prisma migrations for decimal native types, timestamps,
-  active flags, menu item images, and `updatedAt` defaults.
-- Created `prisma.md` with Prisma revision notes.
-- Started seed script with repeat-safe cleanup and nested create.
-- Practiced Prisma read queries through `prisma/test-query.js`:
-  `findMany`, `where`, `orderBy`, `include`, `select`, and stale client
-  regeneration with `npx prisma generate`.
+- Finished nested create with multiple menu items.
+- Expanded `prisma/seed.js` to seed multiple restaurants and menu items with
+  real image URLs.
+- Learned why `createMany` does not support nested relation writes:
+  `createMany` inserts many rows into one table, while nested create writes
+  related rows across tables.
+- Learned when to use loop + `restaurant.create()` + nested `menuItems.create`
+  for relational seed data.
+- Covered `connect` and `connectOrCreate` basics.
+- Covered `findUnique`, `findFirst`, `include`, `select`, and nested relation
+  selection for restaurant detail data.
+- Practiced `update`, `updateMany`, hard delete vs soft delete, and why
+  FoodRush should usually soft-delete restaurants with `isActive`.
+- Created `lib/prisma.js`, the reusable Prisma Client helper for Next.js
+  server code with MariaDB adapter and `globalThis` dev cache.
+- Started replacing DummyJSON with database-backed helpers:
+  `getRestaurants()` now uses Prisma, filters `isActive`, selects only fields
+  needed by restaurant cards, orders by rating, and converts Decimal rating to
+  a plain number.
+- Confirmed `GET /api/restaurants` works from MySQL in Thunder Client.
+- Updated restaurant list UI fields toward database names:
+  `imageUrl` and `deliveryTime`.
+- Discussed why route handlers/server components can use Prisma but Client
+  Components should not import Prisma directly.
 
 ## What's Next
-- Continue Prisma topic-wise from nested create.
-- Expand seed data to multiple restaurants and menu items with real image URLs.
-- Learn `createMany`, `connect`, `connectOrCreate`, updates, soft deletes,
-  and a reusable Prisma Client helper.
-- Then replace DummyJSON with database-backed helpers/API routes.
-- Tomorrow/revision idea:
-  read `mysql.md` and `prisma.md`, then do a quiz plus small practical tasks.
-
+- Continue slowly from the restaurant detail page.
+- Replace DummyJSON recipe sections with real FoodRush menu item UI.
+- After the UI shape is clear, update `getRestaurant(id)` with precise
+  `select` fields and Decimal conversions.
+- Add validation for invalid route ids such as `/api/restaurants/abc`.
+- Then confirm `GET /api/restaurants/[id]` in Thunder Client and run the app.

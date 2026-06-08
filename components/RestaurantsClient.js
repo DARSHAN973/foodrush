@@ -46,7 +46,7 @@ export default function RestaurantsClient({ restaurants }) {
       }
 
       if (sortBy === "time") {
-        return a.cookTimeMinutes - b.cookTimeMinutes;
+        return a.deliveryTime - b.deliveryTime;
       }
 
       return 0;

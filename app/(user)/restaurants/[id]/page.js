@@ -10,7 +10,7 @@ export async function generateStaticParams() {
   const restaurants = await getRestaurants();
 
   // Each returned id becomes one pre-built route, like /restaurants/1.
-  return restaurants.slice(0,10).map((restaurant) => ({
+  return restaurants.slice(0, 10).map((restaurant) => ({
     // Dynamic route params must be strings.
     id: String(restaurant.id),
   }));
@@ -69,7 +69,7 @@ export default async function RestaurantDetails({ params }) {
           {/* Next Image — optimizes image loading, but remote image URLs must be
               allowed in next.config.js before Next.js can render them. */}
           <Image
-            src={restaurant.image}
+            src={restaurant.imageUrl}
             alt={restaurant.name}
             width={400}
             height={320}
@@ -85,7 +85,7 @@ export default async function RestaurantDetails({ params }) {
               {restaurant.name}
             </h1>
 
-            <div className="mt-5 grid grid-cols-2 gap-3 text-sm sm:grid-cols-4">
+            <div className="mt-5 grid grid-cols-2 gap-3 text-sm sm:grid-cols-2">
               <div className="rounded-md bg-gray-50 p-3">
                 <p className="text-gray-500">Rating</p>
                 <p className="font-semibold text-gray-900">
@@ -94,27 +94,27 @@ export default async function RestaurantDetails({ params }) {
               </div>
 
               <div className="rounded-md bg-gray-50 p-3">
-                <p className="text-gray-500">Cook Time</p>
+                <p className="text-gray-500">Delivery Time</p>
                 <p className="font-semibold text-gray-900">
-                  {restaurant.cookTimeMinutes} mins
+                  {restaurant.deliveryTime} mins
                 </p>
               </div>
 
-              <div className="rounded-md bg-gray-50 p-3">
+              {/*<div className="rounded-md bg-gray-50 p-3">
                 <p className="text-gray-500">Prep</p>
                 <p className="font-semibold text-gray-900">
                   {restaurant.prepTimeMinutes} mins
                 </p>
               </div>
 
-              <div className="rounded-md bg-gray-50 p-3">
+             <div className="rounded-md bg-gray-50 p-3">
                 <p className="text-gray-500">Serves</p>
                 <p className="font-semibold text-gray-900">
                   {restaurant.servings}
                 </p>
-              </div>
+              </div>*/}
             </div>
-
+            {/*
             <div className="mt-6 flex flex-wrap gap-2">
               {restaurant.tags?.map((tag) => (
                 <span
@@ -124,7 +124,7 @@ export default async function RestaurantDetails({ params }) {
                   {tag}
                 </span>
               ))}
-            </div>
+            </div>*/}
 
             <div className="mt-8">
               <AddToCartButton restaurant={restaurant} />
@@ -132,25 +132,27 @@ export default async function RestaurantDetails({ params }) {
           </div>
         </section>
 
-        <section className="mt-8 grid gap-6 lg:grid-cols-2">
-          <div className="rounded-lg bg-white p-6 shadow-sm">
-            <h2 className="text-xl font-semibold text-gray-900">Ingredients</h2>
-            <ul className="mt-4 list-disc space-y-2 pl-5 text-gray-600">
-              {restaurant.ingredients?.map((ingredient) => (
-                <li key={ingredient}>{ingredient}</li>
-              ))}
-            </ul>
-          </div>
+        <section className="mt-8">
+          <h2 className="text-2xl font-bold text-gray-900">Menu</h2>
 
-          <div className="rounded-lg bg-white p-6 shadow-sm">
-            <h2 className="text-xl font-semibold text-gray-900">
-              Instructions
-            </h2>
-            <ol className="mt-4 list-decimal space-y-2 pl-5 text-gray-600">
-              {restaurant.instructions?.map((step) => (
-                <li key={step}>{step}</li>
-              ))}
-            </ol>
+          <div className="mt-4 grid gap-4 md:grid-cols-2">
+            {restaurant.menuItems.map((item) => (
+              <article
+                key={item.id}
+                className="rounded-lg bg-white p-5 shadow-sm"
+              >
+                <h3 className="font-semibold text-gray-900">{item.name}</h3>
+                <p className="mt-1 text-sm text-gray-600">{item.description}</p>
+                <div className="mt-4 flex items-center justify-between">
+                  <span className="font-semibold text-gray-900">
+                    ₹{item.price}
+                  </span>
+                  <span className="rounded-full bg-orange-50 px-3 py-1 text-xs font-medium text-orange-700">
+                    {item.category}
+                  </span>
+                </div>
+              </article>
+            ))}
           </div>
         </section>
       </div>
