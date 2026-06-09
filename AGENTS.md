@@ -133,6 +133,8 @@ public
   - It converts `rating` from Prisma Decimal to a plain number before UI/API use.
   - `getRestaurant(id)` uses `findFirst`, includes available `menuItems`,
     returns `null` for missing data, and converts `rating`/`price` decimals.
+  - `createRestaurant(data)` creates a Restaurant from POST body data and
+    returns the created row with `rating` converted to a plain number.
 - Reference files:
   - `mysql.md` for SQL/MySQL notes
   - `prisma.md` for Prisma notes
@@ -149,6 +151,8 @@ public
 - Next.js fetch caching basics and deeper practice (`revalidate`, `no-store`, shared server cache)
 - Route handler GET basics: `GET /api/restaurants`, `GET /api/restaurants/[id]`,
   `Response.json()`, dynamic `params`, and `200`/`404`/`500` responses
+- Route handler POST basics: `POST /api/restaurants`, `request.json()`,
+  body validation, `400` for missing fields, `201 Created`, and Prisma-backed create.
 - MySQL basics with FoodRush examples:
   database, table, row, column, data types, constraints, primary key, foreign key,
   CRUD SQL, joins, aliases, aggregate functions, `GROUP BY`, `LEFT JOIN`,
@@ -203,7 +207,11 @@ public
   - Goal: refresh/share/back-button should preserve selected filters.
 - Keep `cache: "no-store"` as a future real-code comment only when FoodRush actually uses it for user/admin/payment data.
 - Replace DummyJSON recipe-shaped data with real FoodRush database data.
+  - Database-backed restaurant list/detail helpers and GET API routes are done.
+  - Some UI placeholders may still be redesigned later with richer Restaurant fields.
 - Refactor restaurant detail page from recipe ingredients/instructions to real restaurant menu items.
+  - Started: menu items render from `restaurant.menuItems`.
+  - Later: polish menu item cards and move cart flow to menu items instead of whole restaurants.
 
 ### ⏳ Phase 3 — Web & Browser Fundamentals (Don't skip)
 - [ ] 17. How HTTP works (request, response, status codes)
@@ -232,11 +240,10 @@ public
 - [x] 30. Seed database with dummy data
   - Seed file now creates multiple FoodRush restaurants and menu items with
     real image URLs using a loop plus nested `menuItems.create`.
-- [ ] 31. Replace dummyjson API with real database
-  - Started: `getRestaurants()` is database-backed and `/api/restaurants`
-    works in Thunder Client.
-  - Still pending: finish restaurant detail UI and final database-backed
-    `/api/restaurants/[id]` behavior.
+- [x] 31. Replace dummyjson API with real database
+  - `getRestaurants()` and `getRestaurant(id)` are Prisma-backed.
+  - `GET /api/restaurants` and `GET /api/restaurants/[id]` work in Thunder Client.
+  - Helpers use `select`, active/available filters, id validation, and Decimal-to-number conversion.
 - [ ] 32. Build backend APIs
 - [ ] 32a. Return to real route handlers with database-backed CRUD
 - [ ] 32b. Revisit deeper MySQL topics after Prisma basics:
@@ -282,18 +289,11 @@ public
 Resume here:
 
 ```txt
-1. Finish converting restaurant detail page from DummyJSON recipe UI to
-   FoodRush menu-item UI.
-2. Decide exact restaurant detail data needs, then tighten `getRestaurant(id)`
-   with `select`/nested `select`.
-3. Add invalid id validation for `getRestaurant(id)` and
-   `/api/restaurants/[id]`.
-4. Confirm database-backed `GET /api/restaurants/[id]` in Thunder Client.
-5. Run app and fix any remaining UI fields from DummyJSON:
-   `image`, `cookTimeMinutes`, `prepTimeMinutes`, `servings`, `tags`,
-   `ingredients`, `instructions`.
-6. Prisma error handling basics for route handlers/server helpers.
-7. Update comments in changed files after the route/detail integration is clean.
+1. Continue API route handlers with Prisma-backed CRUD.
+2. POST /api/restaurants is working; resume with PATCH/PUT update route.
+3. Then do DELETE/soft delete.
+4. Keep FoodRush product flow in mind:
+   restaurants -> menu items -> cart -> orders.
 ```
 
 ## Last Session Covered
@@ -321,11 +321,23 @@ Resume here:
   `imageUrl` and `deliveryTime`.
 - Discussed why route handlers/server components can use Prisma but Client
   Components should not import Prisma directly.
+- Finished restaurant detail helper with nested `select`, invalid id validation,
+  active/available filters, and Decimal conversion for `rating` and menu item `price`.
+- Confirmed `GET /api/restaurants/[id]` works from MySQL in Thunder Client,
+  including invalid/missing id behavior.
+- Updated API route error handling pattern:
+  log real server errors in the terminal, return safe generic `500` JSON to the frontend.
+- Updated stale helper comments in `lib/restaurants.js`.
+- Did a quick Prisma revision quiz covering method choice, `select`/`include`,
+  Decimal conversion, nested create, `connect`, updates, soft delete, and error handling.
+- Started Prisma-backed API CRUD after GET routes.
+- Built and tested `POST /api/restaurants` successfully in Thunder Client:
+  route reads JSON body with `await request.json()`, validates required fields,
+  calls `createRestaurant(data)`, and returns the created restaurant with `201`.
+- Learned that POST test data should come from Thunder Client/request body now,
+  and later from an admin form using `fetch(..., { method: "POST", body })`.
 
 ## What's Next
-- Continue slowly from the restaurant detail page.
-- Replace DummyJSON recipe sections with real FoodRush menu item UI.
-- After the UI shape is clear, update `getRestaurant(id)` with precise
-  `select` fields and Decimal conversions.
-- Add validation for invalid route ids such as `/api/restaurants/abc`.
-- Then confirm `GET /api/restaurants/[id]` in Thunder Client and run the app.
+- Continue Prisma-backed API route CRUD from PATCH/PUT update.
+- Then implement DELETE as soft delete with `isActive: false`.
+- Return to remaining Next.js fundamentals after API route practice.

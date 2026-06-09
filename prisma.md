@@ -601,11 +601,11 @@ Do not import Prisma directly in Client Components. Prisma belongs in server
 code such as route handlers, Server Components, server actions, and server
 helpers because it uses database connection secrets and talks to MySQL.
 
-## Database-Backed getRestaurants
+## Database-Backed Restaurant Helpers
 
-`lib/restaurants.js` has started replacing DummyJSON with Prisma.
+`lib/restaurants.js` replaced DummyJSON restaurant reads with Prisma.
 
-Current list helper idea:
+List helper:
 
 ```js
 export async function getRestaurants() {
@@ -633,6 +633,58 @@ export async function getRestaurants() {
 }
 ```
 
+Detail helper pattern:
+
+```js
+export async function getRestaurant(id) {
+  const restaurantId = Number(id);
+
+  if (!Number.isInteger(restaurantId) || restaurantId <= 0) {
+    return null;
+  }
+
+  const restaurant = await prisma.restaurant.findFirst({
+    where: {
+      id: restaurantId,
+      isActive: true,
+    },
+    select: {
+      id: true,
+      name: true,
+      cuisine: true,
+      rating: true,
+      deliveryTime: true,
+      imageUrl: true,
+      menuItems: {
+        where: {
+          isAvailable: true,
+        },
+        select: {
+          id: true,
+          name: true,
+          description: true,
+          price: true,
+          category: true,
+        },
+      },
+    },
+  });
+
+  if (restaurant === null) {
+    return null;
+  }
+
+  return {
+    ...restaurant,
+    rating: Number(restaurant.rating),
+    menuItems: restaurant.menuItems.map((item) => ({
+      ...item,
+      price: Number(item.price),
+    })),
+  };
+}
+```
+
 Why `select`:
 
 ```txt
@@ -654,22 +706,110 @@ directly on that result.
 For a restaurant detail query, `menuItems` is an array inside one restaurant
 object, so mapping `restaurant.menuItems.map(...)` is correct.
 
-## Current Next Step
+## Prisma Error Handling In Route Handlers
 
-Resume by finishing the restaurant detail page:
+Keep real database errors on the server:
 
-```txt
-Replace DummyJSON recipe UI fields:
-image, cookTimeMinutes, prepTimeMinutes, servings, tags,
-ingredients, instructions
+```js
+try {
+  const restaurants = await getRestaurants();
+  return Response.json(restaurants);
+} catch (error) {
+  console.error("GET /api/restaurants failed:", error);
 
-With FoodRush database fields:
-imageUrl, deliveryTime, menuItems
+  return Response.json(
+    { message: "Failed to fetch restaurants" },
+    { status: 500 }
+  );
+}
 ```
 
-After the UI shape is clear, tighten `getRestaurant(id)` with `select`,
-nested `select`, invalid id validation, and Decimal conversion for `rating`
-and menu item `price`.
+Why:
+
+```txt
+catch real Prisma/database errors in the route handler
+log the real error in the terminal for debugging
+return a safe generic 500 message to the frontend
+do not expose DATABASE_URL, SQL details, stack traces, or internal Prisma errors
+```
+
+404 vs 500:
+
+```txt
+404 -> expected missing data, like restaurant id not found
+500 -> unexpected server/database failure
+```
+
+## POST Route With Prisma Create
+
+`POST /api/restaurants` creates a new restaurant row.
+
+Route handler responsibilities:
+
+```txt
+read request body with await request.json()
+validate required fields
+return 400 for missing/invalid client data
+call Prisma helper to create the row
+return created restaurant with 201 Created
+catch unexpected errors and return safe 500 JSON
+```
+
+Why `await request.json()`:
+
+```txt
+POST data lives in the request body.
+request.json() parses that body into a JavaScript object.
+Reading/parsing the body is async, so it needs await.
+```
+
+Current flow:
+
+```txt
+Thunder Client JSON body
+-> POST /api/restaurants
+-> request.json()
+-> createRestaurant(data)
+-> prisma.restaurant.create()
+-> 201 response with created restaurant
+```
+
+Later admin flow:
+
+```txt
+Admin form state
+-> fetch("/api/restaurants", { method: "POST", body: JSON.stringify(data) })
+-> same POST route
+```
+
+Status codes:
+
+```txt
+201 -> row was created
+400 -> client sent missing/invalid fields
+500 -> unexpected server/database error
+```
+
+Important:
+
+```txt
+Do not hardcode test restaurant data inside the route.
+For testing, send JSON from Thunder Client.
+Later, send JSON from the admin form.
+```
+
+## Current Next Step
+
+Prisma basics + database-backed GET APIs are complete enough for now.
+
+Next learning order:
+
+```txt
+1. Continue API route handlers with Prisma-backed CRUD.
+2. POST /api/restaurants is working; resume with PATCH/PUT update route.
+3. Then implement DELETE as soft delete with isActive: false.
+4. Return to remaining Next.js fundamentals after API route practice.
+```
 
 Migration lesson:
 
@@ -1148,17 +1288,11 @@ Nested create handles the relationship automatically.
 Continue from here:
 
 ```txt
-1. Finish nested create with multiple menu items
-2. Seed multiple restaurants
-3. createMany vs nested create
-4. connect and connectOrCreate basics
-5. findUnique with select/include for restaurant detail
-6. Practical update queries
-7. delete vs soft delete with isActive/isAvailable
-8. Reusable Prisma Client helper for Next.js
-9. Using Prisma in route handlers/server code
-10. Prisma error handling
-11. Build database-backed GET API routes
+1. Prisma-backed API CRUD route handlers:
+   PATCH/PUT update, then DELETE/soft delete.
+2. Later deeper Prisma:
+   transactions, pagination, advanced filtering, indexes, many-to-many,
+   Order/OrderItem schema, User/auth relations.
 ```
 
 Learn later:

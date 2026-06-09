@@ -1,7 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
 import { notFound } from "next/navigation";
-import AddToCartButton from "@/components/AddToCartButton";
 import { getRestaurants, getRestaurant } from "@/lib/restaurants";
 
 // generateStaticParams — tells Next.js which dynamic routes to pre-build
@@ -99,35 +98,6 @@ export default async function RestaurantDetails({ params }) {
                   {restaurant.deliveryTime} mins
                 </p>
               </div>
-
-              {/*<div className="rounded-md bg-gray-50 p-3">
-                <p className="text-gray-500">Prep</p>
-                <p className="font-semibold text-gray-900">
-                  {restaurant.prepTimeMinutes} mins
-                </p>
-              </div>
-
-             <div className="rounded-md bg-gray-50 p-3">
-                <p className="text-gray-500">Serves</p>
-                <p className="font-semibold text-gray-900">
-                  {restaurant.servings}
-                </p>
-              </div>*/}
-            </div>
-            {/*
-            <div className="mt-6 flex flex-wrap gap-2">
-              {restaurant.tags?.map((tag) => (
-                <span
-                  key={tag}
-                  className="rounded-full bg-gray-100 px-3 py-1 text-xs font-medium text-gray-600"
-                >
-                  {tag}
-                </span>
-              ))}
-            </div>*/}
-
-            <div className="mt-8">
-              <AddToCartButton restaurant={restaurant} />
             </div>
           </div>
         </section>

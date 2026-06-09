@@ -10,14 +10,16 @@ export async function GET(request, { params }) {
       // instead of returning null with 200 OK, which can confuse the frontend.
       return Response.json(
         { message: "Restaurant not found" },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
     return Response.json(restaurant);
-  } catch {
-    // 500 response — unexpected server/fetch failures are caught here
-    // so the API returns a clear error response instead of crashing silently.
+  } catch (error) {
+    console.error(`GET /api/restaurants/${id} failed:`, error);
+
+    // 500 response — log the real server error, but return a safe message
+    // so database details are not exposed to the frontend.
     return Response.json({ message: "Something went wrong" }, { status: 500 });
   }
 }
