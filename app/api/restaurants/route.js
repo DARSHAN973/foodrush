@@ -1,5 +1,4 @@
-import { getRestaurants } from "@/lib/restaurants";
-import { createRestaurant } from "@/lib/restaurants";
+import { createRestaurant, getRestaurants } from "@/lib/restaurants";
 
 export async function GET() {
   try {
@@ -21,17 +20,16 @@ export async function GET() {
 
 export async function POST(request) {
   try {
+    // Request body parsing — POST data lives in the request body, so the
+    // route must parse it before validation or Prisma create logic can run.
     const data = await request.json();
 
-    if (
-      !data.name ||
-      !data.cuisine ||
-      !data.deliveryTime
-    ) {
+    // Required field validation — create routes need enough data to make a
+    // valid Restaurant row, so bad client input gets a 400 before Prisma runs.
+    if (!data.name || !data.cuisine || !data.deliveryTime) {
       return Response.json(
         {
-          message:
-            "Name, cuisine, and delivery time are required",
+          message: "Name, cuisine, and delivery time are required",
         },
         { status: 400 },
       );
@@ -39,10 +37,10 @@ export async function POST(request) {
 
     const restaurant = await createRestaurant(data);
 
-    return Response.json(restaurant , {status:201})
-
+    // 201 Created — POST made a new Restaurant resource.
+    return Response.json(restaurant, { status: 201 });
   } catch (error) {
-    console.log("POST /api/restaurants failed:", error);
+    console.error("POST /api/restaurants failed:", error);
 
     return Response.json(
       { message: "Failed to create restaurant" },

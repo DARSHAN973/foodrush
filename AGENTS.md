@@ -14,6 +14,10 @@
 - Ask me to try writing it myself first
 - Only then guide me, hint me, or correct me
 - Point out mistakes clearly and explain WHY it's wrong
+- For quizzes/revision, ask one question at a time, wait for my answer, then
+  correct or improve it before asking the next one.
+- For coding practice, give me the smallest useful hint or skeleton, let me try,
+  then review my attempt instead of giving the full solution first.
 - Build my muscle memory — I should be able to write code myself eventually
 - No unnecessary theory — keep it practical and real
 - For revision/comment sessions: ask me the WHY first, then give me the clean
@@ -135,6 +139,11 @@ public
     returns `null` for missing data, and converts `rating`/`price` decimals.
   - `createRestaurant(data)` creates a Restaurant from POST body data and
     returns the created row with `rating` converted to a plain number.
+  - `updateRestaurant(id, data)` supports PATCH-style partial updates for
+    `name`, `cuisine`, and `deliveryTime`, checks only active restaurants,
+    and converts `rating` before returning.
+  - `deleteRestaurant(id)` performs a soft delete by setting `isActive: false`
+    instead of hard-deleting the row.
 - Reference files:
   - `mysql.md` for SQL/MySQL notes
   - `prisma.md` for Prisma notes
@@ -153,6 +162,9 @@ public
   `Response.json()`, dynamic `params`, and `200`/`404`/`500` responses
 - Route handler POST basics: `POST /api/restaurants`, `request.json()`,
   body validation, `400` for missing fields, `201 Created`, and Prisma-backed create.
+- Route handler PATCH/DELETE basics: `PATCH /api/restaurants/[id]` partial update,
+  `DELETE /api/restaurants/[id]` soft delete, `200` success, `400` validation,
+  `404` missing/inactive rows, and `500` unexpected errors.
 - MySQL basics with FoodRush examples:
   database, table, row, column, data types, constraints, primary key, foreign key,
   CRUD SQL, joins, aliases, aggregate functions, `GROUP BY`, `LEFT JOIN`,
@@ -165,6 +177,7 @@ public
   `updateMany`, `where`, `orderBy`, `include`, `select`, `findFirst`,
   `connect`, `connectOrCreate`, stale client fix with `npx prisma generate`,
   nested create basics, soft delete basics, reusable Prisma Client helper,
+  PATCH-style partial update objects, route handler request body debugging,
   and Decimal-to-number serialization for UI/API data.
 
 ## Full Learning Roadmap
@@ -245,7 +258,7 @@ public
   - `GET /api/restaurants` and `GET /api/restaurants/[id]` work in Thunder Client.
   - Helpers use `select`, active/available filters, id validation, and Decimal-to-number conversion.
 - [ ] 32. Build backend APIs
-- [ ] 32a. Return to real route handlers with database-backed CRUD
+- [x] 32a. Return to real route handlers with database-backed CRUD
 - [ ] 32b. Revisit deeper MySQL topics after Prisma basics:
   indexes in Prisma, many-to-many in Prisma, deeper transactions,
   normalization, performance, locks/concurrency, views, stored procedures,
@@ -289,10 +302,11 @@ public
 Resume here:
 
 ```txt
-1. Continue API route handlers with Prisma-backed CRUD.
-2. POST /api/restaurants is working; resume with PATCH/PUT update route.
-3. Then do DELETE/soft delete.
-4. Keep FoodRush product flow in mind:
+1. Start MenuItem API route practice.
+2. Suggested next routes:
+   GET /api/restaurants/[id]/menu-items
+   POST /api/restaurants/[id]/menu-items
+3. Keep FoodRush product flow in mind:
    restaurants -> menu items -> cart -> orders.
 ```
 
@@ -336,8 +350,24 @@ Resume here:
   calls `createRestaurant(data)`, and returns the created restaurant with `201`.
 - Learned that POST test data should come from Thunder Client/request body now,
   and later from an admin form using `fetch(..., { method: "POST", body })`.
+- Revised GET/POST route handler basics through one-question-at-a-time quiz.
+- Built and tested `PATCH /api/restaurants/[id]`:
+  - Route reads JSON body with `await request.json()`.
+  - Validation uses `&&` so at least one editable field is enough.
+  - Helper builds `updateData` so PATCH only changes sent fields.
+  - Missing, invalid, or inactive restaurants return `404`.
+- Debugged a Thunder Client body issue where JSON was being sent as a string:
+  - `typeof data` showed `string`.
+  - `data.name` was `undefined`.
+  - `Object.keys(data)` showed string indexes.
+  - Fix was to send a real JSON object in Body → JSON without wrapping the
+    whole object in quotes.
+- Built and tested `DELETE /api/restaurants/[id]` as a soft delete:
+  - Helper sets `isActive: false`.
+  - Follow-up GET returns `404` because normal app queries filter
+    `isActive: true`.
 
 ## What's Next
-- Continue Prisma-backed API route CRUD from PATCH/PUT update.
-- Then implement DELETE as soft delete with `isActive: false`.
+- Start MenuItem API route practice.
+- Continue using one-question-at-a-time quiz and "try first, then review" coding practice.
 - Return to remaining Next.js fundamentals after API route practice.

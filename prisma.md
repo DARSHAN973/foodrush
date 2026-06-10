@@ -798,17 +798,209 @@ For testing, send JSON from Thunder Client.
 Later, send JSON from the admin form.
 ```
 
+## PATCH Route With Prisma Update
+
+`PATCH /api/restaurants/[id]` updates one existing restaurant.
+
+Route handler responsibilities:
+
+```txt
+read id from params
+read changed fields with await request.json()
+validate that at least one editable field exists
+call updateRestaurant(id, data)
+return 404 if the helper returns null
+return updated restaurant with 200 OK
+catch unexpected errors and return safe 500 JSON
+```
+
+Why PATCH validation uses `&&`:
+
+```js
+if (!data.name && !data.cuisine && !data.deliveryTime) {
+  return Response.json(
+    { message: "At least one field is required to update" },
+    { status: 400 },
+  );
+}
+```
+
+Meaning:
+
+```txt
+Reject only when name, cuisine, and deliveryTime are all missing.
+PATCH can update one selected field, so it should not require every field.
+```
+
+Helper pattern:
+
+```js
+const updateData = {};
+
+if (data.name) updateData.name = data.name;
+if (data.cuisine) updateData.cuisine = data.cuisine;
+if (data.deliveryTime) updateData.deliveryTime = data.deliveryTime;
+
+const updatedRestaurant = await prisma.restaurant.update({
+  where: {
+    id: restaurantId,
+  },
+  data: updateData,
+});
+```
+
+Why `updateData`:
+
+```txt
+PATCH is for partial updates.
+Only fields sent by the client should be updated.
+Missing fields should not be touched.
+```
+
+FoodRush active-row guard:
+
+```js
+const restaurant = await prisma.restaurant.findFirst({
+  where: {
+    id: restaurantId,
+    isActive: true,
+  },
+});
+```
+
+Why:
+
+```txt
+Normal update routes should not edit soft-deleted restaurants.
+Inactive restaurants behave like missing data to app/API callers.
+```
+
+Status codes:
+
+```txt
+200 -> existing row updated successfully
+400 -> no editable fields were sent
+404 -> invalid id, missing restaurant, or inactive restaurant
+500 -> unexpected server/database error
+```
+
+## DELETE Route With Soft Delete
+
+FoodRush uses soft delete for restaurants:
+
+```js
+await prisma.restaurant.update({
+  where: {
+    id: restaurantId,
+  },
+  data: {
+    isActive: false,
+  },
+});
+```
+
+Why:
+
+```txt
+Restaurants can be hidden or reopened later.
+Future order/history data may still need to reference the restaurant row.
+Hard delete would permanently remove that row.
+```
+
+Route flow:
+
+```txt
+DELETE /api/restaurants/10
+-> read id from params
+-> deleteRestaurant(id)
+-> set isActive: false
+-> return 200 with success message
+```
+
+After soft delete:
+
+```txt
+The row still exists in MySQL.
+GET /api/restaurants/10 returns 404 because getRestaurant filters isActive: true.
+```
+
+Common DELETE success choices:
+
+```txt
+200 OK         -> success with a response body/message
+204 No Content -> success with no response body
+```
+
+FoodRush currently uses `200` because Thunder Client testing is clearer with a
+JSON success message.
+
+## Route Handler Body Debugging
+
+When validation fails even though the request body looks correct, log what the
+route actually received:
+
+```js
+console.log("body:", data);
+console.log("type:", typeof data);
+console.log("name:", data.name);
+console.log("keys:", Object.keys(data));
+```
+
+Expected real JSON object:
+
+```txt
+type: object
+name: Updated Test Restaurant
+keys: [ 'name' ]
+```
+
+Problem found in Thunder Client:
+
+```txt
+type: string
+name: undefined
+keys: [ '0', '1', '2', ... ]
+```
+
+Meaning:
+
+```txt
+The request body was a string that looked like JSON, not a real JSON object.
+```
+
+Wrong shape:
+
+```json
+"{ \"name\": \"Updated Test Restaurant\" }"
+```
+
+Correct shape:
+
+```json
+{
+  "name": "Updated Test Restaurant"
+}
+```
+
+Memory line:
+
+```txt
+"{}" = string that looks like JSON
+{}   = real JSON object
+```
+
 ## Current Next Step
 
-Prisma basics + database-backed GET APIs are complete enough for now.
+Prisma basics + database-backed restaurant CRUD APIs are complete enough for now.
 
 Next learning order:
 
 ```txt
-1. Continue API route handlers with Prisma-backed CRUD.
-2. POST /api/restaurants is working; resume with PATCH/PUT update route.
-3. Then implement DELETE as soft delete with isActive: false.
-4. Return to remaining Next.js fundamentals after API route practice.
+1. Start MenuItem API route practice.
+2. Suggested next routes:
+   GET /api/restaurants/[id]/menu-items
+   POST /api/restaurants/[id]/menu-items
+3. Return to remaining Next.js fundamentals after API route practice.
 ```
 
 Migration lesson:
