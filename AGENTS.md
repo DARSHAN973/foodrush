@@ -298,16 +298,33 @@ public
 - Auth notes app: protected routes
 - Mini checkout app: cart + order flow
 
-## Current Prisma Topics Pending For Next Session
+## Current System Design / Prisma Topics Pending For Next Session
 Resume here:
 
 ```txt
-1. Start MenuItem API route practice.
-2. Suggested next routes:
+1. Do a short FoodRush system design/scope session before adding more models.
+   Goal: separate V1 portfolio scope from V2/V3 future product features.
+2. Create or outline foodrush-system-design.md with:
+   Vision, V1/V2/V3 scope, user/admin/vendor flows, entities, order lifecycle,
+   pricing/costing ideas, delivery/courier ideas, and AI ideas.
+3. After scope is clear, start MenuItem API route practice.
+4. Suggested next routes:
    GET /api/restaurants/[id]/menu-items
    POST /api/restaurants/[id]/menu-items
-3. Keep FoodRush product flow in mind:
+5. Keep FoodRush product flow in mind:
    restaurants -> menu items -> cart -> orders.
+```
+
+Next.js topic order note:
+
+```txt
+Do not ignore remaining Next.js fundamentals, but learn them when they unlock
+the next FoodRush feature:
+- searchParams before URL-based restaurant filters/search
+- middleware/cookies/headers before auth and protected routes
+- Server Actions before form-heavy admin CRUD
+- Streaming/Suspense before polishing loading UX
+- generateStaticParams before static/dynamic restaurant detail revision
 ```
 
 ## Last Session Covered
@@ -368,6 +385,7 @@ Resume here:
     `isActive: true`.
 
 ## What's Next
-- Start MenuItem API route practice.
+- Start with a short FoodRush system design/scope session.
+- Then continue MenuItem API route practice.
 - Continue using one-question-at-a-time quiz and "try first, then review" coding practice.
-- Return to remaining Next.js fundamentals after API route practice.
+- Learn remaining Next.js fundamentals when they directly support the next FoodRush feature.
