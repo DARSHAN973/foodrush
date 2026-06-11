@@ -146,6 +146,7 @@ public
     instead of hard-deleting the row.
 - Reference files:
   - `mysql.md` for SQL/MySQL notes
+  - `nextjs.md` for Next.js/App Router notes
   - `prisma.md` for Prisma notes
 
 ## ✅ Already Covered
@@ -154,10 +155,15 @@ public
 - Built FoodRush in React
 - Migrated FoodRush to Next.js App Router
 - Client vs Server components (basics)
+- Client vs Server components (deep dive)
 - `useRouter`, `usePathname`, `useSearchParams` hooks
 - `generateMetadata` basics and dynamic metadata
 - SSR vs SSG vs CSR final revision
 - Next.js fetch caching basics and deeper practice (`revalidate`, `no-store`, shared server cache)
+- Environment variables basics: `.env`, `process.env`, server-only secrets, and `NEXT_PUBLIC_`.
+- Cookies & headers basics with `cookies()` and `headers()` from `next/headers`.
+- Middleware/proxy protected route basics using `proxy.js`, `NextResponse`, cookies, and matcher patterns.
+- Server Actions basics: form actions, `FormData.get()`, Prisma/server helper usage, `revalidatePath`, and API routes vs Server Actions.
 - Route handler GET basics: `GET /api/restaurants`, `GET /api/restaurants/[id]`,
   `Response.json()`, dynamic `params`, and `200`/`404`/`500` responses
 - Route handler POST basics: `POST /api/restaurants`, `request.json()`,
@@ -187,11 +193,11 @@ public
 - [x] 2. SSR vs SSG vs CSR final revision
 - [x] 3. fetch caching deeper practice
 - [x] 4. Route handlers / API routes GET basics (`GET /api/restaurants`, `GET /api/restaurants/[id]`)
-- [ ] 5. Environment variables basics
-- [ ] 6. Middleware + protected route basics
-- [ ] 7. Cookies & headers in Next.js (`cookies()`, `headers()`)
-- [ ] 8. Server Actions (forms without API routes)
-- [ ] 9. Client vs Server components (deep dive)
+- [x] 5. Environment variables basics
+- [x] 6. Middleware + protected route basics
+- [x] 7. Cookies & headers in Next.js (`cookies()`, `headers()`)
+- [x] 8. Server Actions (forms without API routes)
+- [x] 9. Client vs Server components (deep dive)
 - [ ] 10. Streaming & Suspense
 - [ ] 11. generateStaticParams for dynamic restaurant pages
 
@@ -321,8 +327,6 @@ Next.js topic order note:
 Do not ignore remaining Next.js fundamentals, but learn them when they unlock
 the next FoodRush feature:
 - searchParams before URL-based restaurant filters/search
-- middleware/cookies/headers before auth and protected routes
-- Server Actions before form-heavy admin CRUD
 - Streaming/Suspense before polishing loading UX
 - generateStaticParams before static/dynamic restaurant detail revision
 ```
@@ -383,9 +387,41 @@ the next FoodRush feature:
   - Helper sets `isActive: false`.
   - Follow-up GET returns `404` because normal app queries filter
     `isActive: true`.
+- Started a FoodRush system design doc at `foodrush-system-design.md`, but paused
+  deeper schema decisions because auth/user flow affects cart and orders.
+- Covered environment variables:
+  - `DATABASE_URL` stays server-only in `.env`.
+  - `NEXT_PUBLIC_` variables are browser-visible and must not contain secrets.
+  - Restart dev server after changing `.env`.
+- Covered cookies and headers with temporary learning routes:
+  - `GET /api/learning/set-cookie` sets `foodrush_demo=darshan`.
+  - `GET /api/learning/read-cookie` reads it with `cookies()`.
+  - `GET /api/learning/read-headers` reads `user-agent` and raw `cookie`
+    headers with `headers()`.
+  - Learned `Set-Cookie` is server -> browser and `Cookie` is browser -> server.
+- Covered database-session auth mental model:
+  - Browser cookie carries `session_id`.
+  - Database/server session maps session id to user.
+  - Logout deletes/expires the server session and sends a cookie deletion response.
+- Built a temporary protected-route demo with `proxy.js`:
+  - `/admin/:path*` checks the `foodrush_demo` cookie.
+  - Missing cookie redirects to `/login`.
+  - Cookie exists allows admin routes.
+- Covered Client vs Server Components deep dive:
+  - Server Components can use Prisma/server helpers.
+  - Client Components handle browser interaction.
+  - Client Components call API routes or Server Actions, not Prisma helpers.
+- Covered Server Actions basics:
+  - Useful for Next.js form mutations.
+  - Read form values with `formData.get()`.
+  - Can use Prisma/server helpers because actions run on the server.
+  - Use `revalidatePath()` after mutations to refresh affected paths.
+  - API routes are still needed for Thunder Client, mobile apps, external clients,
+    and REST endpoints.
 
 ## What's Next
-- Start with a short FoodRush system design/scope session.
-- Then continue MenuItem API route practice.
+- Finish remaining Next.js fundamentals: Streaming/Suspense and generateStaticParams.
+- Then return to the FoodRush system design/scope session before adding cart/order/auth models.
+- After scope is clear, continue MenuItem API route practice.
 - Continue using one-question-at-a-time quiz and "try first, then review" coding practice.
 - Learn remaining Next.js fundamentals when they directly support the next FoodRush feature.

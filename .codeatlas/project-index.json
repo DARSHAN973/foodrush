@@ -1,17 +1,17 @@
 {
   "version": 1,
-  "generatedAt": "2026-06-09T15:23:14.879Z",
+  "generatedAt": "2026-06-11T16:09:22.082Z",
   "rootPath": "/home/darshan/darshan/web_development_revision/foodrush",
   "summary": {
-    "totalFiles": 50,
+    "totalFiles": 54,
     "totalEdges": 47,
-    "totalLines": 6527,
+    "totalLines": 6763,
     "languages": [
       "js"
     ],
     "flowStages": {
       "start": 2,
-      "main": 38,
+      "main": 42,
       "core": 4,
       "helpers": 6
     }
@@ -451,13 +451,88 @@
       "usedBy": []
     },
     {
+      "path": "app/api/learning/read-cookie/route.js",
+      "fileType": "module",
+      "stage": "main",
+      "lang": "js",
+      "ext": ".js",
+      "lines": 10,
+      "size": 254,
+      "collaboration": {
+        "status": "isolated",
+        "impact": "solo",
+        "summary": "No local collaboration links yet.",
+        "score": 0
+      },
+      "crossStageLinks": 0,
+      "impactScore": 0,
+      "summary": "Main orchestration code. Functions: GET",
+      "functions": [
+        "GET"
+      ],
+      "classes": [],
+      "exports": [],
+      "imports": [],
+      "usedBy": []
+    },
+    {
+      "path": "app/api/learning/read-headers/route.js",
+      "fileType": "module",
+      "stage": "main",
+      "lang": "js",
+      "ext": ".js",
+      "lines": 10,
+      "size": 228,
+      "collaboration": {
+        "status": "isolated",
+        "impact": "solo",
+        "summary": "No local collaboration links yet.",
+        "score": 0
+      },
+      "crossStageLinks": 0,
+      "impactScore": 0,
+      "summary": "Main orchestration code. Functions: GET",
+      "functions": [
+        "GET"
+      ],
+      "classes": [],
+      "exports": [],
+      "imports": [],
+      "usedBy": []
+    },
+    {
+      "path": "app/api/learning/set-cookie/route.js",
+      "fileType": "module",
+      "stage": "main",
+      "lang": "js",
+      "ext": ".js",
+      "lines": 10,
+      "size": 202,
+      "collaboration": {
+        "status": "isolated",
+        "impact": "solo",
+        "summary": "No local collaboration links yet.",
+        "score": 0
+      },
+      "crossStageLinks": 0,
+      "impactScore": 0,
+      "summary": "Main orchestration code. Functions: GET",
+      "functions": [
+        "GET"
+      ],
+      "classes": [],
+      "exports": [],
+      "imports": [],
+      "usedBy": []
+    },
+    {
       "path": "app/api/restaurants/[id]/route.js",
       "fileType": "module",
       "stage": "main",
       "lang": "js",
       "ext": ".js",
-      "lines": 26,
-      "size": 829,
+      "lines": 98,
+      "size": 2832,
       "collaboration": {
         "status": "connected",
         "impact": "leaf",
@@ -466,9 +541,11 @@
       },
       "crossStageLinks": 0,
       "impactScore": 1,
-      "summary": "Main orchestration code. Functions: GET",
+      "summary": "Main orchestration code. Functions: GET, PATCH, DELETE",
       "functions": [
-        "GET"
+        "GET",
+        "PATCH",
+        "DELETE"
       ],
       "classes": [],
       "exports": [],
@@ -483,8 +560,8 @@
       "stage": "main",
       "lang": "js",
       "ext": ".js",
-      "lines": 20,
-      "size": 635,
+      "lines": 51,
+      "size": 1625,
       "collaboration": {
         "status": "connected",
         "impact": "leaf",
@@ -493,9 +570,10 @@
       },
       "crossStageLinks": 0,
       "impactScore": 1,
-      "summary": "Main orchestration code. Functions: GET",
+      "summary": "Main orchestration code. Functions: GET, POST",
       "functions": [
-        "GET"
+        "GET",
+        "POST"
       ],
       "classes": [],
       "exports": [],
@@ -1335,8 +1413,8 @@
       "stage": "main",
       "lang": "js",
       "ext": ".js",
-      "lines": 81,
-      "size": 2105,
+      "lines": 169,
+      "size": 3908,
       "collaboration": {
         "status": "connected",
         "impact": "leaf",
@@ -1345,10 +1423,13 @@
       },
       "crossStageLinks": 0,
       "impactScore": 6,
-      "summary": "Main orchestration code. Functions: getRestaurants, getRestaurant",
+      "summary": "Main orchestration code. Functions: getRestaurants, getRestaurant, createRestaurant, updateRestaurant",
       "functions": [
         "getRestaurants",
-        "getRestaurant"
+        "getRestaurant",
+        "createRestaurant",
+        "updateRestaurant",
+        "deleteRestaurant"
       ],
       "classes": [],
       "exports": [],
@@ -1481,6 +1562,34 @@
       "functions": [],
       "classes": [],
       "exports": [],
+      "imports": [],
+      "usedBy": []
+    },
+    {
+      "path": "proxy.js",
+      "fileType": "module",
+      "stage": "main",
+      "lang": "js",
+      "ext": ".js",
+      "lines": 15,
+      "size": 309,
+      "collaboration": {
+        "status": "isolated",
+        "impact": "solo",
+        "summary": "No local collaboration links yet.",
+        "score": 0
+      },
+      "crossStageLinks": 0,
+      "impactScore": 0,
+      "summary": "Main orchestration code. Functions: proxy",
+      "functions": [
+        "proxy"
+      ],
+      "classes": [],
+      "exports": [
+        "proxy",
+        "config"
+      ],
       "imports": [],
       "usedBy": []
     }
