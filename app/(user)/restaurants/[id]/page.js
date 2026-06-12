@@ -15,6 +15,7 @@ export async function generateStaticParams() {
   }));
 }
 
+
 // generateMetadata — builds page-specific SEO data on the server.
 // Dynamic routes can use params so each restaurant gets its own title/description.
 export async function generateMetadata({ params }) {

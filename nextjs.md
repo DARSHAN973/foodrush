@@ -476,18 +476,189 @@ API Route     = external HTTP endpoint
 Server Action = server function connected to Next.js UI/form
 ```
 
-## Remaining Next.js Topics
+## Streaming And Suspense
 
-Still pending:
+Suspense shows fallback UI for a slow section while the rest of the page can
+render.
+
+FoodRush example:
 
 ```txt
-Streaming & Suspense
+Restaurant info loads first.
+Menu/reviews section shows a skeleton until its data is ready.
+```
+
+`loading.js` vs Suspense:
+
+```txt
+loading.js -> route/page segment loading UI
+Suspense   -> component/section loading UI inside a page
+```
+
+Example shape:
+
+```jsx
+import { Suspense } from "react";
+
+export default function Page() {
+  return (
+    <>
+      <RestaurantInfo />
+
+      <Suspense fallback={<MenuSkeleton />}>
+        <MenuSection />
+      </Suspense>
+    </>
+  );
+}
+```
+
+Good Suspense usage:
+
+```txt
+Use it for naturally separate sections.
+Use skeletons/placeholders shaped like the final UI.
+Keep layout stable while data loads.
+```
+
+Bad Suspense usage:
+
+```txt
+Too many tiny spinners everywhere.
+Fallbacks that cause layout jumps.
+Important content hidden behind random loaders.
+```
+
+Streaming means the server can send ready HTML in chunks instead of waiting for
+every slow section.
+
+Without streaming:
+
+```txt
+Server waits for all data.
+Then sends the full page.
+```
+
+With streaming:
+
+```txt
+Server sends ready sections first.
+Slow Suspense sections stream later when ready.
+```
+
+Important:
+
+```txt
+Streaming improves perceived speed.
+It does not make slow database queries faster.
+```
+
+FoodRush future usage:
+
+```txt
+Restaurant detail:
+- restaurant hero/info first
+- menu or reviews section with skeleton fallback
+
+Admin dashboard:
+- admin shell/sidebar first
+- stats and recent orders stream in as separate sections
+```
+
+## generateStaticParams
+
+`generateStaticParams` is used for dynamic routes.
+
+FoodRush route:
+
+```txt
+/restaurants/[id]
+```
+
+Example:
+
+```js
+export async function generateStaticParams() {
+  return [
+    { id: "1" },
+    { id: "2" },
+    { id: "3" },
+  ];
+}
+```
+
+Meaning:
+
+```txt
+Pre-build /restaurants/1, /restaurants/2, and /restaurants/3 at build time.
+```
+
+Important:
+
+```txt
+It returns params objects, not full restaurant data.
+Param values should be strings because URL params are strings.
+```
+
+FoodRush helper shape:
+
+```js
+export async function generateStaticParams() {
+  const restaurants = await getRestaurants();
+
+  return restaurants.map((restaurant) => ({
+    id: String(restaurant.id),
+  }));
+}
+```
+
+Tradeoff:
+
+```txt
+Benefit:
+Known restaurant detail pages can load faster because they are pre-built.
+
+Cost:
+Build time can increase if there are many restaurants.
+Admin-created or frequently updated restaurants may become stale without a
+runtime rendering/revalidation strategy.
+```
+
+Memory:
+
+```txt
+generateStaticParams is best for known, stable dynamic pages.
+Frequently changing admin data needs careful revalidation or runtime rendering.
+```
+
+FoodRush decision:
+
+```txt
+Practice generateStaticParams for learning.
+Do not blindly pre-build every restaurant forever if admin data changes often.
+```
+
+## Phase 1 Status
+
+FoodRush Phase 1 Next.js fundamentals are conceptually covered:
+
+```txt
+generateMetadata
+SSR vs SSG vs CSR
+fetch caching
+route handlers
+environment variables
+proxy/middleware protected routes
+cookies and headers
+Server Actions
+Client vs Server Components
+Streaming and Suspense
 generateStaticParams
 ```
 
-Learn these when they connect to FoodRush:
+Next step:
 
 ```txt
-Streaming/Suspense -> loading UX polish
-generateStaticParams -> restaurant detail SSG/dynamic route revision
+Use these concepts while building real FoodRush features:
+system design -> schema -> APIs -> admin panel -> auth/cart/orders
 ```

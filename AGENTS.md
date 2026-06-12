@@ -164,6 +164,8 @@ public
 - Cookies & headers basics with `cookies()` and `headers()` from `next/headers`.
 - Middleware/proxy protected route basics using `proxy.js`, `NextResponse`, cookies, and matcher patterns.
 - Server Actions basics: form actions, `FormData.get()`, Prisma/server helper usage, `revalidatePath`, and API routes vs Server Actions.
+- Streaming & Suspense basics: route-level `loading.js`, component-level Suspense fallbacks, skeleton UI, and perceived speed.
+- `generateStaticParams` basics: dynamic route params, params object shape, string URL params, and prebuild vs freshness tradeoff.
 - Route handler GET basics: `GET /api/restaurants`, `GET /api/restaurants/[id]`,
   `Response.json()`, dynamic `params`, and `200`/`404`/`500` responses
 - Route handler POST basics: `POST /api/restaurants`, `request.json()`,
@@ -188,7 +190,7 @@ public
 
 ## Full Learning Roadmap
 
-### 🔄 Phase 1 — Next.js Fundamentals (In Progress)
+### ✅ Phase 1 — Next.js Fundamentals (Complete)
 - [x] 1. generateMetadata properly (SEO titles/descriptions)
 - [x] 2. SSR vs SSG vs CSR final revision
 - [x] 3. fetch caching deeper practice
@@ -198,8 +200,8 @@ public
 - [x] 7. Cookies & headers in Next.js (`cookies()`, `headers()`)
 - [x] 8. Server Actions (forms without API routes)
 - [x] 9. Client vs Server components (deep dive)
-- [ ] 10. Streaming & Suspense
-- [ ] 11. generateStaticParams for dynamic restaurant pages
+- [x] 10. Streaming & Suspense
+- [x] 11. generateStaticParams for dynamic restaurant pages
 
 ### 🔄 Temporary Learning Order Update
 - Phase 4 was started before finishing all remaining Phase 1 backend topics.
@@ -418,10 +420,20 @@ the next FoodRush feature:
   - Use `revalidatePath()` after mutations to refresh affected paths.
   - API routes are still needed for Thunder Client, mobile apps, external clients,
     and REST endpoints.
+- Completed Streaming & Suspense basics:
+  - `loading.js` is route-level loading UI.
+  - Suspense is component/section-level fallback UI.
+  - Skeletons are usually better than random spinners for stable FoodRush UI.
+  - Streaming improves perceived speed by showing ready sections earlier.
+- Completed `generateStaticParams` basics:
+  - Used for dynamic routes like `/restaurants/[id]`.
+  - Returns params objects like `{ id: "1" }`, not full restaurant data.
+  - Pre-building helps known stable pages load fast, but admin-created data needs
+    revalidation/runtime strategy.
+- Phase 1 Next.js Fundamentals is now complete conceptually.
 
 ## What's Next
-- Finish remaining Next.js fundamentals: Streaming/Suspense and generateStaticParams.
-- Then return to the FoodRush system design/scope session before adding cart/order/auth models.
+- Return to the FoodRush system design/scope session before adding cart/order/auth models.
 - After scope is clear, continue MenuItem API route practice.
 - Continue using one-question-at-a-time quiz and "try first, then review" coding practice.
-- Learn remaining Next.js fundamentals when they directly support the next FoodRush feature.
+- Reuse Phase 1 Next.js concepts while building real FoodRush features.
