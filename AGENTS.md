@@ -120,7 +120,8 @@ public
 - `foodrush_db` is the local Prisma-owned database.
 - Prisma version: `7.8.0`.
 - Prisma 7 requires a driver adapter; FoodRush uses `@prisma/adapter-mariadb`.
-- Current Prisma models: `Restaurant`, `MenuItem`.
+- Current Prisma models: `User`, `Restaurant`, `MenuItem`, `Cart`, `CartItem`,
+  `ParentOrder`, `RestaurantOrder`, `OrderItem`, and `Payment`.
 - Current schema has:
   - `Restaurant` → `MenuItem[]`
   - `MenuItem.restaurantId` → `Restaurant.id`
@@ -128,11 +129,17 @@ public
   - `imageUrl String?`
   - `isActive` and `isAvailable`
   - `createdAt` and `updatedAt`
-- Current seed file:
-  - uses Prisma 7 MariaDB adapter
-  - uses `deleteMany()` to clear child rows before parent rows
-  - seeds multiple restaurants with multiple menu items
-  - uses a loop with `restaurant.create()` and nested `menuItems.create`
+  - `User.role` uses `UserRole` enum: `USER`, `ADMIN`
+  - `Cart.userId @unique` so one user has one active cart
+  - `CartItem` connects to `MenuItem`, not directly to `Restaurant`
+  - `CartItem` uses `@@unique([cartId, menuItemId])` to prevent duplicate
+    same-item rows in one cart
+  - `ParentOrder` stores full checkout totals, delivery address, and phone
+  - `RestaurantOrder` stores each restaurant's split order and status
+  - `OrderItem` stores `itemName` and `price` snapshots for old order history
+  - `Payment` belongs to `ParentOrder` and stores provider/payment status fields
+- Latest schema migration for the V1 auth/cart/order/payment models has been
+  applied successfully.
 - `lib/prisma.js` is the reusable Prisma Client helper for Next.js server code.
   It uses `@prisma/adapter-mariadb` and a `globalThis` Prisma Client cache
   to avoid creating too many clients during development hot reloads.
@@ -185,7 +192,7 @@ public
   and schema design basics
 - Prisma basics so far:
   setup, MySQL connection, Prisma 7 adapter, migrations, native DB types,
-  timestamps, active flags, image URL strategy, seed basics, `deleteMany`,
+  timestamps, active flags, image URL strategy, `deleteMany`,
   `findMany`, `findUnique`, `create`, `update`, `delete`, `createMany`,
   `updateMany`, `where`, `orderBy`, `include`, `select`, `findFirst`,
   `connect`, `connectOrCreate`, stale client fix with `npx prisma generate`,
@@ -251,13 +258,12 @@ public
 ### 🔄 Phase 4 — MySQL + Prisma (In Progress)
 - [x] 24. MySQL basics
 - [x] 25. Prisma setup + connect to MySQL
-- [ ] 26. Schema design (User, Restaurant, MenuItem, Cart, CartItem, ParentOrder, RestaurantOrder, OrderItem, Payment)
-  - Current schema has `Restaurant` and `MenuItem`.
-  - `User`, `Cart/CartItem`, `ParentOrder`, `RestaurantOrder`, `OrderItem`,
-    and `Payment` are still pending.
+- [x] 26. Schema design (User, Restaurant, MenuItem, Cart, CartItem, ParentOrder, RestaurantOrder, OrderItem, Payment)
+  - Current schema has the V1 multi-restaurant checkout models.
   - V1 design decision: support multi-restaurant checkout by grouping one
     checkout/payment under `ParentOrder`, then splitting it into
     restaurant-wise `RestaurantOrder` records.
+  - Schema migration for these models has been applied.
 - [x] 27. Prisma CRUD operations
   - Covered: `findMany`, `findUnique`, `findFirst`, `create`, `update`,
     `updateMany`, `delete`, `deleteMany`, `createMany`, `where`, `orderBy`,
@@ -267,9 +273,7 @@ public
   - Prisma relation queries covered with nested create, `include`, `select`,
     `connect`, and `connectOrCreate` basics.
 - [ ] 29. Transactions in Prisma
-- [x] 30. Seed database with dummy data
-  - Seed file now creates multiple FoodRush restaurants and menu items with
-    real image URLs using a loop plus nested `menuItems.create`.
+- [x] 30. Database sample data practice
 - [x] 31. Replace dummyjson API with real database
   - `getRestaurants()` and `getRestaurant(id)` are Prisma-backed.
   - `GET /api/restaurants` and `GET /api/restaurants/[id]` work in Thunder Client.
@@ -319,35 +323,23 @@ public
 Resume here:
 
 ```txt
-1. Start FoodRush System Design V1 now.
-   Goal: create a practical blueprint before adding more schema/API code.
-2. Fill foodrush-system-design.md in this order:
-   V1 scope
-   Actors
-   User flow
-   Admin flow
-   Core entities
-   Relationships
-   Order lifecycle
-   Simple V1 pricing/costing
-   API route plan
-   V2/V3 postponed features
-3. Important V1 design decision:
+1. FoodRush System Design V1 is drafted in foodrush-system-design.md.
+2. Important V1 design decision:
    support multi-restaurant cart/checkout.
    Use ParentOrder for the full checkout/payment.
    Use RestaurantOrder for each restaurant's split order/status.
-4. After system design, finalize the Prisma schema plan.
-5. Then implement schema/migrations/seed updates.
-6. Then build MenuItem API route practice.
-7. Suggested next routes:
+3. Prisma schema for User, Cart, CartItem, ParentOrder, RestaurantOrder,
+   OrderItem, and Payment has been written and migrated.
+4. Next step: start API route practice.
+5. Suggested next routes:
    GET /api/restaurants/[id]/menu-items
    POST /api/restaurants/[id]/menu-items
-8. Then continue:
+6. Then continue:
    admin restaurant/menu CRUD
    cart + order flow
    auth/protected real sessions
    remaining web/browser fundamentals when auth/payment/deployment needs them
-9. Keep FoodRush product flow in mind:
+7. Keep FoodRush product flow in mind:
    restaurants -> menu items -> cart -> checkout/payment -> restaurant-wise orders.
 ```
 
@@ -379,106 +371,22 @@ real FoodRush needs like auth, payments, deployment, CORS, or production APIs.
 - Updated the system design doc with V1/V2/V3 scope, user/admin flows,
   relationships, order lifecycle, pricing/costing, API plan, admin plan,
   AI ideas, and open questions.
-- Finished nested create with multiple menu items.
-- Expanded `prisma/seed.js` to seed multiple restaurants and menu items with
-  real image URLs.
-- Learned why `createMany` does not support nested relation writes:
-  `createMany` inserts many rows into one table, while nested create writes
-  related rows across tables.
-- Learned when to use loop + `restaurant.create()` + nested `menuItems.create`
-  for relational seed data.
-- Covered `connect` and `connectOrCreate` basics.
-- Covered `findUnique`, `findFirst`, `include`, `select`, and nested relation
-  selection for restaurant detail data.
-- Practiced `update`, `updateMany`, hard delete vs soft delete, and why
-  FoodRush should usually soft-delete restaurants with `isActive`.
-- Created `lib/prisma.js`, the reusable Prisma Client helper for Next.js
-  server code with MariaDB adapter and `globalThis` dev cache.
-- Started replacing DummyJSON with database-backed helpers:
-  `getRestaurants()` now uses Prisma, filters `isActive`, selects only fields
-  needed by restaurant cards, orders by rating, and converts Decimal rating to
-  a plain number.
-- Confirmed `GET /api/restaurants` works from MySQL in Thunder Client.
-- Updated restaurant list UI fields toward database names:
-  `imageUrl` and `deliveryTime`.
-- Discussed why route handlers/server components can use Prisma but Client
-  Components should not import Prisma directly.
-- Finished restaurant detail helper with nested `select`, invalid id validation,
-  active/available filters, and Decimal conversion for `rating` and menu item `price`.
-- Confirmed `GET /api/restaurants/[id]` works from MySQL in Thunder Client,
-  including invalid/missing id behavior.
-- Updated API route error handling pattern:
-  log real server errors in the terminal, return safe generic `500` JSON to the frontend.
-- Updated stale helper comments in `lib/restaurants.js`.
-- Did a quick Prisma revision quiz covering method choice, `select`/`include`,
-  Decimal conversion, nested create, `connect`, updates, soft delete, and error handling.
-- Started Prisma-backed API CRUD after GET routes.
-- Built and tested `POST /api/restaurants` successfully in Thunder Client:
-  route reads JSON body with `await request.json()`, validates required fields,
-  calls `createRestaurant(data)`, and returns the created restaurant with `201`.
-- Learned that POST test data should come from Thunder Client/request body now,
-  and later from an admin form using `fetch(..., { method: "POST", body })`.
-- Revised GET/POST route handler basics through one-question-at-a-time quiz.
-- Built and tested `PATCH /api/restaurants/[id]`:
-  - Route reads JSON body with `await request.json()`.
-  - Validation uses `&&` so at least one editable field is enough.
-  - Helper builds `updateData` so PATCH only changes sent fields.
-  - Missing, invalid, or inactive restaurants return `404`.
-- Debugged a Thunder Client body issue where JSON was being sent as a string:
-  - `typeof data` showed `string`.
-  - `data.name` was `undefined`.
-  - `Object.keys(data)` showed string indexes.
-  - Fix was to send a real JSON object in Body → JSON without wrapping the
-    whole object in quotes.
-- Built and tested `DELETE /api/restaurants/[id]` as a soft delete:
-  - Helper sets `isActive: false`.
-  - Follow-up GET returns `404` because normal app queries filter
-    `isActive: true`.
-- Started a FoodRush system design doc at `foodrush-system-design.md`, but paused
-  deeper schema decisions because auth/user flow affects cart and orders.
-- Covered environment variables:
-  - `DATABASE_URL` stays server-only in `.env`.
-  - `NEXT_PUBLIC_` variables are browser-visible and must not contain secrets.
-  - Restart dev server after changing `.env`.
-- Covered cookies and headers with temporary learning routes:
-  - `GET /api/learning/set-cookie` sets `foodrush_demo=darshan`.
-  - `GET /api/learning/read-cookie` reads it with `cookies()`.
-  - `GET /api/learning/read-headers` reads `user-agent` and raw `cookie`
-    headers with `headers()`.
-  - Learned `Set-Cookie` is server -> browser and `Cookie` is browser -> server.
-- Covered database-session auth mental model:
-  - Browser cookie carries `session_id`.
-  - Database/server session maps session id to user.
-  - Logout deletes/expires the server session and sends a cookie deletion response.
-- Built a temporary protected-route demo with `proxy.js`:
-  - `/admin/:path*` checks the `foodrush_demo` cookie.
-  - Missing cookie redirects to `/login`.
-  - Cookie exists allows admin routes.
-- Covered Client vs Server Components deep dive:
-  - Server Components can use Prisma/server helpers.
-  - Client Components handle browser interaction.
-  - Client Components call API routes or Server Actions, not Prisma helpers.
-- Covered Server Actions basics:
-  - Useful for Next.js form mutations.
-  - Read form values with `formData.get()`.
-  - Can use Prisma/server helpers because actions run on the server.
-  - Use `revalidatePath()` after mutations to refresh affected paths.
-  - API routes are still needed for Thunder Client, mobile apps, external clients,
-    and REST endpoints.
-- Completed Streaming & Suspense basics:
-  - `loading.js` is route-level loading UI.
-  - Suspense is component/section-level fallback UI.
-  - Skeletons are usually better than random spinners for stable FoodRush UI.
-  - Streaming improves perceived speed by showing ready sections earlier.
-- Completed `generateStaticParams` basics:
-  - Used for dynamic routes like `/restaurants/[id]`.
-  - Returns params objects like `{ id: "1" }`, not full restaurant data.
-  - Pre-building helps known stable pages load fast, but admin-created data needs
-    revalidation/runtime strategy.
-- Phase 1 Next.js Fundamentals is now complete conceptually.
+- Reviewed the new Prisma schema table by table:
+  `User`, `Restaurant`, `MenuItem`, `Cart`, `CartItem`, `ParentOrder`,
+  `RestaurantOrder`, `OrderItem`, and `Payment`.
+- Clarified that `CartItem` does not store `restaurantId` because restaurant
+  can be reached through `CartItem -> MenuItem -> Restaurant`.
+- Clarified snapshot fields:
+  `OrderItem.itemName` and `OrderItem.price` preserve old order history even
+  if menu item name/price changes later.
+- Clarified that `ParentOrder.deliveryAddress` and `ParentOrder.phone` are
+  checkout snapshots, not just user-profile data.
+- Added Prisma enums for roles, parent order status, restaurant order status,
+  payment provider, and payment status.
+- Ran `npx prisma format` and `npx prisma validate`; schema validation passed.
+- Darshan ran the migration successfully.
 
 ## What's Next
-- Start FoodRush System Design V1 in `foodrush-system-design.md`.
-- After scope is clear, finalize Prisma schema and continue MenuItem API route practice.
+- Start API route practice next, beginning with restaurant menu item routes.
 - Continue using one-question-at-a-time quiz and "try first, then review" coding practice.
 - Reuse Phase 1 Next.js concepts while building real FoodRush features.
