@@ -63,9 +63,14 @@ export async function generateStaticParams() {
   Temporary DummyJSON recipe data is only placeholder data.
 - Correct future product flow:
   user browses restaurants → opens a restaurant → sees menu items →
-  adds menu items to cart → places an order.
+  adds menu items to cart → checks out cart → pays → receives restaurant-wise orders.
 - Future database/schema should model real ordering concepts:
-  `Restaurant`, `MenuItem`, `Cart/CartItem`, `Order`, `OrderItem`, and later `User`.
+  `User`, `Restaurant`, `MenuItem`, `Cart`, `CartItem`, `ParentOrder`,
+  `RestaurantOrder`, `OrderItem`, and `Payment`.
+- FoodRush V1 should support multi-restaurant checkout:
+  one cart can contain menu items from multiple restaurants, one payment covers
+  the full checkout, and the app splits that checkout into restaurant-wise
+  orders with separate statuses.
 - Do not design Prisma schema around DummyJSON recipe-only fields like
   `ingredients` and `instructions`; those can disappear when real FoodRush data
   replaces the placeholder API.
@@ -246,9 +251,13 @@ public
 ### 🔄 Phase 4 — MySQL + Prisma (In Progress)
 - [x] 24. MySQL basics
 - [x] 25. Prisma setup + connect to MySQL
-- [ ] 26. Schema design (User, Restaurant, MenuItem, Order, OrderItem, Cart)
+- [ ] 26. Schema design (User, Restaurant, MenuItem, Cart, CartItem, ParentOrder, RestaurantOrder, OrderItem, Payment)
   - Current schema has `Restaurant` and `MenuItem`.
-  - `Order`, `OrderItem`, `Cart/CartItem`, and `User` are still pending.
+  - `User`, `Cart/CartItem`, `ParentOrder`, `RestaurantOrder`, `OrderItem`,
+    and `Payment` are still pending.
+  - V1 design decision: support multi-restaurant checkout by grouping one
+    checkout/payment under `ParentOrder`, then splitting it into
+    restaurant-wise `RestaurantOrder` records.
 - [x] 27. Prisma CRUD operations
   - Covered: `findMany`, `findUnique`, `findFirst`, `create`, `update`,
     `updateMany`, `delete`, `deleteMany`, `createMany`, `where`, `orderBy`,
@@ -310,30 +319,66 @@ public
 Resume here:
 
 ```txt
-1. Do a short FoodRush system design/scope session before adding more models.
-   Goal: separate V1 portfolio scope from V2/V3 future product features.
-2. Create or outline foodrush-system-design.md with:
-   Vision, V1/V2/V3 scope, user/admin/vendor flows, entities, order lifecycle,
-   pricing/costing ideas, delivery/courier ideas, and AI ideas.
-3. After scope is clear, start MenuItem API route practice.
-4. Suggested next routes:
+1. Start FoodRush System Design V1 now.
+   Goal: create a practical blueprint before adding more schema/API code.
+2. Fill foodrush-system-design.md in this order:
+   V1 scope
+   Actors
+   User flow
+   Admin flow
+   Core entities
+   Relationships
+   Order lifecycle
+   Simple V1 pricing/costing
+   API route plan
+   V2/V3 postponed features
+3. Important V1 design decision:
+   support multi-restaurant cart/checkout.
+   Use ParentOrder for the full checkout/payment.
+   Use RestaurantOrder for each restaurant's split order/status.
+4. After system design, finalize the Prisma schema plan.
+5. Then implement schema/migrations/seed updates.
+6. Then build MenuItem API route practice.
+7. Suggested next routes:
    GET /api/restaurants/[id]/menu-items
    POST /api/restaurants/[id]/menu-items
-5. Keep FoodRush product flow in mind:
-   restaurants -> menu items -> cart -> orders.
+8. Then continue:
+   admin restaurant/menu CRUD
+   cart + order flow
+   auth/protected real sessions
+   remaining web/browser fundamentals when auth/payment/deployment needs them
+9. Keep FoodRush product flow in mind:
+   restaurants -> menu items -> cart -> checkout/payment -> restaurant-wise orders.
 ```
 
-Next.js topic order note:
+Planning note:
 
 ```txt
-Do not ignore remaining Next.js fundamentals, but learn them when they unlock
-the next FoodRush feature:
-- searchParams before URL-based restaurant filters/search
-- Streaming/Suspense before polishing loading UX
-- generateStaticParams before static/dynamic restaurant detail revision
+Phase 1 Next.js fundamentals are complete.
+Ignore Phase 2 UI polish for now unless a UI issue blocks backend/product flow.
+Do not jump into broad web/browser fundamentals yet; learn them when they unlock
+real FoodRush needs like auth, payments, deployment, CORS, or production APIs.
 ```
 
 ## Last Session Covered
+- Started FoodRush System Design V1 in `foodrush-system-design.md`.
+- Decided V1 should be a strong portfolio app with browsing restaurants,
+  restaurant menu items, database-backed cart, checkout, payments, order
+  history/status, and admin CRUD/dashboard responsibilities.
+- Chose multi-restaurant checkout for V1:
+  one cart can contain items from multiple restaurants, one payment covers the
+  full checkout, and FoodRush splits the checkout into restaurant-wise orders.
+- Added the V1 ordering model direction:
+  `ParentOrder` represents the full checkout/payment from the user's view,
+  while `RestaurantOrder` represents each restaurant's separate order/status.
+- Defined V1 actors:
+  Customer/User, Admin, and Payment Provider.
+- Defined V1 core entities:
+  `User`, `Restaurant`, `MenuItem`, `Cart`, `CartItem`, `ParentOrder`,
+  `RestaurantOrder`, `OrderItem`, and `Payment`.
+- Updated the system design doc with V1/V2/V3 scope, user/admin flows,
+  relationships, order lifecycle, pricing/costing, API plan, admin plan,
+  AI ideas, and open questions.
 - Finished nested create with multiple menu items.
 - Expanded `prisma/seed.js` to seed multiple restaurants and menu items with
   real image URLs.
@@ -433,7 +478,7 @@ the next FoodRush feature:
 - Phase 1 Next.js Fundamentals is now complete conceptually.
 
 ## What's Next
-- Return to the FoodRush system design/scope session before adding cart/order/auth models.
-- After scope is clear, continue MenuItem API route practice.
+- Start FoodRush System Design V1 in `foodrush-system-design.md`.
+- After scope is clear, finalize Prisma schema and continue MenuItem API route practice.
 - Continue using one-question-at-a-time quiz and "try first, then review" coding practice.
 - Reuse Phase 1 Next.js concepts while building real FoodRush features.
