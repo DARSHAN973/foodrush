@@ -10,10 +10,16 @@ import { loginUser, signUpUser } from "@/app/actions/authActions";
 function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  // Redirect query param - lets protected pages send users here and then back
+  // to the page they originally wanted after login.
   const redirectTo = searchParams.get("redirect") || "/";
+  // useActionState - connects a form Server Action to client UI state, so the
+  // form can show success/error messages returned from the server.
   const [signupState, signupAction] = useActionState(signUpUser, null);
   const [loginState, loginAction] = useActionState(loginUser, null);
   const [isSignup, setIsSignup] = useState(false);
+  // Controlled inputs - keep typed values in React state so switching between
+  // login/signup does not lose form control.
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -33,6 +39,8 @@ function LoginForm() {
   };
 
   const currentState = isSignup ? signupState : loginState;
+  // One form, two Server Actions - the same UI submits to signup or login
+  // depending on the selected mode.
   const currentAction = isSignup ? signupAction : loginAction;
   const successMessage = currentState?.message;
 
@@ -126,6 +134,8 @@ function LoginForm() {
             </p>
           )}
 
+          {/* Server Action form - Next.js sends this form to the selected server
+              function without creating a separate API route. */}
           <form action={currentAction} className="space-y-5">
             {isSignup && (
               <div>
@@ -256,6 +266,8 @@ function LoginForm() {
 
 export default function Login() {
   return (
+    // Suspense is needed because useSearchParams reads URL data on the client.
+    // Wrapping the form keeps this page compatible with Next.js rendering rules.
     <Suspense>
       <LoginForm />
     </Suspense>

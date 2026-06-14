@@ -1,17 +1,17 @@
 {
   "version": 1,
-  "generatedAt": "2026-06-11T16:09:22.082Z",
+  "generatedAt": "2026-06-14T08:44:44.441Z",
   "rootPath": "/home/darshan/darshan/web_development_revision/foodrush",
   "summary": {
     "totalFiles": 54,
-    "totalEdges": 47,
-    "totalLines": 6763,
+    "totalEdges": 52,
+    "totalLines": 8387,
     "languages": [
       "js"
     ],
     "flowStages": {
-      "start": 2,
-      "main": 42,
+      "start": 3,
+      "main": 41,
       "core": 4,
       "helpers": 6
     }
@@ -85,29 +85,33 @@
       "stage": "main",
       "lang": "js",
       "ext": ".js",
-      "lines": 236,
-      "size": 8038,
+      "lines": 276,
+      "size": 10188,
       "collaboration": {
         "status": "connected",
         "impact": "leaf",
         "summary": "Part of the local code flow with a focused role.",
-        "score": 3
+        "score": 4
       },
       "crossStageLinks": 0,
-      "impactScore": 3,
-      "summary": "Main orchestration code. Functions: Login, handleChange, handleSubmit, switchMode",
+      "impactScore": 4,
+      "summary": "Main orchestration code. Functions: LoginForm, Login, handleChange, switchMode",
       "functions": [
+        "LoginForm",
         "Login",
         "handleChange",
-        "handleSubmit",
-        "switchMode"
+        "switchMode",
+        "handleSuccessOk"
       ],
       "classes": [],
-      "exports": [],
+      "exports": [
+        "Login"
+      ],
       "imports": [
         "components/Button.js",
         "components/Input.js",
-        "components/ErrorMessage.js"
+        "components/ErrorMessage.js",
+        "app/actions/authActions.js"
       ],
       "usedBy": []
     },
@@ -231,15 +235,15 @@
       "lang": "js",
       "ext": ".js",
       "lines": 132,
-      "size": 4682,
+      "size": 4697,
       "collaboration": {
         "status": "connected",
         "impact": "leaf",
         "summary": "Part of the local code flow with a focused role.",
-        "score": 1
+        "score": 3
       },
-      "crossStageLinks": 0,
-      "impactScore": 1,
+      "crossStageLinks": 1,
+      "impactScore": 3,
       "summary": "Main orchestration code. Functions: generateStaticParams, generateMetadata, RestaurantDetails",
       "functions": [
         "generateStaticParams",
@@ -249,7 +253,8 @@
       "classes": [],
       "exports": [],
       "imports": [
-        "lib/restaurants.js"
+        "lib/restaurants.js",
+        "components/MenuClient.js"
       ],
       "usedBy": []
     },
@@ -336,6 +341,63 @@
       "imports": [
         "components/RestaurantsClient.js",
         "lib/restaurants.js"
+      ],
+      "usedBy": []
+    },
+    {
+      "path": "app/actions/authActions.js",
+      "fileType": "module",
+      "stage": "main",
+      "lang": "js",
+      "ext": ".js",
+      "lines": 83,
+      "size": 2664,
+      "collaboration": {
+        "status": "connected",
+        "impact": "leaf",
+        "summary": "Part of the local code flow with a focused role.",
+        "score": 2
+      },
+      "crossStageLinks": 0,
+      "impactScore": 2,
+      "summary": "Main orchestration code. Functions: signUpUser, loginUser",
+      "functions": [
+        "signUpUser",
+        "loginUser"
+      ],
+      "classes": [],
+      "exports": [],
+      "imports": [
+        "lib/prisma.js"
+      ],
+      "usedBy": [
+        "app/(user)/login/page.js"
+      ]
+    },
+    {
+      "path": "app/actions/cartActions.js",
+      "fileType": "module",
+      "stage": "main",
+      "lang": "js",
+      "ext": ".js",
+      "lines": 45,
+      "size": 788,
+      "collaboration": {
+        "status": "connected",
+        "impact": "leaf",
+        "summary": "Part of the local code flow with a focused role.",
+        "score": 1
+      },
+      "crossStageLinks": 0,
+      "impactScore": 1,
+      "summary": "Main orchestration code. Functions: addToCart",
+      "functions": [
+        "addToCart"
+      ],
+      "classes": [],
+      "exports": [],
+      "imports": [
+        "lib/prisma.js"
       ],
       "usedBy": []
     },
@@ -451,81 +513,6 @@
       "usedBy": []
     },
     {
-      "path": "app/api/learning/read-cookie/route.js",
-      "fileType": "module",
-      "stage": "main",
-      "lang": "js",
-      "ext": ".js",
-      "lines": 10,
-      "size": 254,
-      "collaboration": {
-        "status": "isolated",
-        "impact": "solo",
-        "summary": "No local collaboration links yet.",
-        "score": 0
-      },
-      "crossStageLinks": 0,
-      "impactScore": 0,
-      "summary": "Main orchestration code. Functions: GET",
-      "functions": [
-        "GET"
-      ],
-      "classes": [],
-      "exports": [],
-      "imports": [],
-      "usedBy": []
-    },
-    {
-      "path": "app/api/learning/read-headers/route.js",
-      "fileType": "module",
-      "stage": "main",
-      "lang": "js",
-      "ext": ".js",
-      "lines": 10,
-      "size": 228,
-      "collaboration": {
-        "status": "isolated",
-        "impact": "solo",
-        "summary": "No local collaboration links yet.",
-        "score": 0
-      },
-      "crossStageLinks": 0,
-      "impactScore": 0,
-      "summary": "Main orchestration code. Functions: GET",
-      "functions": [
-        "GET"
-      ],
-      "classes": [],
-      "exports": [],
-      "imports": [],
-      "usedBy": []
-    },
-    {
-      "path": "app/api/learning/set-cookie/route.js",
-      "fileType": "module",
-      "stage": "main",
-      "lang": "js",
-      "ext": ".js",
-      "lines": 10,
-      "size": 202,
-      "collaboration": {
-        "status": "isolated",
-        "impact": "solo",
-        "summary": "No local collaboration links yet.",
-        "score": 0
-      },
-      "crossStageLinks": 0,
-      "impactScore": 0,
-      "summary": "Main orchestration code. Functions: GET",
-      "functions": [
-        "GET"
-      ],
-      "classes": [],
-      "exports": [],
-      "imports": [],
-      "usedBy": []
-    },
-    {
       "path": "app/api/restaurants/[id]/route.js",
       "fileType": "module",
       "stage": "main",
@@ -617,7 +604,7 @@
       "lang": "js",
       "ext": ".js",
       "lines": 25,
-      "size": 897,
+      "size": 896,
       "collaboration": {
         "status": "connected",
         "impact": "leaf",
@@ -653,10 +640,10 @@
         "status": "connected",
         "impact": "leaf",
         "summary": "Part of the local code flow with a focused role.",
-        "score": 4
+        "score": 6
       },
-      "crossStageLinks": 0,
-      "impactScore": 4,
+      "crossStageLinks": 1,
+      "impactScore": 6,
       "summary": "Main orchestration code. Functions: Button",
       "functions": [
         "Button"
@@ -670,6 +657,7 @@
         "app/(user)/cart/page.js",
         "app/(user)/login/page.js",
         "components/AddToCartButton.js",
+        "components/MenuClient.js",
         "components/RestaurantCard.js"
       ]
     },
@@ -822,6 +810,38 @@
       ]
     },
     {
+      "path": "components/MenuClient.js",
+      "fileType": "module",
+      "stage": "start",
+      "lang": "js",
+      "ext": ".js",
+      "lines": 92,
+      "size": 3228,
+      "collaboration": {
+        "status": "collaborative",
+        "impact": "bridge",
+        "summary": "Connects multiple parts of the code flow.",
+        "score": 9
+      },
+      "crossStageLinks": 3,
+      "impactScore": 9,
+      "summary": "Entry or startup logic. Functions: MenuClient",
+      "functions": [
+        "MenuClient"
+      ],
+      "classes": [],
+      "exports": [
+        "MenuClient"
+      ],
+      "imports": [
+        "context/CartContext.js",
+        "components/Button.js"
+      ],
+      "usedBy": [
+        "app/(user)/restaurants/[id]/page.js"
+      ]
+    },
+    {
       "path": "components/Navbar.js",
       "fileType": "module",
       "stage": "main",
@@ -858,24 +878,24 @@
       "stage": "main",
       "lang": "js",
       "ext": ".js",
-      "lines": 61,
-      "size": 2042,
+      "lines": 64,
+      "size": 2048,
       "collaboration": {
         "status": "connected",
         "impact": "leaf",
         "summary": "Part of the local code flow with a focused role.",
-        "score": 5
+        "score": 4
       },
       "crossStageLinks": 1,
-      "impactScore": 5,
-      "summary": "Main orchestration code. Functions: RestaurantCard",
+      "impactScore": 4,
+      "summary": "Main orchestration code. Functions: RestaurantCard, viewMenu",
       "functions": [
-        "RestaurantCard"
+        "RestaurantCard",
+        "viewMenu"
       ],
       "classes": [],
       "exports": [],
       "imports": [
-        "context/CartContext.js",
         "components/Button.js"
       ],
       "usedBy": [
@@ -979,10 +999,10 @@
         "status": "collaborative",
         "impact": "hub",
         "summary": "A shared dependency reused by many files.",
-        "score": 6
+        "score": 7
       },
-      "crossStageLinks": 0,
-      "impactScore": 6,
+      "crossStageLinks": 1,
+      "impactScore": 7,
       "summary": "Main orchestration code. Functions: CartProvider, addToCart, removeFromCart, increaseQty",
       "functions": [
         "CartProvider",
@@ -1001,8 +1021,8 @@
         "app/(user)/cart/page.js",
         "app/(user)/layout.js",
         "components/AddToCartButton.js",
+        "components/MenuClient.js",
         "components/Navbar.js",
-        "components/RestaurantCard.js",
         "components/Toast.js"
       ]
     },
@@ -1392,10 +1412,10 @@
         "status": "connected",
         "impact": "leaf",
         "summary": "Part of the local code flow with a focused role.",
-        "score": 1
+        "score": 3
       },
       "crossStageLinks": 0,
-      "impactScore": 1,
+      "impactScore": 3,
       "summary": "Main orchestration code. Type: module",
       "functions": [],
       "classes": [],
@@ -1404,6 +1424,8 @@
       ],
       "imports": [],
       "usedBy": [
+        "app/actions/authActions.js",
+        "app/actions/cartActions.js",
         "lib/restaurants.js"
       ]
     },
@@ -1413,8 +1435,8 @@
       "stage": "main",
       "lang": "js",
       "ext": ".js",
-      "lines": 169,
-      "size": 3908,
+      "lines": 171,
+      "size": 3957,
       "collaboration": {
         "status": "connected",
         "impact": "leaf",
@@ -1450,8 +1472,8 @@
       "stage": "helpers",
       "lang": "js",
       "ext": ".mjs",
-      "lines": 20,
-      "size": 426,
+      "lines": 17,
+      "size": 368,
       "collaboration": {
         "status": "isolated",
         "impact": "solo",
@@ -1496,8 +1518,8 @@
       "stage": "main",
       "lang": "js",
       "ext": ".js",
-      "lines": 153,
-      "size": 4329,
+      "lines": 1545,
+      "size": 52756,
       "collaboration": {
         "status": "isolated",
         "impact": "solo",
@@ -1506,10 +1528,9 @@
       },
       "crossStageLinks": 0,
       "impactScore": 0,
-      "summary": "Main orchestration code. Functions: main, runSeed",
+      "summary": "Main orchestration code. Functions: main",
       "functions": [
-        "main",
-        "runSeed"
+        "main"
       ],
       "classes": [],
       "exports": [],

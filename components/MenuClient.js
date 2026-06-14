@@ -1,12 +1,10 @@
 "use client";
 
 import Image from "next/image";
-import { useContext } from "react";
-import { CartContext } from "@/context/CartContext";
-import Button from "./Button";
+import { useTransition } from "react";
+import MenuAddButton from "@/components/MenuAddButton";
 
 export default function MenuClient({ menuItems }) {
-  const { addToCart } = useContext(CartContext);
   return (
     <section id="menu" className="mt-10 scroll-mt-24">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
@@ -76,9 +74,7 @@ export default function MenuClient({ menuItems }) {
                   />
 
                   <div className="-mt-4">
-                    <Button onClick={() => addToCart(item)} variant="primary">
-                      Add
-                    </Button>
+                    <MenuAddButton menuItemId={item.id} />
                   </div>
                 </div>
               </div>
