@@ -1,0 +1,43 @@
+"use server";
+
+import { updateRestaurant } from "@/lib/restaurants";
+import { revalidatePath } from "next/cache";
+
+export async function updateRestaurantAction(formData) {
+  // FormData from admin modal — inputs use name="" attributes, and the browser
+  // sends their latest typed values to this Server Action.
+  const id = formData.get("id");
+  const name = formData.get("name")?.trim();
+  const cuisine = formData.get("cuisine")?.trim();
+  const deliveryTime = Number(formData.get("deliveryTime"));
+  const rating = Number(formData.get("rating"));
+  const imageUrl = formData.get("imageUrl")?.trim();
+
+  if (!name || !cuisine || !imageUrl) {
+    return { error: "Name, cuisine, and image are required" };
+  }
+
+  if (!Number.isInteger(deliveryTime) || deliveryTime <= 0) {
+    return { error: "Delivery time must be a positive number" };
+  }
+
+  if (Number.isNaN(rating) || rating < 0 || rating > 5) {
+    return { error: "Rating must be between 0 and 5" };
+  }
+
+  const data = {
+    name,
+    cuisine,
+    deliveryTime,
+    rating,
+    imageUrl,
+  };
+
+  await updateRestaurant(id, data);
+
+  // Revalidate after mutation — the admin list is server-rendered, so Next needs
+  // this path marked fresh before the browser refreshes the route.
+  revalidatePath("/admin/restaurants");
+
+  return { message: "Restaurant updated successfully" };
+}

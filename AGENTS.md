@@ -80,6 +80,9 @@ export async function generateStaticParams() {
 app
 ├── layout.js
 ├── globals.css
+├── actions
+│   ├── authActions.js
+│   └── cartActions.js
 ├── (user)
 │   ├── layout.js
 │   ├── page.js
@@ -95,14 +98,16 @@ app
 │   └── restaurants/route.js, [id]/route.js
 components
 ├── AddToCartButton.js, Button.js, EmptyState.js
-├── ErrorMessage.js, Footer.js, Input.js
-├── Loading.js, Navbar.js, RestaurantCard.js
-├── MenuClient.js, ScrollToTop.js, Toast.js
+├── CartItemControls.js, ErrorMessage.js, Footer.js
+├── Input.js, Loading.js, MenuAddButton.js
+├── MenuClient.js, Navbar.js, NavbarClient.js
+├── RestaurantCard.js, ScrollToTop.js, Toast.js
 context
 └── CartContext.js
 hooks
 └── useRestaurants.js
 lib
+├── cart.js
 ├── prisma.js
 ├── restaurants.js
 └── generated Prisma client output removed in favor of standard @prisma/client
@@ -156,6 +161,36 @@ public
     and converts `rating` before returning.
   - `deleteRestaurant(id)` performs a soft delete by setting `isActive: false`
     instead of hard-deleting the row.
+- `app/actions/authActions.js` handles simple email/password signup and login:
+  - Uses Server Actions with `"use server"`.
+  - Reads submitted form values with `FormData`.
+  - Normalizes email to lowercase.
+  - Hashes passwords with bcrypt before storing.
+  - Uses generic login errors so the UI does not reveal whether an email exists.
+- Cart is now database-backed for the temporary user id `1` until real sessions are added:
+  - `app/actions/cartActions.js` has `addToCart(menuItemId)`,
+    `increaseCartItem(cartItemId)`, `decreaseCartItem(cartItemId)`, and
+    `removeCartItem(cartItemId)`.
+  - `addToCart()` stores `MenuItem` selections in `CartItem`, not restaurants.
+  - It uses the `@@unique([cartId, menuItemId])` compound key to update quantity
+    instead of creating duplicate same-item cart rows.
+  - Cart mutations call `revalidatePath("/cart")` so the server-rendered cart
+    page refreshes after database changes.
+- `lib/cart.js` is the reusable cart query helper:
+  - `getCart()` reads the current user's cart with `items -> menuItem -> restaurant`.
+  - It returns an empty cart shape when no cart exists.
+  - It converts Prisma Decimal prices to numbers before calculating totals.
+  - `getCartCount()` reads only quantities for the navbar badge.
+- `/cart` now renders from server data instead of localStorage context:
+  - The cart page is a Server Component using `getCart()`.
+  - `CartItemControls.js` is a small Client Component for quantity/remove clicks.
+  - Cart action buttons show pending UI while Server Actions are running.
+- Navbar cart count now comes from the database:
+  - `Navbar.js` is a Server Component that calls `getCartCount()`.
+  - `NavbarClient.js` keeps `usePathname()` active-link styling on the client.
+- Menu add buttons now call the cart Server Action:
+  - `MenuAddButton.js` owns the Add button pending state.
+  - `MenuClient.js` renders menu item data and passes `item.id` as `menuItemId`.
 - Reference files:
   - `mysql.md` for SQL/MySQL notes
   - `nextjs.md` for Next.js/App Router notes
@@ -176,6 +211,7 @@ public
 - Cookies & headers basics with `cookies()` and `headers()` from `next/headers`.
 - Middleware/proxy protected route basics using `proxy.js`, `NextResponse`, cookies, and matcher patterns.
 - Server Actions basics: form actions, `FormData.get()`, Prisma/server helper usage, `revalidatePath`, and API routes vs Server Actions.
+- Server Action button calls from Client Components, including pending UI for add-to-cart and cart quantity actions.
 - Streaming & Suspense basics: route-level `loading.js`, component-level Suspense fallbacks, skeleton UI, and perceived speed.
 - `generateStaticParams` basics: dynamic route params, params object shape, string URL params, and prebuild vs freshness tradeoff.
 - Route handler GET basics: `GET /api/restaurants`, `GET /api/restaurants/[id]`,
@@ -198,6 +234,7 @@ public
   `connect`, `connectOrCreate`, stale client fix with `npx prisma generate`,
   nested create basics, soft delete basics, reusable Prisma Client helper,
   PATCH-style partial update objects, route handler request body debugging,
+  compound unique lookup names like `cartId_menuItemId`, cart quantity updates,
   and Decimal-to-number serialization for UI/API data.
 
 ## Full Learning Roadmap
@@ -292,10 +329,20 @@ public
 
 ### ⏳ Phase 5 — Authentication + Cart + Orders
 - [ ] 33. NextAuth.js setup
-- [ ] 34. Email/password signup + login
+- [x] 34a. Simple email/password signup + login data flow
+  - Signup creates `User` rows with bcrypt password hashes.
+  - Login verifies email/password with bcrypt compare.
+  - Real auth sessions are still pending.
+- [ ] 34b. Real auth sessions with NextAuth/email-password flow
 - [ ] 35. Google OAuth
 - [ ] 36. Protected routes
-- [ ] 37. Cart context improvements
+- [x] 37a. Database-backed cart basics
+  - Add menu items to MySQL cart.
+  - Increase/decrease/remove cart items.
+  - Render cart page from server data.
+  - Render navbar count from server data.
+  - Add pending UI for cart actions.
+- [ ] 37b. Replace temporary user id with real logged-in user session
 - [ ] 38. Checkout flow
 - [ ] 39. Order placement
 - [ ] 40. Order history
@@ -337,14 +384,18 @@ Resume here:
    OrderItem, and Payment has been written and migrated.
 4. Restaurant browsing flow is now closer to real FoodRush:
    restaurants -> restaurant detail -> menu items -> Add button.
-5. Next step: send login/signup data to the database.
-   Start with a simple email/password user flow before full NextAuth/OAuth.
-6. After login data works, persist cart data to MySQL:
-   Cart belongs to User, CartItem belongs to Cart and MenuItem.
-7. Then continue:
-   database-backed cart routes/actions, checkout/order flow,
-   auth/protected real sessions, and admin restaurant/menu CRUD.
-8. Keep FoodRush product flow in mind:
+5. Simple login/signup database flow is done, but real auth sessions are not.
+   Current auth still does not create a browser session or protect routes.
+6. Database-backed cart basics are done using temporary user id 1:
+   add item, update quantity, remove item, server-render cart page, navbar count,
+   and pending UI for cart actions.
+7. Next step: start Admin CRUD operations.
+   Begin with admin restaurant CRUD UI backed by existing `lib/restaurants.js`
+   helpers, then move to menu item CRUD.
+8. After admin CRUD, continue:
+   real auth/protected admin routes, checkout/order flow, and replacing the
+   temporary cart user id with the logged-in user.
+9. Keep FoodRush product flow in mind:
    restaurants -> menu items -> cart -> checkout/payment -> restaurant-wise orders.
 ```
 
@@ -358,44 +409,39 @@ real FoodRush needs like auth, payments, deployment, CORS, or production APIs.
 ```
 
 ## Last Session Covered
-- Reviewed whether the `/restaurants` page should fetch through
-  `/api/restaurants` or call `getRestaurants()` directly.
-- Clarified the production rule:
-  Server Components should usually call shared server helpers directly,
-  while Client Components, Thunder Client, mobile apps, or external clients use
-  API routes.
-- Clarified why `fetch()` returns a `Response` object first and why
-  `response.json()` is needed before passing data into UI components.
-- Clarified that `fetch("/api/restaurants")` works in browser/client code, but
-  Server Component fetch needs an absolute URL if practicing API-route fetches.
-- Debugged `restaurants.map is not a function`/`Cannot read properties of null`
-  by identifying that list pages need an array shape (`[]`), while single-detail
-  missing data can use `null`.
-- Updated the restaurant detail direction so users order menu items, not whole
-  restaurants.
-- Planned and implemented the restaurant detail header polish:
-  larger restaurant image, cuisine/name, helper text, rating, delivery time,
-  menu item count, accepting-orders status, and a hash link to the menu section.
-- Added/used `#menu` section navigation so restaurant cards or detail header
-  can jump directly to the menu area.
-- Added/used `MenuClient.js` for the menu section because Add button/cart
-  interactions require a Client Component, while the restaurant detail page
-  should stay a Server Component for data fetching and `notFound()`.
-- Updated menu item card UI to show menu-item data and Add button behavior.
-  Important correction: Add should pass the menu `item`, not `restaurant`,
-  because FoodRush cart items are `MenuItem` based.
-- Updated `lib/restaurants.js` detail query direction so menu items include
-  fields needed by UI such as `imageUrl` and `isVeg`.
-- Re-seeded MySQL from current `prisma/seed.js` to remove stale broken
-  Unsplash image URLs that were still present in the database.
-- Verified the specific broken image URL ids were no longer present in MySQL.
+- Added explanation comments to `app/actions/authActions.js` and
+  `app/(user)/login/page.js` for Server Actions, `FormData`, email normalization,
+  bcrypt hashing/compare, generic auth errors, `useActionState`, redirect query
+  params, controlled inputs, and Suspense with `useSearchParams`.
+- Built database-backed cart write flow:
+  `addToCart(menuItemId)` creates/finds the user's cart and creates or updates
+  `CartItem` rows.
+- Clarified why cart stores `menuItemId`, not restaurant data:
+  `CartItem -> MenuItem -> Restaurant` gives restaurant context when needed.
+- Learned Prisma compound unique lookup generated from
+  `@@unique([cartId, menuItemId])` as `cartId_menuItemId`.
+- Fixed add-to-cart bugs:
+  `findUnique` camelCase typo and duplicate `CartItem` unique constraint error
+  by updating quantity and returning instead of always creating.
+- Added `lib/cart.js` with `getCart()` and `getCartCount()`.
+- Converted `/cart` page to server-render from database data using `getCart()`.
+- Added `CartItemControls.js` as the Client Component for increase/decrease/remove
+  buttons that call cart Server Actions.
+- Split navbar into server/client pieces:
+  `Navbar.js` reads DB cart count, `NavbarClient.js` keeps active link styling.
+- Added pending/loading states for Add button and cart item controls.
+- Important UI correction:
+  track which cart action is pending so clicking one button does not show loading
+  text on every button in that cart row.
 
 ## What's Next
-- Start login/signup database flow next:
-  send user form data to the database, create/read `User` rows safely, and keep
-  password handling practical but production-minded.
-- Then persist cart data to MySQL:
-  use the logged-in user, create/find their `Cart`, and add/update `CartItem`
-  rows connected to `MenuItem`.
+- Start Admin CRUD operations next.
+- Recommended order:
+  admin restaurants list -> create restaurant form -> edit restaurant form ->
+  soft delete restaurant -> menu item CRUD for each restaurant.
+- Keep using Server Actions and shared server helpers first; API routes are still
+  useful for external clients/Thunder Client practice, but admin dashboard forms
+  can use Server Actions.
+- Keep temporary cart `userId = 1` until real auth sessions are added.
 - Continue using one-question-at-a-time quiz and "try first, then review" coding practice.
 - Reuse Phase 1 Next.js concepts while building real FoodRush features.

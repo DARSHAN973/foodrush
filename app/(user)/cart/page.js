@@ -6,6 +6,8 @@ import { getCart } from "@/lib/cart";
 import CartItemControls from "@/components/CartItemControls";
 
 export default async function Cart() {
+  // Server-rendered cart — reads the latest database state before rendering,
+  // so cart actions can revalidate this page after mutations.
   const { items, totalItems, totalPrice } = await getCart();
 
   if (totalItems === 0) {

@@ -8,6 +8,8 @@ import {
 import { useState } from "react";
 
 export default function CartItemControls({ cartItemId, quantity }) {
+  // Pending action state — track the exact clicked button so one cart row does
+  // not show loading text on every control at the same time.
   const [pendingAction, setPendingAction] = useState(null);
 
   async function handleDecrease() {
