@@ -601,7 +601,7 @@ async function main() {
             isVeg: true,
             isAvailable: true,
             imageUrl:
-              "https://images.unsplash.com/photo-1630409351241-e90e7f5e791a?w=600&auto=format&fit=crop",
+              "https://images.unsplash.com/photo-1589301760014-d929f3979dbc?w=600&auto=format&fit=crop",
           },
           {
             name: "Idli Sambar",
@@ -621,7 +621,7 @@ async function main() {
             isVeg: true,
             isAvailable: true,
             imageUrl:
-              "https://images.unsplash.com/photo-1630409351241-e90e7f5e791a?w=600&auto=format&fit=crop",
+              "https://images.unsplash.com/photo-1668236543090-82eba5ee5976?w=600&auto=format&fit=crop",
           },
           {
             name: "Chettinad Chicken Curry",
@@ -641,7 +641,7 @@ async function main() {
             isVeg: true,
             isAvailable: true,
             imageUrl:
-              "https://images.unsplash.com/photo-1548340748-6ca51f437ca7?w=600&auto=format&fit=crop",
+              "https://images.unsplash.com/photo-1551024709-8f23befc6f87?w=600&auto=format&fit=crop",
           },
           {
             name: "Filter Coffee",
@@ -898,7 +898,7 @@ async function main() {
             isVeg: true,
             isAvailable: true,
             imageUrl:
-              "https://images.unsplash.com/photo-1645177628172-a94c1f96debb?w=600&auto=format&fit=crop",
+              "https://images.unsplash.com/photo-1596797038530-2c107229654b?w=600&auto=format&fit=crop",
           },
           {
             name: "Raita",
@@ -928,7 +928,7 @@ async function main() {
             isVeg: true,
             isAvailable: true,
             imageUrl:
-              "https://images.unsplash.com/photo-1548340748-6ca51f437ca7?w=600&auto=format&fit=crop",
+              "https://images.unsplash.com/photo-1551024709-8f23befc6f87?w=600&auto=format&fit=crop",
           },
         ],
       },
@@ -1132,7 +1132,7 @@ async function main() {
             isVeg: true,
             isAvailable: true,
             imageUrl:
-              "https://images.unsplash.com/photo-1548340748-6ca51f437ca7?w=600&auto=format&fit=crop",
+              "https://images.unsplash.com/photo-1551024709-8f23befc6f87?w=600&auto=format&fit=crop",
           },
           {
             name: "Tandoori Chicken",
@@ -1280,7 +1280,7 @@ async function main() {
             isVeg: true,
             isAvailable: true,
             imageUrl:
-              "https://images.unsplash.com/photo-1548340748-6ca51f437ca7?w=600&auto=format&fit=crop",
+              "https://images.unsplash.com/photo-1551024709-8f23befc6f87?w=600&auto=format&fit=crop",
           },
           {
             name: "Sol Kadhi",
@@ -1430,7 +1430,7 @@ async function main() {
             isVeg: true,
             isAvailable: true,
             imageUrl:
-              "https://images.unsplash.com/photo-1548340748-6ca51f437ca7?w=600&auto=format&fit=crop",
+              "https://images.unsplash.com/photo-1551024709-8f23befc6f87?w=600&auto=format&fit=crop",
           },
           {
             name: "Thandai",

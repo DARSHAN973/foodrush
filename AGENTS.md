@@ -97,7 +97,7 @@ components
 ├── AddToCartButton.js, Button.js, EmptyState.js
 ├── ErrorMessage.js, Footer.js, Input.js
 ├── Loading.js, Navbar.js, RestaurantCard.js
-├── ScrollToTop.js, Toast.js
+├── MenuClient.js, ScrollToTop.js, Toast.js
 context
 └── CartContext.js
 hooks
@@ -243,8 +243,13 @@ public
   - Database-backed restaurant list/detail helpers and GET API routes are done.
   - Some UI placeholders may still be redesigned later with richer Restaurant fields.
 - Refactor restaurant detail page from recipe ingredients/instructions to real restaurant menu items.
-  - Started: menu items render from `restaurant.menuItems`.
-  - Later: polish menu item cards and move cart flow to menu items instead of whole restaurants.
+  - Menu items now render from `restaurant.menuItems`.
+  - Restaurant detail page now treats restaurants as storefronts and menu
+    items as the orderable products.
+  - `MenuClient.js` owns the menu item card UI and client-side Add button
+    behavior so the restaurant detail page can stay a Server Component.
+  - Restaurant cards should point users toward viewing the menu, not ordering
+    the whole restaurant.
 
 ### ⏳ Phase 3 — Web & Browser Fundamentals (Don't skip)
 - [ ] 17. How HTTP works (request, response, status codes)
@@ -330,16 +335,16 @@ Resume here:
    Use RestaurantOrder for each restaurant's split order/status.
 3. Prisma schema for User, Cart, CartItem, ParentOrder, RestaurantOrder,
    OrderItem, and Payment has been written and migrated.
-4. Next step: start API route practice.
-5. Suggested next routes:
-   GET /api/restaurants/[id]/menu-items
-   POST /api/restaurants/[id]/menu-items
-6. Then continue:
-   admin restaurant/menu CRUD
-   cart + order flow
-   auth/protected real sessions
-   remaining web/browser fundamentals when auth/payment/deployment needs them
-7. Keep FoodRush product flow in mind:
+4. Restaurant browsing flow is now closer to real FoodRush:
+   restaurants -> restaurant detail -> menu items -> Add button.
+5. Next step: send login/signup data to the database.
+   Start with a simple email/password user flow before full NextAuth/OAuth.
+6. After login data works, persist cart data to MySQL:
+   Cart belongs to User, CartItem belongs to Cart and MenuItem.
+7. Then continue:
+   database-backed cart routes/actions, checkout/order flow,
+   auth/protected real sessions, and admin restaurant/menu CRUD.
+8. Keep FoodRush product flow in mind:
    restaurants -> menu items -> cart -> checkout/payment -> restaurant-wise orders.
 ```
 
@@ -353,40 +358,44 @@ real FoodRush needs like auth, payments, deployment, CORS, or production APIs.
 ```
 
 ## Last Session Covered
-- Started FoodRush System Design V1 in `foodrush-system-design.md`.
-- Decided V1 should be a strong portfolio app with browsing restaurants,
-  restaurant menu items, database-backed cart, checkout, payments, order
-  history/status, and admin CRUD/dashboard responsibilities.
-- Chose multi-restaurant checkout for V1:
-  one cart can contain items from multiple restaurants, one payment covers the
-  full checkout, and FoodRush splits the checkout into restaurant-wise orders.
-- Added the V1 ordering model direction:
-  `ParentOrder` represents the full checkout/payment from the user's view,
-  while `RestaurantOrder` represents each restaurant's separate order/status.
-- Defined V1 actors:
-  Customer/User, Admin, and Payment Provider.
-- Defined V1 core entities:
-  `User`, `Restaurant`, `MenuItem`, `Cart`, `CartItem`, `ParentOrder`,
-  `RestaurantOrder`, `OrderItem`, and `Payment`.
-- Updated the system design doc with V1/V2/V3 scope, user/admin flows,
-  relationships, order lifecycle, pricing/costing, API plan, admin plan,
-  AI ideas, and open questions.
-- Reviewed the new Prisma schema table by table:
-  `User`, `Restaurant`, `MenuItem`, `Cart`, `CartItem`, `ParentOrder`,
-  `RestaurantOrder`, `OrderItem`, and `Payment`.
-- Clarified that `CartItem` does not store `restaurantId` because restaurant
-  can be reached through `CartItem -> MenuItem -> Restaurant`.
-- Clarified snapshot fields:
-  `OrderItem.itemName` and `OrderItem.price` preserve old order history even
-  if menu item name/price changes later.
-- Clarified that `ParentOrder.deliveryAddress` and `ParentOrder.phone` are
-  checkout snapshots, not just user-profile data.
-- Added Prisma enums for roles, parent order status, restaurant order status,
-  payment provider, and payment status.
-- Ran `npx prisma format` and `npx prisma validate`; schema validation passed.
-- Darshan ran the migration successfully.
+- Reviewed whether the `/restaurants` page should fetch through
+  `/api/restaurants` or call `getRestaurants()` directly.
+- Clarified the production rule:
+  Server Components should usually call shared server helpers directly,
+  while Client Components, Thunder Client, mobile apps, or external clients use
+  API routes.
+- Clarified why `fetch()` returns a `Response` object first and why
+  `response.json()` is needed before passing data into UI components.
+- Clarified that `fetch("/api/restaurants")` works in browser/client code, but
+  Server Component fetch needs an absolute URL if practicing API-route fetches.
+- Debugged `restaurants.map is not a function`/`Cannot read properties of null`
+  by identifying that list pages need an array shape (`[]`), while single-detail
+  missing data can use `null`.
+- Updated the restaurant detail direction so users order menu items, not whole
+  restaurants.
+- Planned and implemented the restaurant detail header polish:
+  larger restaurant image, cuisine/name, helper text, rating, delivery time,
+  menu item count, accepting-orders status, and a hash link to the menu section.
+- Added/used `#menu` section navigation so restaurant cards or detail header
+  can jump directly to the menu area.
+- Added/used `MenuClient.js` for the menu section because Add button/cart
+  interactions require a Client Component, while the restaurant detail page
+  should stay a Server Component for data fetching and `notFound()`.
+- Updated menu item card UI to show menu-item data and Add button behavior.
+  Important correction: Add should pass the menu `item`, not `restaurant`,
+  because FoodRush cart items are `MenuItem` based.
+- Updated `lib/restaurants.js` detail query direction so menu items include
+  fields needed by UI such as `imageUrl` and `isVeg`.
+- Re-seeded MySQL from current `prisma/seed.js` to remove stale broken
+  Unsplash image URLs that were still present in the database.
+- Verified the specific broken image URL ids were no longer present in MySQL.
 
 ## What's Next
-- Start API route practice next, beginning with restaurant menu item routes.
+- Start login/signup database flow next:
+  send user form data to the database, create/read `User` rows safely, and keep
+  password handling practical but production-minded.
+- Then persist cart data to MySQL:
+  use the logged-in user, create/find their `Cart`, and add/update `CartItem`
+  rows connected to `MenuItem`.
 - Continue using one-question-at-a-time quiz and "try first, then review" coding practice.
 - Reuse Phase 1 Next.js concepts while building real FoodRush features.

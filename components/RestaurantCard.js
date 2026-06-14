@@ -1,13 +1,16 @@
 "use client";
 
-import { useContext } from "react";
-import { CartContext } from "../context/CartContext";
 import Link from "next/link";
 import Button from "./Button";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 
 function RestaurantCard({ restaurant }) {
-  const { addToCart } = useContext(CartContext);
+  const router = useRouter();
+
+  const viewMenu = () => {
+     router.push(`/restaurants/${restaurant.id}#menu`);
+  };
   return (
     <article className="flex h-full w-full flex-col rounded-lg border border-gray-200 bg-white p-5 shadow-sm transition hover:-translate-y-1 hover:shadow-md">
       <Image
@@ -49,8 +52,8 @@ function RestaurantCard({ restaurant }) {
           View Details
         </Link>
 
-        <Button onClick={() => addToCart(restaurant)} variant="secondary">
-          Order Now
+        <Button onClick={viewMenu} variant="secondary">
+          View Menu
         </Button>
       </div>
     </article>

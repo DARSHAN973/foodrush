@@ -2,6 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { notFound } from "next/navigation";
 import { getRestaurants, getRestaurant } from "@/lib/restaurants";
+import MenuClient from "@/components/MenuClient";
 
 // generateStaticParams — tells Next.js which dynamic routes to pre-build
 // at build time. This is SSG for known restaurant detail pages.
@@ -14,7 +15,6 @@ export async function generateStaticParams() {
     id: String(restaurant.id),
   }));
 }
-
 
 // generateMetadata — builds page-specific SEO data on the server.
 // Dynamic routes can use params so each restaurant gets its own title/description.
@@ -67,71 +67,65 @@ export default async function RestaurantDetails({ params }) {
 
         <section className="grid gap-8 rounded-lg bg-white p-6 shadow-sm lg:grid-cols-2">
           {/* Next Image — optimizes image loading, but remote image URLs must be
-              allowed in next.config.js before Next.js can render them. */}
+      allowed in next.config.js before Next.js can render them. */}
           <Image
             src={restaurant.imageUrl}
             alt={restaurant.name}
-            width={400}
-            height={320}
+            width={700}
+            height={460}
             className="h-80 w-full rounded-lg object-cover"
           />
 
-          <div>
-            <span className="rounded-full bg-orange-50 px-3 py-1 text-sm font-medium text-orange-700">
-              {restaurant.cuisine}
-            </span>
+          <div className="flex flex-col justify-between">
+            <div>
+              <span className="rounded-full bg-orange-50 px-3 py-1 text-sm font-medium text-orange-700">
+                {restaurant.cuisine}
+              </span>
 
-            <h1 className="mt-4 text-3xl font-bold text-gray-900">
-              {restaurant.name}
-            </h1>
+              <h1 className="mt-4 text-3xl font-bold text-gray-900">
+                {restaurant.name}
+              </h1>
 
-            <div className="mt-5 grid grid-cols-2 gap-3 text-sm sm:grid-cols-2">
-              <div className="rounded-md bg-gray-50 p-3">
-                <p className="text-gray-500">Rating</p>
-                <p className="font-semibold text-gray-900">
-                  {restaurant.rating}
-                </p>
-              </div>
+              <p className="mt-3 max-w-xl text-sm leading-6 text-gray-600">
+                Browse fresh menu items from this restaurant and add your
+                favorites to your FoodRush cart.
+              </p>
 
-              <div className="rounded-md bg-gray-50 p-3">
-                <p className="text-gray-500">Delivery Time</p>
-                <p className="font-semibold text-gray-900">
-                  {restaurant.deliveryTime} mins
-                </p>
+              <div className="mt-6 grid grid-cols-2 gap-3 text-sm">
+                <div className="rounded-md bg-gray-50 p-4">
+                  <p className="text-gray-500">Rating</p>
+                  <p className="mt-1 font-semibold text-gray-900">
+                    {restaurant.rating}
+                  </p>
+                </div>
+
+                <div className="rounded-md bg-gray-50 p-4">
+                  <p className="text-gray-500">Delivery Time</p>
+                  <p className="mt-1 font-semibold text-gray-900">
+                    {restaurant.deliveryTime} mins
+                  </p>
+                </div>
+
+                <div className="rounded-md bg-gray-50 p-4">
+                  <p className="text-gray-500">Menu Items</p>
+                  <p className="mt-1 font-semibold text-gray-900">
+                    {restaurant.menuItems.length}
+                  </p>
+                </div>
+
+                <div className="rounded-md bg-gray-50 p-4">
+                  <p className="text-gray-500">Status</p>
+                  <p className="mt-1 font-semibold text-green-700">
+                    Accepting orders
+                  </p>
+                </div>
               </div>
             </div>
           </div>
         </section>
 
-        <section className="mt-8">
-          <h2 className="text-2xl font-bold text-gray-900">Menu</h2>
-
-          <div className="mt-4 grid gap-4 md:grid-cols-2">
-            {restaurant.menuItems.map((item) => (
-              <article
-                key={item.id}
-                className="rounded-lg bg-white p-5 shadow-sm"
-              >
-                <h3 className="font-semibold text-gray-900">{item.name}</h3>
-                <p className="mt-1 text-sm text-gray-600">{item.description}</p>
-                <div className="mt-4 flex items-center justify-between">
-                  <span className="font-semibold text-gray-900">
-                    ₹{item.price}
-                  </span>
-                  <span className="rounded-full bg-orange-50 px-3 py-1 text-xs font-medium text-orange-700">
-                    {item.category}
-                  </span>
-                </div>
-              </article>
-            ))}
-          </div>
-        </section>
+        <MenuClient menuItems={restaurant.menuItems} />
       </div>
     </main>
   );
 }
-
-
-  
-
-

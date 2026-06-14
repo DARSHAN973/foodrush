@@ -1,156 +1,149 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useActionState, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Button from "@/components/Button";
 import Input from "@/components/Input";
 import ErrorMessage from "@/components/ErrorMessage";
+import { loginUser, signUpUser } from "@/app/actions/authActions";
 
-function Login() {
+function LoginForm() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirectTo = searchParams.get("redirect") || "/";
+  const [signupState, signupAction] = useActionState(signUpUser, null);
+  const [loginState, loginAction] = useActionState(loginUser, null);
   const [isSignup, setIsSignup] = useState(false);
-  // Form state object — keeps related input values together so one
-  // change handler can update any field by its name.
   const [formData, setFormData] = useState({
     name: "",
     email: "",
-    phone: "",
     password: "",
     confirmPassword: "",
   });
-
   const [errors, setErrors] = useState({});
-  // Dynamic form update — use the input's name as the object key
-  // so one handler can update email, password, phone, or any other field.
+
   const handleChange = (e) => {
     const { name, value } = e.target;
-
-    setFormData({
-      ...formData,
-      [name]: value,
-    });
+    setFormData({ ...formData, [name]: value });
   };
 
-  const handleSubmit = (e) => {
-    // Form submit control — stop the browser's default page reload
-    // so React can validate and handle the form in state.
-    e.preventDefault();
-    // Validation errors object — collect all field errors first,
-    // then update error state once so the form shows every issue together.
-    const newError = {};
-    // Mode-specific validation — signup-only fields are checked only
-    // when the form is in signup mode, not during login.
-    if (isSignup && formData.name.trim() === "") {
-      newError.name = "Name is required";
-    }
-
-    if (formData.email.trim() === "") {
-      newError.email = "Email is required";
-    }
-
-    if (isSignup && formData.phone.trim() === "") {
-      newError.phone = "Phone number is required";
-    } else if (isSignup && formData.phone.length < 10) {
-      newError.phone = "Phone number must be at least 10 digits";
-    }
-
-    if (formData.password.trim() === "") {
-      newError.password = "Password is required";
-    } else if (formData.password.length < 6) {
-      newError.password = "Password must be at least 6 characters";
-    }
-
-    if (isSignup && formData.confirmPassword.trim() === "") {
-      newError.confirmPassword = "Confirm password is required";
-    } else if (isSignup && formData.confirmPassword !== formData.password) {
-      newError.confirmPassword = "Passwords do not match";
-    }
-
-    setErrors(newError);
-    // Submit gate — continue only when validation found no field errors.
-    if (Object.keys(newError).length === 0) {
-      console.log(
-        isSignup ? "signup successful" : "login successful",
-        formData,
-      );
-    }
-  };
-  // Mode switch cleanup — validation errors belong to the current form mode,
-  // so clear them when moving between login and signup.
   const switchMode = () => {
     setIsSignup(!isSignup);
     setErrors({});
   };
 
-  return (
-    <main className="min-h-screen bg-gray-50 px-6 py-10">
-      <div className="mx-auto grid max-w-5xl overflow-hidden rounded-2xl bg-white shadow-sm lg:grid-cols-2">
-        <section className="hidden bg-orange-600 p-10 text-white lg:flex lg:flex-col lg:justify-between">
-          <div>
-            <p className="text-sm font-semibold uppercase tracking-wide text-orange-100">
-              Welcome back
-            </p>
+  const currentState = isSignup ? signupState : loginState;
+  const currentAction = isSignup ? signupAction : loginAction;
+  const successMessage = currentState?.message;
 
-            <h1 className="mt-4 text-4xl font-bold leading-tight">
-              Order faster with your FoodRush account.
+  const handleSuccessOk = () => {
+    if (isSignup) {
+      setIsSignup(false);
+      return;
+    }
+
+    router.push(redirectTo);
+  };
+
+  return (
+    <main className="min-h-screen bg-gray-50 flex items-center justify-center px-4 py-12">
+      <div className="mx-auto w-full max-w-5xl overflow-hidden rounded-2xl bg-white shadow-md lg:grid lg:grid-cols-2">
+        {/* ── Left panel ── */}
+        <section className="relative hidden overflow-hidden bg-orange-600 p-10 text-white lg:flex lg:flex-col lg:justify-between">
+          {/* decorative circles */}
+          <div className="absolute -top-16 -right-16 h-64 w-64 rounded-full bg-white/10" />
+          <div className="absolute -bottom-20 -left-10 h-72 w-72 rounded-full bg-white/10" />
+
+          <div className="relative z-10">
+            <div className="mb-8 inline-flex items-center gap-2">
+              <span className="text-2xl font-extrabold tracking-tight">
+                FoodRush
+              </span>
+            </div>
+
+            <h1 className="text-4xl font-extrabold leading-snug">
+              {isSignup
+                ? "Join the tastiest\ncommunity around."
+                : "Your next great\nmeal starts here."}
             </h1>
 
-            <p className="mt-4 text-orange-100">
-              Save your cart, manage orders, and get back to your favorite
-              meals.
+            <p className="mt-4 text-base leading-relaxed text-orange-100">
+              {isSignup
+                ? "Create an account and unlock access to hundreds of restaurants, real-time order tracking, and deals made just for you."
+                : "Log back in and pick up right where you left off — your cart, your favourites, your orders, all in one place."}
             </p>
+
+            <ul className="mt-8 space-y-3">
+              {[
+                { icon: "🍽️", text: "200+ restaurants across your city" },
+                { icon: "⚡", text: "Average delivery in under 35 mins" },
+                { icon: "🎁", text: "Exclusive offers every week" },
+              ].map(({ icon, text }) => (
+                <li
+                  key={text}
+                  className="flex items-center gap-3 text-sm text-orange-100"
+                >
+                  <span className="text-base">{icon}</span>
+                  {text}
+                </li>
+              ))}
+            </ul>
           </div>
 
-          <div className="rounded-xl bg-white/10 p-5">
-            <p className="text-sm text-orange-100">
-              Demo login for learning. Real authentication will come with
-              backend.
+          {/* Testimonial */}
+          <div className="relative z-10 mt-10 rounded-xl border border-white/20 bg-white/10 p-5 backdrop-blur-sm">
+            <p className="text-sm leading-relaxed text-white">
+              &quot;Ordered for the whole office and everything arrived hot, on
+              time, and perfectly packed. FoodRush has become our go-to.&quot;
+            </p>
+            <p className="mt-3 text-xs font-semibold text-orange-200">
+              — Darshan N, Software Developer · Pune
             </p>
           </div>
         </section>
 
-        <section className="p-6 sm:p-10">
+        {/* ── Right panel ── */}
+        <section className="flex flex-col justify-center px-6 py-10 sm:px-12">
+          {/* Mobile-only brand */}
+          <p className="mb-6 text-center text-xl font-extrabold text-orange-600 lg:hidden">
+            FoodRush
+          </p>
+
           <div className="mb-8">
-            <h2 className="text-3xl font-bold text-gray-900">Login</h2>
-            <p className="mt-2 text-sm text-gray-600">
+            <h2 className="text-3xl font-bold text-gray-900">
+              {isSignup ? "Create account" : "Welcome back"}
+            </h2>
+            <p className="mt-1.5 text-sm text-gray-500">
               {isSignup
-                ? "Create your FoodRush account."
-                : "Continue to your FoodRush account."}
+                ? "Fill in the details below to get started."
+                : "Enter your credentials to continue."}
             </p>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-5">
-            {isSignup && (
-              <>
-                <div>
-                  <label className="mb-2 block text-sm font-medium text-gray-700">
-                    Full Name
-                  </label>
-                  <Input
-                    name="name"
-                    placeholder="Darshan Nichite"
-                    value={formData.name}
-                    onChange={handleChange}
-                  />
-                  <ErrorMessage message={errors.name} />
-                </div>
+          {currentState?.error && (
+            <p className="mb-4 rounded-md bg-red-50 px-4 py-2 text-sm font-medium text-red-600">
+              {currentState.error}
+            </p>
+          )}
 
-                <div>
-                  <label className="mb-2 block text-sm font-medium text-gray-700">
-                    Phone Number
-                  </label>
-                  <Input
-                    type="tel"
-                    name="phone"
-                    placeholder="9876543210"
-                    value={formData.phone}
-                    onChange={handleChange}
-                  />
-                  <ErrorMessage message={errors.phone} />
-                </div>
-              </>
+          <form action={currentAction} className="space-y-5">
+            {isSignup && (
+              <div>
+                <label className="mb-1.5 block text-sm font-medium text-gray-700">
+                  Full Name
+                </label>
+                <Input
+                  name="name"
+                  placeholder="Darshan Nichite"
+                  value={formData.name}
+                  onChange={handleChange}
+                />
+                <ErrorMessage message={errors.name} />
+              </div>
             )}
 
             <div>
-              <label className="mb-2 block text-sm font-medium text-gray-700">
+              <label className="mb-1.5 block text-sm font-medium text-gray-700">
                 Email
               </label>
               <Input
@@ -164,13 +157,13 @@ function Login() {
             </div>
 
             <div>
-              <label className="mb-2 block text-sm font-medium text-gray-700">
+              <label className="mb-1.5 block text-sm font-medium text-gray-700">
                 Password
               </label>
               <Input
                 type="password"
                 name="password"
-                placeholder="Enter your password"
+                placeholder="Min. 6 characters"
                 value={formData.password}
                 onChange={handleChange}
               />
@@ -179,13 +172,13 @@ function Login() {
 
             {isSignup && (
               <div>
-                <label className="mb-2 block text-sm font-medium text-gray-700">
+                <label className="mb-1.5 block text-sm font-medium text-gray-700">
                   Confirm Password
                 </label>
                 <Input
                   type="password"
                   name="confirmPassword"
-                  placeholder="Confirm your password"
+                  placeholder="Re-enter your password"
                   value={formData.confirmPassword}
                   onChange={handleChange}
                 />
@@ -195,13 +188,13 @@ function Login() {
 
             {!isSignup && (
               <div className="flex items-center justify-between text-sm">
-                <label className="flex items-center gap-2 text-gray-600">
-                  {/* UI-only checkbox for now — real "remember me" behavior should be handled
-                      by the auth/session system, not by storing passwords in React state. */}
-                  <input type="checkbox" className="rounded border-gray-300" />
+                <label className="flex cursor-pointer items-center gap-2 text-gray-600">
+                  <input
+                    type="checkbox"
+                    className="h-4 w-4 rounded border-gray-300 accent-orange-600"
+                  />
                   Remember me
                 </label>
-
                 <button
                   type="button"
                   className="font-medium text-orange-600 hover:text-orange-700"
@@ -216,7 +209,14 @@ function Login() {
             </Button>
           </form>
 
-          <p className="mt-6 text-center text-sm text-gray-600">
+          {/* Divider */}
+          <div className="my-6 flex items-center gap-3">
+            <div className="h-px flex-1 bg-gray-200" />
+            <span className="text-xs text-gray-400">or</span>
+            <div className="h-px flex-1 bg-gray-200" />
+          </div>
+
+          <p className="text-center text-sm text-gray-600">
             {isSignup ? "Already have an account?" : "New to FoodRush?"}{" "}
             <button
               type="button"
@@ -228,8 +228,36 @@ function Login() {
           </p>
         </section>
       </div>
+      {successMessage && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
+          <div className="w-full max-w-sm rounded-xl bg-white p-6 text-center shadow-xl">
+            <h3 className="text-xl font-bold text-gray-900">
+              {successMessage}
+            </h3>
+            <p className="mt-2 text-sm text-gray-600">
+              {isSignup
+                ? "Your account is ready. Please log in now."
+                : "You can continue where you left off."}
+            </p>
+            <Button
+              type="button"
+              variant="primary"
+              className="mt-5 w-full"
+              onClick={handleSuccessOk}
+            >
+              OK
+            </Button>
+          </div>
+        </div>
+      )}
     </main>
   );
 }
 
-export default Login;
+export default function Login() {
+  return (
+    <Suspense>
+      <LoginForm />
+    </Suspense>
+  );
+}
