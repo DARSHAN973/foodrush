@@ -3,11 +3,12 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   deactivateRestaurantAction,
   updateRestaurantAction,
   activeRestaurantAction,
+  createRestaurantAction,
 } from "@/app/actions/adminRestaurantActions";
 
 export default function AdminRestaurantsClient({ restaurants }) {
@@ -15,9 +16,12 @@ export default function AdminRestaurantsClient({ restaurants }) {
   // Modal state stores the selected restaurant object. null means the modal is
   // closed; a restaurant object means edit that specific row.
   const [editingRestaurant, setEditingRestaurant] = useState(null);
+  const [creatingRestaurant, setCreatingRestaurant] = useState(false);
   const [pendingRestaurantId, setPendingRestaurantId] = useState(null);
   const [successMessage, setSuccessMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
+
+
 
   function closeEditModal() {
     setEditingRestaurant(null);
@@ -31,6 +35,14 @@ export default function AdminRestaurantsClient({ restaurants }) {
     }, 2500);
   }
 
+    function showErrorMessage(error) {
+    setErrorMessage(error);
+
+    setTimeout(() => {
+      setErrorMessage("");
+    }, 5000);
+  }
+
   async function handleUpdateRestaurant(formData) {
     setSuccessMessage("");
     setErrorMessage("");
@@ -40,12 +52,30 @@ export default function AdminRestaurantsClient({ restaurants }) {
     const result = await updateRestaurantAction(formData);
 
     if (result?.error) {
-      setErrorMessage(result.error);
+      showErrorMessage(result.error);
       return;
     }
 
     setEditingRestaurant(null);
     showSuccessToast(result?.message || "Restaurant updated successfully");
+    // router.refresh() refetches the current Server Component tree so the list
+    // shows the newly revalidated database values without manual local syncing.
+    router.refresh();
+  }
+
+  async function handleCreateRestaurant(formData) {
+    setSuccessMessage("");
+    setErrorMessage("");
+
+    const result = await createRestaurantAction(formData);
+
+    if (result?.error) {
+      showErrorMessage(result.error);
+      return;
+    }
+
+    setCreatingRestaurant(false);
+    showSuccessToast(result?.message || "Restaurant created successfully");
     // router.refresh() refetches the current Server Component tree so the list
     // shows the newly revalidated database values without manual local syncing.
     router.refresh();
@@ -63,7 +93,7 @@ export default function AdminRestaurantsClient({ restaurants }) {
       ? await deactivateRestaurantAction(restaurant.id)
       : await activeRestaurantAction(restaurant.id);
     if (result?.error) {
-      setErrorMessage(result.error);
+      showErrorMessage(result.error);
       setPendingRestaurantId(null);
       return;
     }
@@ -80,12 +110,13 @@ export default function AdminRestaurantsClient({ restaurants }) {
           <p className="mt-1 text-gray-600">Manage restaurant listings.</p>
         </div>
 
-        <Link
-          href="/admin/restaurants/new"
+        <button
+          type="button"
+          onClick={() => setCreatingRestaurant(true)}
           className="w-fit rounded-md bg-orange-600 px-4 py-2 text-sm font-medium text-white hover:bg-orange-700"
         >
           Add Restaurant
-        </Link>
+        </button>
       </div>
 
       {successMessage && (
@@ -292,6 +323,112 @@ export default function AdminRestaurantsClient({ restaurants }) {
                   className="rounded-md bg-orange-600 px-4 py-2 text-sm font-medium text-white hover:bg-orange-700"
                 >
                   Save Changes
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {creatingRestaurant && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4 py-8">
+          <div className="w-full max-w-5xl rounded-xl bg-white shadow-xl md:w-3/4">
+            <div className="flex items-start justify-between gap-4 border-b border-gray-200 px-6 py-5">
+              <div>
+                <h2 className="text-xl font-bold text-gray-900">
+                  Create New Restaurant
+                </h2>
+              </div>
+
+              <button
+                type="button"
+                onClick={closeEditModal}
+                className="rounded-md px-2 py-1 text-2xl leading-none text-gray-400 hover:bg-gray-100 hover:text-gray-700"
+                aria-label="Close edit form"
+              >
+                &times;
+              </button>
+            </div>
+
+            <form
+              action={handleCreateRestaurant}
+              className="grid gap-5 px-6 py-6 sm:grid-cols-2"
+            >
+              {errorMessage && (
+                <p className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-600 sm:col-span-2">
+                  {errorMessage}
+                </p>
+              )}
+
+              <div className="sm:col-span-2">
+                <label className="mb-1.5 block text-sm font-medium text-gray-700">
+                  Restaurant Name
+                </label>
+                <input
+                  name="name"
+                  className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100"
+                />
+              </div>
+
+              <div>
+                <label className="mb-1.5 block text-sm font-medium text-gray-700">
+                  Cuisine
+                </label>
+                <input
+                  name="cuisine"
+                  className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100"
+                />
+              </div>
+
+              <div>
+                <label className="mb-1.5 block text-sm font-medium text-gray-700">
+                  Delivery Time
+                </label>
+                <input
+                  type="number"
+                  name="deliveryTime"
+                  min="1"
+                  className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100"
+                />
+              </div>
+
+              <div>
+                <label className="mb-1.5 block text-sm font-medium text-gray-700">
+                  Rating
+                </label>
+                <input
+                  type="number"
+                  name="rating"
+                  min="0"
+                  max="5"
+                  step="0.1"
+                  className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100"
+                />
+              </div>
+
+              <div>
+                <label className="mb-1.5 block text-sm font-medium text-gray-700">
+                  Image URL
+                </label>
+                <input
+                  name="imageUrl"
+                  className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100"
+                />
+              </div>
+
+              <div className="flex justify-end gap-3 border-t border-gray-200 pt-5 sm:col-span-2">
+                <button
+                  type="button"
+                  onClick={closeEditModal}
+                  className="rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="rounded-md bg-orange-600 px-4 py-2 text-sm font-medium text-white hover:bg-orange-700"
+                >
+                  Create Restaurant
                 </button>
               </div>
             </form>
