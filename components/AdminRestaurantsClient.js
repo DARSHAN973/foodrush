@@ -4,7 +4,10 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { updateRestaurantAction } from "@/app/actions/adminRestaurantActions";
+import {
+  deactivateRestaurantAction,
+  updateRestaurantAction,
+} from "@/app/actions/adminRestaurantActions";
 
 export default function AdminRestaurantsClient({ restaurants }) {
   const router = useRouter();
@@ -16,6 +19,14 @@ export default function AdminRestaurantsClient({ restaurants }) {
 
   function closeEditModal() {
     setEditingRestaurant(null);
+  }
+
+  function showSuccessToast(message) {
+    setSuccessMessage(message);
+
+    setTimeout(() => {
+      setSuccessMessage("");
+    }, 2500);
   }
 
   async function handleUpdateRestaurant(formData) {
@@ -32,9 +43,24 @@ export default function AdminRestaurantsClient({ restaurants }) {
     }
 
     setEditingRestaurant(null);
-    setSuccessMessage(result?.message || "Restaurant updated successfully");
+    showSuccessToast(result?.message || "Restaurant updated successfully");
     // router.refresh() refetches the current Server Component tree so the list
     // shows the newly revalidated database values without manual local syncing.
+    router.refresh();
+  }
+
+  async function handleDeactivateRestaurant(id) {
+    setSuccessMessage("");
+    setErrorMessage("");
+
+    const result = await deactivateRestaurantAction(id);
+
+    if (result?.error) {
+      setErrorMessage(result.error);
+      return;
+    }
+
+    showSuccessToast(result?.message || "Restaurant deactivated successfully");
     router.refresh();
   }
 
@@ -55,7 +81,7 @@ export default function AdminRestaurantsClient({ restaurants }) {
       </div>
 
       {successMessage && (
-        <div className="mb-4 rounded-md border border-green-200 bg-green-50 px-4 py-3 text-sm font-medium text-green-700">
+        <div className="fixed right-6 top-6 z-50 rounded-md border border-green-200 bg-green-50 px-4 py-3 text-sm font-medium text-green-700 shadow-md">
           {successMessage}
         </div>
       )}
@@ -111,7 +137,11 @@ export default function AdminRestaurantsClient({ restaurants }) {
               >
                 Menu Items
               </Link>
-              <button className="rounded-md border border-red-200 px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-50">
+              <button
+                type="button"
+                onClick={() => handleDeactivateRestaurant(restaurant.id)}
+                className="rounded-md border border-red-200 px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-50"
+              >
                 Deactivate
               </button>
             </div>
