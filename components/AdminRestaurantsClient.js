@@ -7,6 +7,7 @@ import { useState } from "react";
 import {
   deactivateRestaurantAction,
   updateRestaurantAction,
+  activeRestaurantAction,
 } from "@/app/actions/adminRestaurantActions";
 
 export default function AdminRestaurantsClient({ restaurants }) {
@@ -14,6 +15,7 @@ export default function AdminRestaurantsClient({ restaurants }) {
   // Modal state stores the selected restaurant object. null means the modal is
   // closed; a restaurant object means edit that specific row.
   const [editingRestaurant, setEditingRestaurant] = useState(null);
+  const [pendingRestaurantId, setPendingRestaurantId] = useState(null);
   const [successMessage, setSuccessMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
 
@@ -49,18 +51,24 @@ export default function AdminRestaurantsClient({ restaurants }) {
     router.refresh();
   }
 
-  async function handleDeactivateRestaurant(id) {
-    setSuccessMessage("");
+  async function handleToggleRestaurantStatus(restaurant) {
+    // Row-level pending state — store the clicked restaurant id so only that
+    // row shows Activating/Deactivating while the Server Action runs.
+    setPendingRestaurantId(Number(restaurant.id));
     setErrorMessage("");
 
-    const result = await deactivateRestaurantAction(id);
-
+    // Toggle action — the full restaurant object gives us both id and isActive,
+    // so one handler can activate inactive rows and deactivate active rows.
+    const result = restaurant.isActive
+      ? await deactivateRestaurantAction(restaurant.id)
+      : await activeRestaurantAction(restaurant.id);
     if (result?.error) {
       setErrorMessage(result.error);
+      setPendingRestaurantId(null);
       return;
     }
-
-    showSuccessToast(result?.message || "Restaurant deactivated successfully");
+    showSuccessToast(result.message);
+    setPendingRestaurantId(null);
     router.refresh();
   }
 
@@ -87,66 +95,91 @@ export default function AdminRestaurantsClient({ restaurants }) {
       )}
 
       <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
-        {restaurants.map((restaurant) => (
-          <div
-            key={restaurant.id}
-            className="flex flex-col gap-4 border-b border-gray-100 p-4 last:border-b-0 sm:flex-row sm:items-center sm:justify-between"
-          >
-            <div className="flex min-w-0 items-center gap-4">
-              <div className="h-16 w-16 shrink-0 overflow-hidden rounded-lg bg-gray-100">
-                {restaurant.imageUrl ? (
-                  <Image
-                    src={restaurant.imageUrl}
-                    alt={restaurant.name}
-                    width={128}
-                    height={128}
-                    className="h-full w-full object-cover"
-                  />
-                ) : (
-                  <div className="flex h-full w-full items-center justify-center text-sm font-semibold text-gray-400">
-                    FR
-                  </div>
-                )}
-              </div>
+        {restaurants.map((restaurant) => {
+          const isStatusPending = pendingRestaurantId === restaurant.id;
+          const statusButtonText = restaurant.isActive
+            ? "Deactivate"
+            : "Activate";
+          const pendingStatusButtonText = restaurant.isActive
+            ? "Deactivating..."
+            : "Activating...";
 
-              <div className="min-w-0">
-                <h2 className="truncate font-semibold text-gray-900">
-                  {restaurant.name}
-                </h2>
-                <p className="mt-1 text-sm text-gray-600">
-                  {restaurant.cuisine}
-                </p>
-                <div className="mt-2 flex flex-wrap gap-3 text-sm text-gray-500">
-                  <span>Rating {restaurant.rating}</span>
-                  <span>{restaurant.deliveryTime} mins</span>
+          return (
+            <div
+              key={restaurant.id}
+              className="flex flex-col gap-4 border-b border-gray-100 p-4 last:border-b-0 sm:flex-row sm:items-center sm:justify-between"
+            >
+              <div className="flex min-w-0 items-center gap-4">
+                <div className="h-16 w-16 shrink-0 overflow-hidden rounded-lg bg-gray-100">
+                  {restaurant.imageUrl ? (
+                    <Image
+                      src={restaurant.imageUrl}
+                      alt={restaurant.name}
+                      width={128}
+                      height={128}
+                      className="h-full w-full object-cover"
+                    />
+                  ) : (
+                    <div className="flex h-full w-full items-center justify-center text-sm font-semibold text-gray-400">
+                      FR
+                    </div>
+                  )}
+                </div>
+
+                <div className="min-w-0">
+                  <h2 className="truncate font-semibold text-gray-900">
+                    {restaurant.name}
+                  </h2>
+                  <p className="mt-1 text-sm text-gray-600">
+                    {restaurant.cuisine}
+                  </p>
+                  <div className="mt-2 flex flex-wrap gap-3 text-sm text-gray-500">
+                    <span>Rating {restaurant.rating}</span>
+                    <span>{restaurant.deliveryTime} mins</span>
+                  </div>
+                  <span
+                    className={`rounded-full px-2 py-0.5 text-xs font-semibold ${
+                      restaurant.isActive
+                        ? "bg-green-50 text-green-700"
+                        : "bg-gray-100 text-gray-600"
+                    }`}
+                  >
+                    {restaurant.isActive ? "Active" : "Inactive"}
+                  </span>
                 </div>
               </div>
-            </div>
 
-            <div className="flex flex-wrap gap-2 sm:justify-end">
-              <button
-                type="button"
-                onClick={() => setEditingRestaurant(restaurant)}
-                className="rounded-md border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
-              >
-                Edit
-              </button>
-              <Link
-                href={`/admin/restaurants/${restaurant.id}/menu-items`}
-                className="rounded-md border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
-              >
-                Menu Items
-              </Link>
-              <button
-                type="button"
-                onClick={() => handleDeactivateRestaurant(restaurant.id)}
-                className="rounded-md border border-red-200 px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-50"
-              >
-                Deactivate
-              </button>
+              <div className="flex flex-wrap gap-2 sm:justify-end">
+                <button
+                  type="button"
+                  onClick={() => setEditingRestaurant(restaurant)}
+                  disabled={isStatusPending}
+                  className="rounded-md border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  Edit
+                </button>
+                <Link
+                  href={`/admin/restaurants/${restaurant.id}/menu-items`}
+                  className="rounded-md border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                >
+                  Menu Items
+                </Link>
+                <button
+                  type="button"
+                  onClick={() => handleToggleRestaurantStatus(restaurant)}
+                  disabled={isStatusPending}
+                  className={`rounded-md border px-3 py-2 text-sm font-medium ${
+                    restaurant.isActive
+                      ? "border-red-200 text-red-600 hover:bg-red-50"
+                      : "border-green-200 text-green-700 hover:bg-green-50"
+                  } disabled:cursor-not-allowed disabled:opacity-60`}
+                >
+                  {isStatusPending ? pendingStatusButtonText : statusButtonText}
+                </button>
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       {editingRestaurant && (

@@ -1,6 +1,10 @@
 "use server";
 
-import { deleteRestaurant, updateRestaurant } from "@/lib/restaurants";
+import {
+  deleteRestaurant,
+  updateRestaurant,
+  activeRestaurant,
+} from "@/lib/restaurants";
 import { revalidatePath } from "next/cache";
 
 export async function updateRestaurantAction(formData) {
@@ -54,4 +58,16 @@ export async function deactivateRestaurantAction(id) {
   revalidatePath("/admin/restaurants");
 
   return { message: "Restaurant deactivated successfully" };
+}
+
+export async function activeRestaurantAction(id) {
+  const activateRestaurant = await activeRestaurant(id);
+
+  if (!activateRestaurant) {
+    return { error: "Restaurant not found" };
+  }
+
+  revalidatePath("/admin/restaurants");
+
+  return { message: "Restaurant activated successfully" };
 }
