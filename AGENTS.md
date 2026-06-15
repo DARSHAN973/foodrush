@@ -433,12 +433,33 @@ real FoodRush needs like auth, payments, deployment, CORS, or production APIs.
 - Important UI correction:
   track which cart action is pending so clicking one button does not show loading
   text on every button in that cart row.
+- Built admin restaurant management UI:
+  - `app/admin/restaurants/page.js` — Server Component that fetches all restaurants
+    (including inactive) via `getAdminRestaurants()` and passes data to a Client Component.
+  - `components/AdminRestaurantsClient.js` — Client Component with edit modal and
+    status toggle buttons. Uses `useState` for modal state and `useRouter().refresh()`
+    for list revalidation after mutations.
+  - `app/actions/adminRestaurantActions.js` — Server Actions for `updateRestaurantAction`,
+    `deactivateRestaurantAction`, and `activeRestaurantAction`. All use `revalidatePath`
+    to refresh the admin list page after database changes.
+  - `lib/restaurants.js` additions:
+    - `getAdminRestaurants()` — reads all restaurants (active and inactive) with admin
+      fields including `isActive`, ordered by `createdAt` desc.
+    - `activeRestaurant(id)` — reactivates a deactivated restaurant by setting
+      `isActive: true`.
+  - Edit modal pattern: modal state stores the full restaurant object, form uses
+    `defaultValue` for pre-filled inputs, hidden `id` input travels with FormData,
+    and `handleUpdateRestaurant` closes modal + calls `router.refresh()` on success.
+  - Status toggle pattern: single `handleToggleRestaurantStatus` handler checks
+    `restaurant.isActive` to decide between activate/deactivate actions, with
+    row-level pending state so only the clicked button shows loading text.
 
 ## What's Next
-- Start Admin CRUD operations next.
-- Recommended order:
-  admin restaurants list -> create restaurant form -> edit restaurant form ->
-  soft delete restaurant -> menu item CRUD for each restaurant.
+- Continue Admin CRUD operations:
+  - Add Restaurant form/page (the "Add Restaurant" link already points to
+    `/admin/restaurants/new` but the page doesn't exist yet).
+  - Menu item CRUD for each restaurant (the "Menu Items" link already points to
+    `/admin/restaurants/[id]/menu-items` but the page doesn't exist yet).
 - Keep using Server Actions and shared server helpers first; API routes are still
   useful for external clients/Thunder Client practice, but admin dashboard forms
   can use Server Actions.
