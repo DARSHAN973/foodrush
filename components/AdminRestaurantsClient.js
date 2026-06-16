@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import {
   deactivateRestaurantAction,
   updateRestaurantAction,
@@ -20,11 +20,17 @@ export default function AdminRestaurantsClient({ restaurants }) {
   const [pendingRestaurantId, setPendingRestaurantId] = useState(null);
   const [successMessage, setSuccessMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
-
-
+  const [fields, setFields] = useState({
+    name: "",
+    cuisine: "",
+    deliveryTime: "",
+    rating: "",
+    imageUrl: "",
+  });
 
   function closeEditModal() {
     setEditingRestaurant(null);
+    setCreatingRestaurant(null);
   }
 
   function showSuccessToast(message) {
@@ -35,7 +41,7 @@ export default function AdminRestaurantsClient({ restaurants }) {
     }, 2500);
   }
 
-    function showErrorMessage(error) {
+  function showErrorMessage(error) {
     setErrorMessage(error);
 
     setTimeout(() => {
@@ -71,6 +77,7 @@ export default function AdminRestaurantsClient({ restaurants }) {
 
     if (result?.error) {
       showErrorMessage(result.error);
+      setFields(result.fields);
       return;
     }
 
@@ -366,6 +373,7 @@ export default function AdminRestaurantsClient({ restaurants }) {
                 </label>
                 <input
                   name="name"
+                  defaultValue={fields.name}
                   className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100"
                 />
               </div>
@@ -376,6 +384,7 @@ export default function AdminRestaurantsClient({ restaurants }) {
                 </label>
                 <input
                   name="cuisine"
+                  defaultValue={fields.cuisine}
                   className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100"
                 />
               </div>
@@ -387,6 +396,7 @@ export default function AdminRestaurantsClient({ restaurants }) {
                 <input
                   type="number"
                   name="deliveryTime"
+                  defaultValue={fields.deliveryTime}
                   min="1"
                   className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100"
                 />
@@ -399,6 +409,7 @@ export default function AdminRestaurantsClient({ restaurants }) {
                 <input
                   type="number"
                   name="rating"
+                  defaultValue={fields.rating}
                   min="0"
                   max="5"
                   step="0.1"
@@ -412,6 +423,7 @@ export default function AdminRestaurantsClient({ restaurants }) {
                 </label>
                 <input
                   name="imageUrl"
+                  defaultValue={fields.imageUrl}
                   className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100"
                 />
               </div>

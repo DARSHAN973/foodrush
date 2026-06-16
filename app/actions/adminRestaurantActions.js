@@ -76,6 +76,7 @@ export async function activeRestaurantAction(id) {
 
   return { message: "Restaurant activated successfully" };
 }
+
 export async function createRestaurantAction(formData) {
   const name = formData.get("name")?.trim();
   const cuisine = formData.get("cuisine")?.trim();
@@ -84,19 +85,31 @@ export async function createRestaurantAction(formData) {
   const imageUrl = formData.get("imageUrl")?.trim();
 
   if (!name || !cuisine || !imageUrl) {
-    return { error: "Name, cuisine, and image are required" };
+    return {
+      error: "Name, cuisine, and image are required",
+      fields: { name: "", cuisine, deliveryTime, rating, imageUrl },
+    };
   }
 
   if (!imageUrl.startsWith("http://") && !imageUrl.startsWith("https://")) {
-    return { error: "Invalid image URL" };
+    return {
+      error: "Invalid image URL",
+      fields: { name, cuisine, deliveryTime, rating, imageUrl: "" },
+    };
   }
 
   if (!Number.isInteger(deliveryTime) || deliveryTime <= 0) {
-    return { error: "Delivery time must be a positive number" };
+    return {
+      error: "Delivery time must be a positive number",
+      fields: { name, cuisine, deliveryTime: "", rating, imageUrl: "" },
+    };
   }
 
   if (Number.isNaN(rating) || rating < 0 || rating > 5) {
-    return { error: "Rating must be between 0 and 5" };
+    return {
+      error: "Rating must be between 0 and 5",
+      fields: { name, cuisine, deliveryTime, rating: "", imageUrl: "" },
+    };
   }
 
   const data = {

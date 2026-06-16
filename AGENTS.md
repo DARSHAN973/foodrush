@@ -456,8 +456,6 @@ real FoodRush needs like auth, payments, deployment, CORS, or production APIs.
 
 ## What's Next
 - Continue Admin CRUD operations:
-  - Add Restaurant form/page (the "Add Restaurant" link already points to
-    `/admin/restaurants/new` but the page doesn't exist yet).
   - Menu item CRUD for each restaurant (the "Menu Items" link already points to
     `/admin/restaurants/[id]/menu-items` but the page doesn't exist yet).
 - Keep using Server Actions and shared server helpers first; API routes are still
