@@ -82,7 +82,9 @@ app
 ├── globals.css
 ├── actions
 │   ├── authActions.js
-│   └── cartActions.js
+│   ├── cartActions.js
+│   ├── adminRestaurantActions.js
+│   └── adminMenuItemActions.js
 ├── (user)
 │   ├── layout.js
 │   ├── page.js
@@ -93,11 +95,12 @@ app
 ├── admin
 │   ├── layout.js, page.js
 │   ├── orders/page.js
-│   └── restaurants/page.js
+│   └── restaurants/page.js, [id]/menu-items/page.js
 ├── api
 │   └── restaurants/route.js, [id]/route.js
 components
 ├── AddToCartButton.js, Button.js, EmptyState.js
+├── AdminRestaurantsClient.js, AdminMenuItemsClient.js
 ├── CartItemControls.js, ErrorMessage.js, Footer.js
 ├── Input.js, Loading.js, MenuAddButton.js
 ├── MenuClient.js, Navbar.js, NavbarClient.js
@@ -108,6 +111,7 @@ hooks
 └── useRestaurants.js
 lib
 ├── cart.js
+├── menuItems.js
 ├── prisma.js
 ├── restaurants.js
 └── generated Prisma client output removed in favor of standard @prisma/client
@@ -191,6 +195,16 @@ public
 - Menu add buttons now call the cart Server Action:
   - `MenuAddButton.js` owns the Add button pending state.
   - `MenuClient.js` renders menu item data and passes `item.id` as `menuItemId`.
+- Admin menu item editing has started:
+  - `/admin/restaurants/[id]/menu-items` fetches one restaurant and its menu items.
+  - `lib/menuItems.js` has `getAdminMenuItems(id)` and
+    `updateMenuItem(restaurantId, menuItemId, menuItemData)`.
+  - `updateMenuItem()` verifies the menu item belongs to the current restaurant before updating.
+  - `app/actions/adminMenuItemActions.js` reads hidden `restaurantId` and
+    `menuItemId` from the edit modal form, validates fields, updates the item,
+    and revalidates the nested admin menu page.
+  - `AdminMenuItemsClient.js` has the list UI, edit modal, hidden relation ids,
+    and `router.refresh()` after a successful update.
 - Reference files:
   - `mysql.md` for SQL/MySQL notes
   - `nextjs.md` for Next.js/App Router notes
@@ -235,7 +249,8 @@ public
   nested create basics, soft delete basics, reusable Prisma Client helper,
   PATCH-style partial update objects, route handler request body debugging,
   compound unique lookup names like `cartId_menuItemId`, cart quantity updates,
-  and Decimal-to-number serialization for UI/API data.
+  Decimal-to-number serialization for UI/API data, nested admin route ids,
+  hidden form ids, and boolean update guards like `isVeg !== undefined`.
 
 ## Full Learning Roadmap
 
@@ -389,9 +404,12 @@ Resume here:
 6. Database-backed cart basics are done using temporary user id 1:
    add item, update quantity, remove item, server-render cart page, navbar count,
    and pending UI for cart actions.
-7. Next step: start Admin CRUD operations.
-   Begin with admin restaurant CRUD UI backed by existing `lib/restaurants.js`
-   helpers, then move to menu item CRUD.
+7. Current admin CRUD progress:
+   Restaurant CRUD UI is built.
+   Menu item edit flow is built for `/admin/restaurants/[id]/menu-items`.
+   Next menu item task: implement add menu item using the existing create modal,
+   then implement available/unavailable toggle. Do not build hard delete yet
+   unless intentionally practicing deletion.
 8. After admin CRUD, continue:
    real auth/protected admin routes, checkout/order flow, and replacing the
    temporary cart user id with the logged-in user.
@@ -453,11 +471,38 @@ real FoodRush needs like auth, payments, deployment, CORS, or production APIs.
   - Status toggle pattern: single `handleToggleRestaurantStatus` handler checks
     `restaurant.isActive` to decide between activate/deactivate actions, with
     row-level pending state so only the clicked button shows loading text.
+- Started admin menu item management UI:
+  - `app/admin/restaurants/[id]/menu-items/page.js` — nested Server Component
+    route that reads the restaurant id from params, fetches one restaurant with
+    its menu items, and passes data to `AdminMenuItemsClient`.
+  - `lib/menuItems.js` — added `getAdminMenuItems(id)` for the admin menu list
+    and `updateMenuItem(restaurantId, menuItemId, menuItemData)` for edit saves.
+  - Learned why menu item edit needs both ids:
+    `restaurantId` confirms the current restaurant page, while `menuItemId`
+    identifies the exact menu row being edited.
+  - Learned hidden input pattern for nested resources:
+    visible inputs carry editable fields, hidden `restaurantId` and `menuItemId`
+    carry relationship/id context to the Server Action.
+  - Learned boolean PATCH bug:
+    `if (menuItemData.isVeg)` skips `false`, so use
+    `menuItemData.isVeg !== undefined` when false is a valid update value.
+  - `app/actions/adminMenuItemActions.js` now validates edit form data, calls
+    `updateMenuItem()`, and revalidates
+    `/admin/restaurants/${restaurantId}/menu-items`.
+  - `AdminMenuItemsClient.js` has list UI, edit modal, create modal UI draft,
+    and pending-state handlers drafted for future create/delete/toggle work.
 
 ## What's Next
 - Continue Admin CRUD operations:
-  - Menu item CRUD for each restaurant (the "Menu Items" link already points to
-    `/admin/restaurants/[id]/menu-items` but the page doesn't exist yet).
+  - Finish menu item create:
+    add `createMenuItem(restaurantId, menuItemData)` in `lib/menuItems.js`,
+    add `createMenuItemAction(formData)` in `app/actions/adminMenuItemActions.js`,
+    import it in `AdminMenuItemsClient.js`, and reuse the existing create modal.
+  - Then build menu item available/unavailable toggle:
+    use `restaurantId` + `menuItemId`, update `isAvailable`, revalidate the
+    nested menu items page, and keep row-level pending state.
+  - Treat delete carefully: FoodRush should prefer availability toggles for menu
+    items because old carts/orders may reference menu item rows.
 - Keep using Server Actions and shared server helpers first; API routes are still
   useful for external clients/Thunder Client practice, but admin dashboard forms
   can use Server Actions.
