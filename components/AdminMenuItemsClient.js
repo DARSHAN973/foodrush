@@ -3,7 +3,13 @@
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { updateMenuItemAction } from "@/app/actions/adminMenuItemActions";
+import {
+  updateMenuItemAction,
+  createMenuItemAction,
+  deactivateMenuItemAction,
+  activeMenuItemAction,
+  deleteMenuItemAction
+} from "@/app/actions/adminMenuItemActions";
 
 export default function AdminMenuItemsClient({ restaurant, menuItems }) {
   const router = useRouter();
@@ -91,18 +97,20 @@ export default function AdminMenuItemsClient({ restaurant, menuItems }) {
     router.refresh();
   }
 
-  async function handleToggleAvailability(menuItem) {
+  async function handleToggleMenuItemStatus(menuItem) {
     setPendingMenuItemId(Number(menuItem.id));
     setErrorMessage("");
 
-    const result = await toggleMenuItemAvailabilityAction(menuItem.id);
-
+    // Toggle action — the full restaurant object gives us both id and isActive,
+    // so one handler can activate inactive rows and deactivate active rows.
+    const result = menuItem.isAvailable
+      ? await deactivateMenuItemAction(menuItem.id)
+      : await activeMenuItemAction(menuItem.id);
     if (result?.error) {
       showErrorMessage(result.error);
       setPendingMenuItemId(null);
       return;
     }
-
     showSuccessToast(result.message);
     setPendingMenuItemId(null);
     router.refresh();
@@ -206,7 +214,7 @@ export default function AdminMenuItemsClient({ restaurant, menuItems }) {
 
                 <button
                   type="button"
-                  onClick={() => handleToggleAvailability(menuItem)}
+                  onClick={() => handleToggleMenuItemStatus(menuItem)}
                   disabled={isPending}
                   className={`rounded-md border px-3 py-2 text-sm font-medium ${
                     menuItem.isAvailable
@@ -214,7 +222,9 @@ export default function AdminMenuItemsClient({ restaurant, menuItems }) {
                       : "border-green-200 text-green-700 hover:bg-green-50"
                   } disabled:cursor-not-allowed disabled:opacity-60`}
                 >
-                  {isPending ? pendingAvailabilityButtonText : availabilityButtonText}
+                  {isPending
+                    ? pendingAvailabilityButtonText
+                    : availabilityButtonText}
                 </button>
 
                 <button
@@ -338,7 +348,11 @@ export default function AdminMenuItemsClient({ restaurant, menuItems }) {
 
               {/* Hidden relation ids — visible fields edit item data, while these
                   ids tell the Server Action which restaurant/item pair to update. */}
-              <input type="hidden" name="menuItemId" value={editingMenuItem.id} />
+              <input
+                type="hidden"
+                name="menuItemId"
+                value={editingMenuItem.id}
+              />
               <input type="hidden" name="restaurantId" value={restaurant.id} />
 
               <div className="flex justify-end gap-3 border-t border-gray-200 pt-5 sm:col-span-2">
@@ -460,16 +474,6 @@ export default function AdminMenuItemsClient({ restaurant, menuItems }) {
                     className="h-4 w-4 accent-orange-600"
                   />
                   Veg
-                </label>
-
-                <label className="flex cursor-pointer items-center gap-2 text-sm font-medium text-gray-700">
-                  <input
-                    type="checkbox"
-                    name="isAvailable"
-                    defaultChecked={fields.isAvailable}
-                    className="h-4 w-4 accent-orange-600"
-                  />
-                  Available
                 </label>
               </div>
 
