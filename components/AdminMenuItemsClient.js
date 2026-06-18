@@ -8,7 +8,7 @@ import {
   createMenuItemAction,
   deactivateMenuItemAction,
   activeMenuItemAction,
-  deleteMenuItemAction
+  deleteMenuItemAction,
 } from "@/app/actions/adminMenuItemActions";
 
 export default function AdminMenuItemsClient({ restaurant, menuItems }) {
@@ -71,11 +71,21 @@ export default function AdminMenuItemsClient({ restaurant, menuItems }) {
 
     if (result?.error) {
       showErrorMessage(result.error);
-      setFields(result.fields);
+      if (result.fields) {
+        setFields(result.fields);
+      }
       return;
     }
 
     setCreatingMenuItem(false);
+    setFields({
+      name: "",
+      description: "",
+      price: "",
+      category: "",
+      isVeg: false,
+      imageUrl: "",
+    });
     showSuccessToast(result?.message || "Menu item created successfully");
     router.refresh();
   }
@@ -84,7 +94,7 @@ export default function AdminMenuItemsClient({ restaurant, menuItems }) {
     setPendingMenuItemId(Number(menuItem.id));
     setErrorMessage("");
 
-    const result = await deleteMenuItemAction(menuItem.id);
+    const result = await deleteMenuItemAction(restaurant.id, menuItem.id);
 
     if (result?.error) {
       showErrorMessage(result.error);
@@ -101,11 +111,11 @@ export default function AdminMenuItemsClient({ restaurant, menuItems }) {
     setPendingMenuItemId(Number(menuItem.id));
     setErrorMessage("");
 
-    // Toggle action — the full restaurant object gives us both id and isActive,
-    // so one handler can activate inactive rows and deactivate active rows.
+    // Toggle action — pass both ids so the Server Action updates only menu
+    // items that belong to this restaurant's admin page.
     const result = menuItem.isAvailable
-      ? await deactivateMenuItemAction(menuItem.id)
-      : await activeMenuItemAction(menuItem.id);
+      ? await deactivateMenuItemAction(restaurant.id, menuItem.id)
+      : await activeMenuItemAction(restaurant.id, menuItem.id);
     if (result?.error) {
       showErrorMessage(result.error);
       setPendingMenuItemId(null);

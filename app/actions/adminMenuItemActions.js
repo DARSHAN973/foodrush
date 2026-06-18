@@ -4,10 +4,14 @@ import { revalidatePath } from "next/cache";
 import {
   updateMenuItem,
   createMenuItem,
-  deactiveMenuItem,
+  deactivateMenuItem,
   activeMenuItem,
   deleteMenuItem,
 } from "@/lib/menuItems";
+
+function getMenuItemFormFields({ name, description, price, imageUrl, category, isVeg }) {
+  return { name, description, price, imageUrl, category, isVeg };
+}
 
 export async function updateMenuItemAction(formData) {
   // Hidden ids from the edit modal — restaurantId protects the nested admin
@@ -71,21 +75,42 @@ export async function createMenuItemAction(formData) {
   if (!name || !category || !imageUrl) {
     return {
       error: "Name, category, and image URL are required",
-      fields: { name, description, price, imageUrl, category },
+      fields: getMenuItemFormFields({
+        name,
+        description,
+        price,
+        imageUrl,
+        category,
+        isVeg,
+      }),
     };
   }
 
   if (!imageUrl.startsWith("http://") && !imageUrl.startsWith("https://")) {
     return {
       error: "Invalid image URL",
-      fields: { name, description, price, imageUrl, category },
+      fields: getMenuItemFormFields({
+        name,
+        description,
+        price,
+        imageUrl,
+        category,
+        isVeg,
+      }),
     };
   }
 
   if (Number.isNaN(price) || price <= 0) {
     return {
       error: "Price must be a positive number",
-      fields: { name, description, price, imageUrl, category },
+      fields: getMenuItemFormFields({
+        name,
+        description,
+        price,
+        imageUrl,
+        category,
+        isVeg,
+      }),
     };
   }
 
@@ -98,10 +123,20 @@ export async function createMenuItemAction(formData) {
     isVeg,
   };
 
-  const tempCreateMenuItem = await createMenuItem(restaurantId, menuItemData);
+  const createdMenuItem = await createMenuItem(restaurantId, menuItemData);
 
-  if (!tempCreateMenuItem) {
-    return { error: "Menu item not created " };
+  if (!createdMenuItem) {
+    return {
+      error: "Menu item not created",
+      fields: getMenuItemFormFields({
+        name,
+        description,
+        price,
+        imageUrl,
+        category,
+        isVeg,
+      }),
+    };
   }
 
   revalidatePath(`/admin/restaurants/${restaurantId}/menu-items`);
@@ -109,32 +144,38 @@ export async function createMenuItemAction(formData) {
   return { message: "Menu Item created successfully" };
 }
 
-export async function deactivateMenuItemAction(id) {
-  const inactiveMenuItem = await deactiveMenuItem(id);
+export async function deactivateMenuItemAction(restaurantId, menuItemId) {
+  const inactiveMenuItem = await deactivateMenuItem(restaurantId, menuItemId);
 
   if (!inactiveMenuItem) {
     return { error: "Menu Item not found" };
   }
 
+  revalidatePath(`/admin/restaurants/${restaurantId}/menu-items`);
+
   return { message: "Menu Item deactivated successfully" };
 }
 
-export async function activeMenuItemAction(id) {
-  const activateMenuItem = await activeMenuItem(id);
+export async function activeMenuItemAction(restaurantId, menuItemId) {
+  const activateMenuItem = await activeMenuItem(restaurantId, menuItemId);
 
   if (!activateMenuItem) {
     return { error: "Menu Item not found" };
   }
 
+  revalidatePath(`/admin/restaurants/${restaurantId}/menu-items`);
+
   return { message: "Menu Item activated successfully" };
 }
 
-export async function deleteMenuItemAction(id) {
-  const deletedMenuItem = await deleteMenuItem(id);
+export async function deleteMenuItemAction(restaurantId, menuItemId) {
+  const deletedMenuItem = await deleteMenuItem(restaurantId, menuItemId);
 
   if (!deletedMenuItem) {
     return { error: "Menu Item not found" };
   }
+
+  revalidatePath(`/admin/restaurants/${restaurantId}/menu-items`);
 
   return { message: "Menu Item deleted successfully" };
 }

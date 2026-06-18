@@ -501,8 +501,10 @@ real FoodRush needs like auth, payments, deployment, CORS, or production APIs.
   - Then build menu item available/unavailable toggle:
     use `restaurantId` + `menuItemId`, update `isAvailable`, revalidate the
     nested menu items page, and keep row-level pending state.
-  - Treat delete carefully: FoodRush should prefer availability toggles for menu
-    items because old carts/orders may reference menu item rows.
+  - Menu item hard delete is intentionally allowed for admin cleanup when an
+    item was added accidentally. Still keep restaurantId + menuItemId ownership
+    checks before deleting so admins cannot remove another restaurant's item by
+    passing the wrong id.
 - Keep using Server Actions and shared server helpers first; API routes are still
   useful for external clients/Thunder Client practice, but admin dashboard forms
   can use Server Actions.
