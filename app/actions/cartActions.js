@@ -1,12 +1,21 @@
 "use server";
 
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 
 export async function addToCart(menuItemId) {
-  // Temporary user id — keeps cart CRUD database-backed until real auth sessions
-  // replace this with the logged-in user's id.
-  const userId = 1;
+  // getServerSession — reads the JWT cookie inside a Server Action.
+  // Server Actions run on the server just like route handlers, so getServerSession
+  // works exactly the same way here as it does in lib/cart.js.
+  const session = await getServerSession(authOptions);
+
+  // Guard — if no session exists, bail out early so we never touch the database
+  // with an invalid userId. This also protects against unauthenticated API calls.
+  if (!session?.user?.id) return;
+
+  const userId = session.user.id;
 
   // Cart upsert — one user should have one active cart. If it already exists,
   // reuse it; otherwise create it before adding cart items.

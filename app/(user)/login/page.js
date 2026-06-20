@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useActionState, useState } from "react";
+import { Suspense, startTransition, useActionState, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Button from "@/components/Button";
 import Input from "@/components/Input";
@@ -62,7 +62,14 @@ function LoginForm() {
     if (isSignup) {
       // 1. SIGNUP: Trigger the signup Server Action manually
       const data = new FormData(e.target);
-      signupAction(data);
+
+      // startTransition — wraps the Server Action call so React knows this is
+      // a user-initiated state update. Without this, useActionState's isPending
+      // flag won't update correctly because React expects action dispatches to
+      // happen inside a transition.
+      startTransition(() => {
+        signupAction(data);
+      });
     } else {
       // 2. LOGIN: Trigger NextAuth's client-side signIn
       const res = await signIn("credentials", {
