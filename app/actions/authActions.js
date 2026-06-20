@@ -27,7 +27,7 @@ export async function signUpUser(prevState, formData) {
 
   // Password hashing - store the hash, never the real password. bcrypt adds
   // slow hashing work so stolen database data is harder to turn into passwords.
-  const passwordHash = await bcrypt.hash(password , 10);
+  const passwordHash = await bcrypt.hash(password, 10);
 
   // Unique email check - gives a friendly auth error before Prisma hits the
   // database unique constraint.

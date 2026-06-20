@@ -1,12 +1,14 @@
 # Darshan's Web Dev Mentorship Context
 
 ## Who I Am
+
 - I know React and Tailwind basics
 - I built a React FoodRush app and migrated it to Next.js App Router
 - I learn by doing — I understand concepts but struggle writing code from memory
 - I want honest mentorship, not just answers handed to me
 
 ## How I Learn Best — ALWAYS FOLLOW THIS, never skip
+
 - Never give full code directly at the start
 - First explain WHAT we're building and WHY (keep it short and practical)
 - Then show a similar example from FoodRush or a slightly different context
@@ -26,6 +28,7 @@
 - Do not change code without my permission.
 
 ## FoodRush As My Reference Project — IMPORTANT
+
 - FoodRush is not just a learning project — it is my personal reference bible.
 - Every concept I learn gets commented properly in the actual file where it first appears.
 - Future projects I will read FoodRush code instead of docs or AI for patterns.
@@ -34,6 +37,7 @@
 - Keep `mysql.md` and `prisma.md` updated after database/Prisma learning sessions.
 
 ## Commenting Strategy — ALWAYS FOLLOW THIS
+
 - Comment the WHY and the concept name, not the obvious what.
 - First time a concept appears → full explanation comment.
 - Same concept in another file → one line + reference like:
@@ -46,16 +50,19 @@
 - Inside JSX use `{/* comment */}` because JSX needs `{}` to enter JavaScript mode.
 
 ### Good comment example:
+
 // generateStaticParams — tells Next.js which dynamic routes to
 // pre-build at build time (SSG). Without this, /restaurant/[id]
 // would render on every request (SSR) instead of being pre-built.
 export async function generateStaticParams() {
 
 ### Reference comment example (repeat usage):
+
 // SSG via generateStaticParams — see app/(user)/restaurants/page.js
 export async function generateStaticParams() {
 
 ## My Current Project
+
 - Name: FoodRush (food delivery app like Swiggy/Zomato)
 - Path: `/home/darshan/darshan/web_development_revision/foodrush`
 - Stack: Next.js App Router, Tailwind CSS, React, MySQL, Prisma
@@ -76,6 +83,7 @@ export async function generateStaticParams() {
   replaces the placeholder API.
 
 ### Project Structure
+
 ```txt
 app
 ├── layout.js
@@ -123,138 +131,10 @@ public
 └── videos/hero-video.mp4
 ```
 
-## Current Database / Prisma State
-- MySQL is installed and running locally.
-- phpMyAdmin is installed and used for visual MySQL practice.
-- `foodrush_db` is the local Prisma-owned database.
-- Prisma version: `7.8.0`.
-- Prisma 7 requires a driver adapter; FoodRush uses `@prisma/adapter-mariadb`.
-- Current Prisma models: `User`, `Restaurant`, `MenuItem`, `Cart`, `CartItem`,
-  `ParentOrder`, `RestaurantOrder`, `OrderItem`, and `Payment`.
-- Current schema has:
-  - `Restaurant` → `MenuItem[]`
-  - `MenuItem.restaurantId` → `Restaurant.id`
-  - native decimal types: `rating @db.Decimal(2, 1)`, `price @db.Decimal(10, 2)`
-  - `imageUrl String?`
-  - `isActive` and `isAvailable`
-  - `createdAt` and `updatedAt`
-  - `User.role` uses `UserRole` enum: `USER`, `ADMIN`
-  - `Cart.userId @unique` so one user has one active cart
-  - `CartItem` connects to `MenuItem`, not directly to `Restaurant`
-  - `CartItem` uses `@@unique([cartId, menuItemId])` to prevent duplicate
-    same-item rows in one cart
-  - `ParentOrder` stores full checkout totals, delivery address, and phone
-  - `RestaurantOrder` stores each restaurant's split order and status
-  - `OrderItem` stores `itemName` and `price` snapshots for old order history
-  - `Payment` belongs to `ParentOrder` and stores provider/payment status fields
-- Latest schema migration for the V1 auth/cart/order/payment models has been
-  applied successfully.
-- `lib/prisma.js` is the reusable Prisma Client helper for Next.js server code.
-  It uses `@prisma/adapter-mariadb` and a `globalThis` Prisma Client cache
-  to avoid creating too many clients during development hot reloads.
-- `lib/restaurants.js` has started replacing DummyJSON with Prisma:
-  - `getRestaurants()` reads active restaurants from MySQL.
-  - It uses `select` to return only list-card fields.
-  - It converts `rating` from Prisma Decimal to a plain number before UI/API use.
-  - `getRestaurant(id)` uses `findFirst`, includes available `menuItems`,
-    returns `null` for missing data, and converts `rating`/`price` decimals.
-  - `createRestaurant(data)` creates a Restaurant from POST body data and
-    returns the created row with `rating` converted to a plain number.
-  - `updateRestaurant(id, data)` supports PATCH-style partial updates for
-    `name`, `cuisine`, and `deliveryTime`, checks only active restaurants,
-    and converts `rating` before returning.
-  - `deleteRestaurant(id)` performs a soft delete by setting `isActive: false`
-    instead of hard-deleting the row.
-- `app/actions/authActions.js` handles simple email/password signup and login:
-  - Uses Server Actions with `"use server"`.
-  - Reads submitted form values with `FormData`.
-  - Normalizes email to lowercase.
-  - Hashes passwords with bcrypt before storing.
-  - Uses generic login errors so the UI does not reveal whether an email exists.
-- Cart is now database-backed for the temporary user id `1` until real sessions are added:
-  - `app/actions/cartActions.js` has `addToCart(menuItemId)`,
-    `increaseCartItem(cartItemId)`, `decreaseCartItem(cartItemId)`, and
-    `removeCartItem(cartItemId)`.
-  - `addToCart()` stores `MenuItem` selections in `CartItem`, not restaurants.
-  - It uses the `@@unique([cartId, menuItemId])` compound key to update quantity
-    instead of creating duplicate same-item cart rows.
-  - Cart mutations call `revalidatePath("/cart")` so the server-rendered cart
-    page refreshes after database changes.
-- `lib/cart.js` is the reusable cart query helper:
-  - `getCart()` reads the current user's cart with `items -> menuItem -> restaurant`.
-  - It returns an empty cart shape when no cart exists.
-  - It converts Prisma Decimal prices to numbers before calculating totals.
-  - `getCartCount()` reads only quantities for the navbar badge.
-- `/cart` now renders from server data instead of localStorage context:
-  - The cart page is a Server Component using `getCart()`.
-  - `CartItemControls.js` is a small Client Component for quantity/remove clicks.
-  - Cart action buttons show pending UI while Server Actions are running.
-- Navbar cart count now comes from the database:
-  - `Navbar.js` is a Server Component that calls `getCartCount()`.
-  - `NavbarClient.js` keeps `usePathname()` active-link styling on the client.
-- Menu add buttons now call the cart Server Action:
-  - `MenuAddButton.js` owns the Add button pending state.
-  - `MenuClient.js` renders menu item data and passes `item.id` as `menuItemId`.
-- Admin menu item editing has started:
-  - `/admin/restaurants/[id]/menu-items` fetches one restaurant and its menu items.
-  - `lib/menuItems.js` has `getAdminMenuItems(id)` and
-    `updateMenuItem(restaurantId, menuItemId, menuItemData)`.
-  - `updateMenuItem()` verifies the menu item belongs to the current restaurant before updating.
-  - `app/actions/adminMenuItemActions.js` reads hidden `restaurantId` and
-    `menuItemId` from the edit modal form, validates fields, updates the item,
-    and revalidates the nested admin menu page.
-  - `AdminMenuItemsClient.js` has the list UI, edit modal, hidden relation ids,
-    and `router.refresh()` after a successful update.
-- Reference files:
-  - `mysql.md` for SQL/MySQL notes
-  - `nextjs.md` for Next.js/App Router notes
-  - `prisma.md` for Prisma notes
-
-## ✅ Already Covered
-- React basics
-- Tailwind basics
-- Built FoodRush in React
-- Migrated FoodRush to Next.js App Router
-- Client vs Server components (basics)
-- Client vs Server components (deep dive)
-- `useRouter`, `usePathname`, `useSearchParams` hooks
-- `generateMetadata` basics and dynamic metadata
-- SSR vs SSG vs CSR final revision
-- Next.js fetch caching basics and deeper practice (`revalidate`, `no-store`, shared server cache)
-- Environment variables basics: `.env`, `process.env`, server-only secrets, and `NEXT_PUBLIC_`.
-- Cookies & headers basics with `cookies()` and `headers()` from `next/headers`.
-- Middleware/proxy protected route basics using `proxy.js`, `NextResponse`, cookies, and matcher patterns.
-- Server Actions basics: form actions, `FormData.get()`, Prisma/server helper usage, `revalidatePath`, and API routes vs Server Actions.
-- Server Action button calls from Client Components, including pending UI for add-to-cart and cart quantity actions.
-- Streaming & Suspense basics: route-level `loading.js`, component-level Suspense fallbacks, skeleton UI, and perceived speed.
-- `generateStaticParams` basics: dynamic route params, params object shape, string URL params, and prebuild vs freshness tradeoff.
-- Route handler GET basics: `GET /api/restaurants`, `GET /api/restaurants/[id]`,
-  `Response.json()`, dynamic `params`, and `200`/`404`/`500` responses
-- Route handler POST basics: `POST /api/restaurants`, `request.json()`,
-  body validation, `400` for missing fields, `201 Created`, and Prisma-backed create.
-- Route handler PATCH/DELETE basics: `PATCH /api/restaurants/[id]` partial update,
-  `DELETE /api/restaurants/[id]` soft delete, `200` success, `400` validation,
-  `404` missing/inactive rows, and `500` unexpected errors.
-- MySQL basics with FoodRush examples:
-  database, table, row, column, data types, constraints, primary key, foreign key,
-  CRUD SQL, joins, aliases, aggregate functions, `GROUP BY`, `LEFT JOIN`,
-  `HAVING`, basic transaction idea, indexes, many-to-many, NULL vs NOT NULL,
-  and schema design basics
-- Prisma basics so far:
-  setup, MySQL connection, Prisma 7 adapter, migrations, native DB types,
-  timestamps, active flags, image URL strategy, `deleteMany`,
-  `findMany`, `findUnique`, `create`, `update`, `delete`, `createMany`,
-  `updateMany`, `where`, `orderBy`, `include`, `select`, `findFirst`,
-  `connect`, `connectOrCreate`, stale client fix with `npx prisma generate`,
-  nested create basics, soft delete basics, reusable Prisma Client helper,
-  PATCH-style partial update objects, route handler request body debugging,
-  compound unique lookup names like `cartId_menuItemId`, cart quantity updates,
-  Decimal-to-number serialization for UI/API data, nested admin route ids,
-  hidden form ids, and boolean update guards like `isVeg !== undefined`.
-
 ## Full Learning Roadmap
 
 ### ✅ Phase 1 — Next.js Fundamentals (Complete)
+
 - [x] 1. generateMetadata properly (SEO titles/descriptions)
 - [x] 2. SSR vs SSG vs CSR final revision
 - [x] 3. fetch caching deeper practice
@@ -268,6 +148,7 @@ public
 - [x] 11. generateStaticParams for dynamic restaurant pages
 
 ### 🔄 Temporary Learning Order Update
+
 - Phase 4 was started before finishing all remaining Phase 1 backend topics.
 - Reason: MySQL + Prisma makes route handlers, orders, admin CRUD, and auth
   more real instead of practicing fake POST routes without persistence.
@@ -276,43 +157,25 @@ public
   until Prisma/database foundations are stronger.
 
 ### 🔄 Phase 2 — FoodRush UI Polish & Next.js Upgrade
+
 - [ ] 12. Finish converting restaurant detail special files (loading, error, not-found)
 - [x] 13. Improve homepage with server fetching
 - [ ] 14. Improve filters/search using `searchParams`
 - [ ] 15. Polish Next Image usage
 - [ ] 16. Mobile responsive pass
 
-### 🧹 Future FoodRush Refactor Tasks
-- [x] Extract shared server restaurant helpers into `lib/restaurants.js`.
-  - `getRestaurants()` is shared by homepage, restaurants page, and `/api/restaurants`.
-  - `getRestaurant(id)` is shared by restaurant detail page and `generateMetadata`.
-  - Helpers fetch data only; pages decide when missing data should call `notFound()`.
-- Practice `searchParams` by converting restaurant filters/search/sort into URL state.
-  - Example target URL: `/restaurants?cuisine=Italian&sort=rating`.
-  - Goal: refresh/share/back-button should preserve selected filters.
-- Keep `cache: "no-store"` as a future real-code comment only when FoodRush actually uses it for user/admin/payment data.
-- Replace DummyJSON recipe-shaped data with real FoodRush database data.
-  - Database-backed restaurant list/detail helpers and GET API routes are done.
-  - Some UI placeholders may still be redesigned later with richer Restaurant fields.
-- Refactor restaurant detail page from recipe ingredients/instructions to real restaurant menu items.
-  - Menu items now render from `restaurant.menuItems`.
-  - Restaurant detail page now treats restaurants as storefronts and menu
-    items as the orderable products.
-  - `MenuClient.js` owns the menu item card UI and client-side Add button
-    behavior so the restaurant detail page can stay a Server Component.
-  - Restaurant cards should point users toward viewing the menu, not ordering
-    the whole restaurant.
-
 ### ⏳ Phase 3 — Web & Browser Fundamentals (Don't skip)
-- [ ] 17. How HTTP works (request, response, status codes)
-- [ ] 18. REST API design principles
-- [ ] 19. How browsers store data — localStorage, sessionStorage, cookies
-- [ ] 20. Cookies vs Sessions vs JWT — how auth actually works in browser
-- [ ] 21. httpOnly cookies — what they are and why they matter
-- [ ] 22. CORS — what it is and why it breaks things
-- [ ] 23. Fetch API deeply vs Axios
 
-### 🔄 Phase 4 — MySQL + Prisma (In Progress)
+- [x] 17. How HTTP works (request, response, status codes)
+- [x] 18. REST API design principles
+- [x] 19. How browsers store data — localStorage, sessionStorage, cookies
+- [x] 20. Cookies vs Sessions vs JWT — how auth actually works in browser
+- [x] 21. httpOnly cookies — what they are and why they matter
+- [x] 22. CORS — what it is and why it breaks things
+- [x] 23. Fetch API deeply vs Axios
+
+### 🔄 Phase 4 — MySQL + Prisma
+
 - [x] 24. MySQL basics
 - [x] 25. Prisma setup + connect to MySQL
 - [x] 26. Schema design (User, Restaurant, MenuItem, Cart, CartItem, ParentOrder, RestaurantOrder, OrderItem, Payment)
@@ -338,17 +201,17 @@ public
 - [ ] 32. Build backend APIs
 - [x] 32a. Return to real route handlers with database-backed CRUD
 - [ ] 32b. Revisit deeper MySQL topics after Prisma basics:
-  indexes in Prisma, many-to-many in Prisma, deeper transactions,
-  normalization, performance, locks/concurrency, views, stored procedures,
-  and triggers.
+      indexes in Prisma, many-to-many in Prisma, deeper transactions,
+      normalization, performance, locks/concurrency, views, stored procedures,
+      and triggers.
 
 ### ⏳ Phase 5 — Authentication + Cart + Orders
-- [ ] 33. NextAuth.js setup
+
+- [x] 33. NextAuth.js setup
 - [x] 34a. Simple email/password signup + login data flow
   - Signup creates `User` rows with bcrypt password hashes.
   - Login verifies email/password with bcrypt compare.
-  - Real auth sessions are still pending.
-- [ ] 34b. Real auth sessions with NextAuth/email-password flow
+- [x] 34b. Real auth sessions with NextAuth/email-password flow
 - [ ] 35. Google OAuth
 - [ ] 36. Protected routes
 - [x] 37a. Database-backed cart basics
@@ -363,6 +226,7 @@ public
 - [ ] 40. Order history
 
 ### ⏳ Phase 6 — Admin Dashboard
+
 - [ ] 41. Admin role setup
 - [ ] 42. Protected admin routes
 - [ ] 43. Dashboard stats
@@ -373,6 +237,7 @@ public
 - [ ] 48. Email notifications with Nodemailer
 
 ### ⏳ Phase 7 — Payments + Deployment
+
 - [ ] 49. Razorpay integration
 - [ ] 50. Payment success/failure handling
 - [ ] 51. Deploy on Vercel
@@ -380,134 +245,13 @@ public
 - [ ] 53. README + portfolio writeup
 
 ## Practice Projects (build between phases for independence)
+
 - Mini routing app: home/list/detail/loading/error/not-found
 - Product filter app: searchParams + client filters
 - CRUD dashboard: Prisma + forms
 - Auth notes app: protected routes
 - Mini checkout app: cart + order flow
 
-## Current System Design / Prisma Topics Pending For Next Session
-Resume here:
-
-```txt
-1. FoodRush System Design V1 is drafted in foodrush-system-design.md.
-2. Important V1 design decision:
-   support multi-restaurant cart/checkout.
-   Use ParentOrder for the full checkout/payment.
-   Use RestaurantOrder for each restaurant's split order/status.
-3. Prisma schema for User, Cart, CartItem, ParentOrder, RestaurantOrder,
-   OrderItem, and Payment has been written and migrated.
-4. Restaurant browsing flow is now closer to real FoodRush:
-   restaurants -> restaurant detail -> menu items -> Add button.
-5. Simple login/signup database flow is done, but real auth sessions are not.
-   Current auth still does not create a browser session or protect routes.
-6. Database-backed cart basics are done using temporary user id 1:
-   add item, update quantity, remove item, server-render cart page, navbar count,
-   and pending UI for cart actions.
-7. Current admin CRUD progress:
-   Restaurant CRUD UI is built.
-   Menu item edit flow is built for `/admin/restaurants/[id]/menu-items`.
-   Next menu item task: implement add menu item using the existing create modal,
-   then implement available/unavailable toggle. Do not build hard delete yet
-   unless intentionally practicing deletion.
-8. After admin CRUD, continue:
-   real auth/protected admin routes, checkout/order flow, and replacing the
-   temporary cart user id with the logged-in user.
-9. Keep FoodRush product flow in mind:
-   restaurants -> menu items -> cart -> checkout/payment -> restaurant-wise orders.
-```
-
-Planning note:
-
-```txt
-Phase 1 Next.js fundamentals are complete.
-Ignore Phase 2 UI polish for now unless a UI issue blocks backend/product flow.
-Do not jump into broad web/browser fundamentals yet; learn them when they unlock
-real FoodRush needs like auth, payments, deployment, CORS, or production APIs.
-```
-
-## Last Session Covered
-- Added explanation comments to `app/actions/authActions.js` and
-  `app/(user)/login/page.js` for Server Actions, `FormData`, email normalization,
-  bcrypt hashing/compare, generic auth errors, `useActionState`, redirect query
-  params, controlled inputs, and Suspense with `useSearchParams`.
-- Built database-backed cart write flow:
-  `addToCart(menuItemId)` creates/finds the user's cart and creates or updates
-  `CartItem` rows.
-- Clarified why cart stores `menuItemId`, not restaurant data:
-  `CartItem -> MenuItem -> Restaurant` gives restaurant context when needed.
-- Learned Prisma compound unique lookup generated from
-  `@@unique([cartId, menuItemId])` as `cartId_menuItemId`.
-- Fixed add-to-cart bugs:
-  `findUnique` camelCase typo and duplicate `CartItem` unique constraint error
-  by updating quantity and returning instead of always creating.
-- Added `lib/cart.js` with `getCart()` and `getCartCount()`.
-- Converted `/cart` page to server-render from database data using `getCart()`.
-- Added `CartItemControls.js` as the Client Component for increase/decrease/remove
-  buttons that call cart Server Actions.
-- Split navbar into server/client pieces:
-  `Navbar.js` reads DB cart count, `NavbarClient.js` keeps active link styling.
-- Added pending/loading states for Add button and cart item controls.
-- Important UI correction:
-  track which cart action is pending so clicking one button does not show loading
-  text on every button in that cart row.
-- Built admin restaurant management UI:
-  - `app/admin/restaurants/page.js` — Server Component that fetches all restaurants
-    (including inactive) via `getAdminRestaurants()` and passes data to a Client Component.
-  - `components/AdminRestaurantsClient.js` — Client Component with edit modal and
-    status toggle buttons. Uses `useState` for modal state and `useRouter().refresh()`
-    for list revalidation after mutations.
-  - `app/actions/adminRestaurantActions.js` — Server Actions for `updateRestaurantAction`,
-    `deactivateRestaurantAction`, and `activeRestaurantAction`. All use `revalidatePath`
-    to refresh the admin list page after database changes.
-  - `lib/restaurants.js` additions:
-    - `getAdminRestaurants()` — reads all restaurants (active and inactive) with admin
-      fields including `isActive`, ordered by `createdAt` desc.
-    - `activeRestaurant(id)` — reactivates a deactivated restaurant by setting
-      `isActive: true`.
-  - Edit modal pattern: modal state stores the full restaurant object, form uses
-    `defaultValue` for pre-filled inputs, hidden `id` input travels with FormData,
-    and `handleUpdateRestaurant` closes modal + calls `router.refresh()` on success.
-  - Status toggle pattern: single `handleToggleRestaurantStatus` handler checks
-    `restaurant.isActive` to decide between activate/deactivate actions, with
-    row-level pending state so only the clicked button shows loading text.
-- Started admin menu item management UI:
-  - `app/admin/restaurants/[id]/menu-items/page.js` — nested Server Component
-    route that reads the restaurant id from params, fetches one restaurant with
-    its menu items, and passes data to `AdminMenuItemsClient`.
-  - `lib/menuItems.js` — added `getAdminMenuItems(id)` for the admin menu list
-    and `updateMenuItem(restaurantId, menuItemId, menuItemData)` for edit saves.
-  - Learned why menu item edit needs both ids:
-    `restaurantId` confirms the current restaurant page, while `menuItemId`
-    identifies the exact menu row being edited.
-  - Learned hidden input pattern for nested resources:
-    visible inputs carry editable fields, hidden `restaurantId` and `menuItemId`
-    carry relationship/id context to the Server Action.
-  - Learned boolean PATCH bug:
-    `if (menuItemData.isVeg)` skips `false`, so use
-    `menuItemData.isVeg !== undefined` when false is a valid update value.
-  - `app/actions/adminMenuItemActions.js` now validates edit form data, calls
-    `updateMenuItem()`, and revalidates
-    `/admin/restaurants/${restaurantId}/menu-items`.
-  - `AdminMenuItemsClient.js` has list UI, edit modal, create modal UI draft,
-    and pending-state handlers drafted for future create/delete/toggle work.
-
 ## What's Next
-- Continue Admin CRUD operations:
-  - Finish menu item create:
-    add `createMenuItem(restaurantId, menuItemData)` in `lib/menuItems.js`,
-    add `createMenuItemAction(formData)` in `app/actions/adminMenuItemActions.js`,
-    import it in `AdminMenuItemsClient.js`, and reuse the existing create modal.
-  - Then build menu item available/unavailable toggle:
-    use `restaurantId` + `menuItemId`, update `isAvailable`, revalidate the
-    nested menu items page, and keep row-level pending state.
-  - Menu item hard delete is intentionally allowed for admin cleanup when an
-    item was added accidentally. Still keep restaurantId + menuItemId ownership
-    checks before deleting so admins cannot remove another restaurant's item by
-    passing the wrong id.
-- Keep using Server Actions and shared server helpers first; API routes are still
-  useful for external clients/Thunder Client practice, but admin dashboard forms
-  can use Server Actions.
-- Keep temporary cart `userId = 1` until real auth sessions are added.
-- Continue using one-question-at-a-time quiz and "try first, then review" coding practice.
-- Reuse Phase 1 Next.js concepts while building real FoodRush features.
+
+- Next topic: Learn Google OAuth (Phase 5, step 35) or protect auth routes (Phase 5, step 36).

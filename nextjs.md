@@ -579,11 +579,7 @@ Example:
 
 ```js
 export async function generateStaticParams() {
-  return [
-    { id: "1" },
-    { id: "2" },
-    { id: "3" },
-  ];
+  return [{ id: "1" }, { id: "2" }, { id: "3" }];
 }
 ```
 
@@ -662,3 +658,18 @@ Next step:
 Use these concepts while building real FoodRush features:
 system design -> schema -> APIs -> admin panel -> auth/cart/orders
 ```
+
+HTTP request = client asks server for something
+HTTP response = server replies
+GET = read
+POST = send/create
+PATCH = update
+DELETE = remove
+
+200 = OK
+201 = Created
+400 = Bad Request
+401 = Not logged in
+403 = Logged in but not allowed
+404 = Not found
+500 = Server error

@@ -2,8 +2,10 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useSession, signOut } from "next-auth/react";
 
 export default function NavbarClient({ cartCount }) {
+  const { data: session } = useSession();
   const pathname = usePathname();
 
   return (
@@ -38,18 +40,36 @@ export default function NavbarClient({ cartCount }) {
               Restaurants
             </Link>
           </li>
-          <li>
-            <Link
-              href="/login"
-              className={`rounded-md px-3 py-2 text-sm font-semibold transition sm:text-base ${
-                pathname === "/login"
-                  ? "bg-white text-orange-600"
-                  : "text-white hover:bg-orange-700"
-              }`}
-            >
-              Login
-            </Link>
-          </li>
+          {/* NextAuth Session Check — toggles between displaying a Logout button
+              when logged in and a Login link when logged out. */}
+          {session ? (
+            <>
+              <span className="text-sm font-semibold px-2 py-1 bg-orange-700 rounded-md">
+                Hi, {session.user.name?.split(" ")[0]}
+              </span>
+              <li>
+                <button
+                  onClick={() => signOut({ callbackUrl: "/" })}
+                  className="rounded-md px-3 py-2 text-sm font-semibold text-white hover:bg-orange-700 transition cursor-pointer"
+                >
+                  Logout
+                </button>
+              </li>
+            </>
+          ) : (
+            <li>
+              <Link
+                href="/login"
+                className={`rounded-md px-3 py-2 text-sm font-semibold transition sm:text-base ${
+                  pathname === "/login"
+                    ? "bg-white text-orange-600"
+                    : "text-white hover:bg-orange-700"
+                }`}
+              >
+                Login
+              </Link>
+            </li>
+          )}
           <li>
             <Link
               href="/cart"

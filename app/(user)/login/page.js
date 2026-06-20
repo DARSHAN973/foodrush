@@ -5,21 +5,25 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Button from "@/components/Button";
 import Input from "@/components/Input";
 import ErrorMessage from "@/components/ErrorMessage";
-import { loginUser, signUpUser } from "@/app/actions/authActions";
+import { signUpUser } from "@/app/actions/authActions";
+import { signIn } from "next-auth/react";
 
 function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
+
   // Redirect query param - lets protected pages send users here and then back
   // to the page they originally wanted after login.
   const redirectTo = searchParams.get("redirect") || "/";
-  // useActionState - connects a form Server Action to client UI state, so the
-  // form can show success/error messages returned from the server.
+
+  // useActionState - connects the signup form to the Server Action.
   const [signupState, signupAction] = useActionState(signUpUser, null);
-  const [loginState, loginAction] = useActionState(loginUser, null);
+
+  // Local state to store NextAuth login errors (like "Invalid email or password").
+  const [loginError, setLoginError] = useState("");
   const [isSignup, setIsSignup] = useState(false);
-  // Controlled inputs - keep typed values in React state so switching between
-  // login/signup does not lose form control.
+
+  // Controlled inputs - keep typed values in React state.
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -36,21 +40,45 @@ function LoginForm() {
   const switchMode = () => {
     setIsSignup(!isSignup);
     setErrors({});
+    setLoginError(""); // Clear login errors when toggling modes
   };
 
-  const currentState = isSignup ? signupState : loginState;
-  // One form, two Server Actions - the same UI submits to signup or login
-  // depending on the selected mode.
-  const currentAction = isSignup ? signupAction : loginAction;
-  const successMessage = currentState?.message;
+  // Determine which error to show based on the current mode
+  const currentError = isSignup ? signupState?.error : loginError;
+  const successMessage = isSignup ? signupState?.message : null;
 
   const handleSuccessOk = () => {
     if (isSignup) {
       setIsSignup(false);
       return;
     }
-
     router.push(redirectTo);
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault(); // Prevents page reload
+    setLoginError(""); // Clear any previous errors
+
+    if (isSignup) {
+      // 1. SIGNUP: Trigger the signup Server Action manually
+      const data = new FormData(e.target);
+      signupAction(data);
+    } else {
+      // 2. LOGIN: Trigger NextAuth's client-side signIn
+      const res = await signIn("credentials", {
+        email: formData.email,
+        password: formData.password,
+        redirect: false, // Prevents NextAuth from doing a full-page reload
+      });
+
+      if (res?.error) {
+        // If login failed, show a friendly message
+        setLoginError("Invalid email or password");
+      } else {
+        // If login succeeded, redirect the user
+        router.push(redirectTo);
+      }
+    }
   };
 
   return (
@@ -58,7 +86,6 @@ function LoginForm() {
       <div className="mx-auto w-full max-w-5xl overflow-hidden rounded-2xl bg-white shadow-md lg:grid lg:grid-cols-2">
         {/* ── Left panel ── */}
         <section className="relative hidden overflow-hidden bg-orange-600 p-10 text-white lg:flex lg:flex-col lg:justify-between">
-          {/* decorative circles */}
           <div className="absolute -top-16 -right-16 h-64 w-64 rounded-full bg-white/10" />
           <div className="absolute -bottom-20 -left-10 h-72 w-72 rounded-full bg-white/10" />
 
@@ -98,7 +125,6 @@ function LoginForm() {
             </ul>
           </div>
 
-          {/* Testimonial */}
           <div className="relative z-10 mt-10 rounded-xl border border-white/20 bg-white/10 p-5 backdrop-blur-sm">
             <p className="text-sm leading-relaxed text-white">
               &quot;Ordered for the whole office and everything arrived hot, on
@@ -112,7 +138,6 @@ function LoginForm() {
 
         {/* ── Right panel ── */}
         <section className="flex flex-col justify-center px-6 py-10 sm:px-12">
-          {/* Mobile-only brand */}
           <p className="mb-6 text-center text-xl font-extrabold text-orange-600 lg:hidden">
             FoodRush
           </p>
@@ -128,15 +153,14 @@ function LoginForm() {
             </p>
           </div>
 
-          {currentState?.error && (
+          {/* Render error if it exists */}
+          {currentError && (
             <p className="mb-4 rounded-md bg-red-50 px-4 py-2 text-sm font-medium text-red-600">
-              {currentState.error}
+              {currentError}
             </p>
           )}
 
-          {/* Server Action form - Next.js sends this form to the selected server
-              function without creating a separate API route. */}
-          <form action={currentAction} className="space-y-5">
+          <form onSubmit={handleSubmit} className="space-y-5">
             {isSignup && (
               <div>
                 <label className="mb-1.5 block text-sm font-medium text-gray-700">
@@ -219,7 +243,6 @@ function LoginForm() {
             </Button>
           </form>
 
-          {/* Divider */}
           <div className="my-6 flex items-center gap-3">
             <div className="h-px flex-1 bg-gray-200" />
             <span className="text-xs text-gray-400">or</span>
@@ -238,6 +261,7 @@ function LoginForm() {
           </p>
         </section>
       </div>
+
       {successMessage && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
           <div className="w-full max-w-sm rounded-xl bg-white p-6 text-center shadow-xl">
@@ -245,9 +269,7 @@ function LoginForm() {
               {successMessage}
             </h3>
             <p className="mt-2 text-sm text-gray-600">
-              {isSignup
-                ? "Your account is ready. Please log in now."
-                : "You can continue where you left off."}
+              Your account is ready. Please log in now.
             </p>
             <Button
               type="button"
@@ -266,8 +288,6 @@ function LoginForm() {
 
 export default function Login() {
   return (
-    // Suspense is needed because useSearchParams reads URL data on the client.
-    // Wrapping the form keeps this page compatible with Next.js rendering rules.
     <Suspense>
       <LoginForm />
     </Suspense>
