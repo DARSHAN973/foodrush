@@ -243,8 +243,8 @@ public
 
 ### ⏳ Phase 7 — Payments + Deployment
 
-- [ ] 49. Razorpay integration
-- [ ] 50. Payment success/failure handling
+- [x] 49. Razorpay integration
+- [x] 50. Payment success/failure handling
 - [ ] 51. Deploy on Vercel
 - [ ] 52. Connect production database
 - [ ] 53. README + portfolio writeup
@@ -259,6 +259,5 @@ public
 
 ## What's Next
 
-- Next topic: Razorpay Integration (step 49) / Order placement payments.
-- Then: Order history (step 40).
+- Next topic: Order history (step 40) - showing past orders with their status.
 - Then: Admin panel dashboard stats (step 43) + Restaurant/Menu CRUD operations (steps 44-45).
