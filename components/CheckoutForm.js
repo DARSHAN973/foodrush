@@ -163,7 +163,9 @@ export default function CheckoutForm({ cart }) {
             <div className="flex h-16 w-16 items-center justify-center rounded-full bg-green-100 text-4xl">
               ✅
             </div>
-            <p className="text-xl font-bold text-gray-900">Order Placed Successfully!</p>
+            <p className="text-xl font-bold text-gray-900">
+              Order Placed Successfully!
+            </p>
             <p className="text-sm text-gray-500">Redirecting you to home...</p>
           </div>
         </div>
