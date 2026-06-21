@@ -43,7 +43,7 @@ model User {
   id           Int           @id @default(autoincrement())
   name         String
   email        String        @unique
-  passwordHash String
+  passwordHash String?
   role         UserRole      @default(USER)
   cart         Cart?
   parentOrders ParentOrder[]

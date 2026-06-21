@@ -212,7 +212,11 @@ public
   - Signup creates `User` rows with bcrypt password hashes.
   - Login verifies email/password with bcrypt compare.
 - [x] 34b. Real auth sessions with NextAuth/email-password flow
-- [ ] 35. Google OAuth
+- [x] 35. Google OAuth
+  - GoogleProvider added to NextAuth config.
+  - jwt callback auto-creates or finds User row by email; stores DB integer id.
+  - passwordHash made optional (String?) to support OAuth users with no local password.
+  - "Continue with Google" button added to login page with real Google SVG icon.
 - [ ] 36. Protected routes
 - [x] 37a. Database-backed cart basics
   - Add menu items to MySQL cart.
@@ -220,7 +224,8 @@ public
   - Render cart page from server data.
   - Render navbar count from server data.
   - Add pending UI for cart actions.
-- [ ] 37b. Replace temporary user id with real logged-in user session
+- [x] 37b. Replace temporary user id with real logged-in user session
+  - session.user.id now comes from the database (Int) for both credentials and Google login.
 - [ ] 38. Checkout flow
 - [ ] 39. Order placement
 - [ ] 40. Order history
@@ -254,4 +259,6 @@ public
 
 ## What's Next
 
-- Next topic: Learn Google OAuth (Phase 5, step 35) or protect auth routes (Phase 5, step 36).
+- Next topic: Protected routes (step 36) — middleware that guards `/cart`, `/admin`, and other private pages.
+- Then: Admin role setup (step 41) + protected admin routes (step 42).
+- Then: Checkout flow (step 38) → Order placement (step 39) → Order history (step 40).

@@ -589,7 +589,7 @@ async function main() {
       rating: 4.5,
       deliveryTime: 25,
       imageUrl:
-        "https://images.unsplash.com/photo-1630409351241-e90e7f5e791a?w=800&auto=format&fit=crop",
+        "https://images.unsplash.com/photo-1589301760014-d929f3979dbc?w=800&auto=format&fit=crop",
       isActive: true,
       menuItems: {
         create: [
