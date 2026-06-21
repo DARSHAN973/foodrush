@@ -10,6 +10,11 @@ export default function AdminLayout({ children }) {
   // Active route state — see components/Navbar.js.
   const pathname = usePathname();
 
+  // Bypass layout for the public login screen so guests don't see dashboard headers
+  if (pathname === "/admin/login") {
+    return <>{children}</>;
+  }
+
   // Derived class helper — keeps active/inactive nav styling in one place
   // instead of repeating logic for each Link.
   function navLinkClass(href) {

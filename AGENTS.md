@@ -217,7 +217,7 @@ public
   - jwt callback auto-creates or finds User row by email; stores DB integer id.
   - passwordHash made optional (String?) to support OAuth users with no local password.
   - "Continue with Google" button added to login page with real Google SVG icon.
-- [ ] 36. Protected routes
+- [x] 36. Protected routes
 - [x] 37a. Database-backed cart basics
   - Add menu items to MySQL cart.
   - Increase/decrease/remove cart items.
@@ -232,8 +232,8 @@ public
 
 ### ⏳ Phase 6 — Admin Dashboard
 
-- [ ] 41. Admin role setup
-- [ ] 42. Protected admin routes
+- [x] 41. Admin role setup
+- [x] 42. Protected admin routes
 - [ ] 43. Dashboard stats
 - [ ] 44. Restaurant CRUD
 - [ ] 45. Menu item CRUD
@@ -259,6 +259,6 @@ public
 
 ## What's Next
 
-- Next topic: Protected routes (step 36) — middleware that guards `/cart`, `/admin`, and other private pages.
-- Then: Admin role setup (step 41) + protected admin routes (step 42).
-- Then: Checkout flow (step 38) → Order placement (step 39) → Order history (step 40).
+- Next topic: Checkout flow (step 38) — capturing order details, delivery address, and preparing the checkout cart.
+- Then: Order placement (step 39) + Order history (step 40).
+- Then: Admin panel dashboard stats (step 43) + Restaurant/Menu CRUD operations (steps 44-45).
