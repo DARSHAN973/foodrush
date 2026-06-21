@@ -226,8 +226,8 @@ public
   - Add pending UI for cart actions.
 - [x] 37b. Replace temporary user id with real logged-in user session
   - session.user.id now comes from the database (Int) for both credentials and Google login.
-- [ ] 38. Checkout flow
-- [ ] 39. Order placement
+- [x] 38. Checkout flow
+- [x] 39. Order placement
 - [ ] 40. Order history
 
 ### ⏳ Phase 6 — Admin Dashboard
@@ -259,6 +259,6 @@ public
 
 ## What's Next
 
-- Next topic: Checkout flow (step 38) — capturing order details, delivery address, and preparing the checkout cart.
-- Then: Order placement (step 39) + Order history (step 40).
+- Next topic: Razorpay Integration (step 49) / Order placement payments.
+- Then: Order history (step 40).
 - Then: Admin panel dashboard stats (step 43) + Restaurant/Menu CRUD operations (steps 44-45).

@@ -76,7 +76,6 @@ export default async function Cart() {
                       <h3 className="text-lg font-semibold text-gray-900">
                         {item.menuItem.name}
                       </h3>
-
                       <div className="mt-3 flex flex-wrap gap-2 text-sm">
                         <span className="rounded-full bg-orange-50 px-3 py-1 font-medium text-orange-700">
                           Rs.{Number(item.menuItem.price)}
@@ -125,7 +124,9 @@ export default async function Cart() {
               </div>
             </div>
 
-            <Button className="mt-5 w-full">Proceed to Checkout</Button>
+            <Link href="/checkout" className="mt-5 block w-full">
+              <Button className="w-full">Proceed to Checkout</Button>
+            </Link>
             <p className="mt-3 text-center text-xs text-gray-500">
               Checkout and payment will be connected in the backend phase.
             </p>
