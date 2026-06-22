@@ -1475,26 +1475,196 @@ The restaurant variable does not exist until restaurant.create finishes.
 Nested create handles the relationship automatically.
 ```
 
-## Pending Prisma Topics
+## Transactions
 
-Continue from here:
+A transaction groups multiple Prisma operations so they all succeed together
+or all fail together. If any step fails, every previous step is rolled back.
 
-```txt
-1. Prisma-backed API CRUD route handlers:
-   PATCH/PUT update, then DELETE/soft delete.
-2. Later deeper Prisma:
-   transactions, pagination, advanced filtering, indexes, many-to-many,
-   Order/OrderItem schema, User/auth relations.
+FoodRush example — placing an order:
+
+```js
+const order = await prisma.$transaction(async (tx) => {
+  const parentOrder = await tx.parentOrder.create({ data: { ... } });
+
+  for (const [restaurantId, items] of Object.entries(itemsByRestaurant)) {
+    const restaurantOrder = await tx.restaurantOrder.create({
+      data: { parentOrderId: parentOrder.id, restaurantId, subtotal },
+    });
+
+    for (const item of items) {
+      await tx.orderItem.create({
+        data: { restaurantOrderId: restaurantOrder.id, ... },
+      });
+    }
+  }
+
+  return parentOrder;
+});
 ```
 
-Learn later:
+Why:
 
 ```txt
-Prisma transactions deeply
-pagination
-advanced filtering
-many-to-many in Prisma
-indexes in Prisma
-Order and OrderItem full schema
-User/auth relations
+Without a transaction, if RestaurantOrder creation fails,
+ParentOrder already exists — data is broken and inconsistent.
+With a transaction, ALL rows are rolled back if any step fails.
 ```
+
+The `tx` parameter inside the callback replaces `prisma` for every
+operation inside the transaction. Use `tx.model.operation()` not `prisma.model.operation()`.
+
+External API calls must stay OUTSIDE the transaction:
+
+```js
+// CORRECT — Razorpay API after the transaction
+const order = await prisma.$transaction(async (tx) => { ... });
+const razorpayOrder = await razorpay.orders.create({ amount: ... });
+
+// WRONG — never do this
+const order = await prisma.$transaction(async (tx) => {
+  const parentOrder = await tx.parentOrder.create({ ... });
+  const razorpayOrder = await razorpay.orders.create({ ... }); // ❌
+});
+```
+
+Why external calls must be outside:
+
+```txt
+A Prisma transaction holds DB row locks for its entire duration.
+External API calls over the network can take 3-10 seconds.
+During those seconds, other users trying to write those rows are BLOCKED.
+This kills performance in production at scale.
+Also: Prisma transactions have a 5-second default timeout.
+A slow external API call causes the transaction to self-destruct,
+rolling back DB rows even if the external API already succeeded.
+```
+
+## ACID — The 4 Transaction Guarantees
+
+Every database transaction provides 4 guarantees:
+
+```txt
+A — Atomicity   → All or nothing. Every step succeeds or every step is rolled back.
+C — Consistency → The DB never enters a broken state. Constraints and foreign keys are enforced.
+I — Isolation   → Concurrent transactions don't see each other's intermediate states.
+                  MySQL uses row-level locking: first transaction locks rows,
+                  second transaction waits. First come, first served.
+D — Durability  → Once committed, data survives crashes. Written to disk, not just memory.
+```
+
+Memory line:
+
+```txt
+ACID = the 4 promises every transaction makes
+A = all-or-nothing
+C = no broken state
+I = concurrent users don't interfere
+D = committed data survives
+```
+
+## Indexes
+
+An index is a separate sorted data structure (B-Tree) that MySQL maintains
+alongside the table. It lets MySQL jump directly to matching rows instead
+of scanning every row.
+
+Without index — full table scan:
+
+```txt
+SELECT * FROM ParentOrder WHERE userId = 42;
+→ MySQL checks every single row until it finds userId = 42
+→ 1 million rows = 1 million checks = slow
+```
+
+With index — B-Tree lookup:
+
+```txt
+SELECT * FROM ParentOrder WHERE userId = 42;
+→ MySQL looks in the B-Tree index, finds exact position instantly
+→ 1 million rows = same speed as 1 row
+```
+
+### When indexes are created automatically
+
+```txt
+@id     → always creates a primary key index
+@unique → always creates a unique index
+@relation foreign key fields → MySQL auto-creates an index on the FK column
+```
+
+### When to add @@index manually
+
+Add `@@index` on any column you frequently filter by that is NOT already `@unique`:
+
+```prisma
+model ParentOrder {
+  userId Int
+  // userId is not @unique (one user can have many orders)
+  // but every order history query filters by userId
+  @@index([userId])
+}
+```
+
+### The real tradeoff — not just space vs speed
+
+```txt
+             Without Index    With Index
+READ speed        Slow             Fast
+WRITE speed       Fast         Slightly slower (index must be updated too)
+Storage           Less             More
+```
+
+Index every column you read frequently. Do NOT index columns you rarely query.
+
+Example of a table you would NOT index:
+
+```txt
+SearchLog table — only ever does INSERTs, never filtered by any column.
+Adding an index slows every INSERT with no read benefit.
+```
+
+Space-speed tradeoff reality:
+
+```txt
+Storage is cheap (~$0.02 per GB per month on cloud).
+Slow queries are expensive (lost users, wasted CPU, scalability failure).
+For read-heavy apps like FoodRush, indexes are almost always worth it.
+```
+
+### Prisma index syntax
+
+```prisma
+// Single column index
+@@index([userId])
+
+// Composite index (two columns searched together)
+@@index([restaurantId, status])
+```
+
+## Normalization
+
+Normalization = Store each piece of data in exactly ONE place.
+Never duplicate data across tables. Store the ID and use a relation.
+
+```txt
+CORRECT — store restaurantId, use a relation to get the name
+WRONG   — store restaurantName in CartItem (what if the name changes?)
+```
+
+The only exception is SNAPSHOT fields — intentionally frozen data at
+time of purchase that must not change later:
+
+```prisma
+model OrderItem {
+  itemName String  // snapshot — frozen at purchase time
+  price    Decimal // snapshot — frozen at purchase time
+}
+```
+
+Why:
+
+```txt
+Menu prices change. Orders must always show the price the user actually paid,
+not today's current price. So we copy the price into OrderItem at order time.
+```
+

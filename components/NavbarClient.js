@@ -48,6 +48,18 @@ export default function NavbarClient({ cartCount }) {
                 Hi, {session.user.name?.split(" ")[0]}
               </span>
               <li>
+                <Link
+                  href="/orders"
+                  className={`rounded-md px-3 py-2 text-sm font-semibold transition sm:text-base ${
+                    pathname === "/orders"
+                      ? "bg-white text-orange-600"
+                      : "text-white hover:bg-orange-700"
+                  }`}
+                >
+                  Orders
+                </Link>
+              </li>
+              <li>
                 <button
                   onClick={() => signOut({ callbackUrl: "/" })}
                   className="rounded-md px-3 py-2 text-sm font-semibold text-white hover:bg-orange-700 transition cursor-pointer"

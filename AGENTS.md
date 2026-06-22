@@ -192,7 +192,10 @@ public
   - MySQL joins covered.
   - Prisma relation queries covered with nested create, `include`, `select`,
     `connect`, and `connectOrCreate` basics.
-- [ ] 29. Transactions in Prisma
+- [x] 29. Transactions in Prisma
+  - `prisma.$transaction(async (tx) => {})` — all-or-nothing atomicity.
+  - External API calls (Razorpay) must stay OUTSIDE the transaction to avoid DB row locks during network calls.
+  - ACID covered: Atomicity, Consistency, Isolation (row-level locking), Durability.
 - [x] 30. Database sample data practice
 - [x] 31. Replace dummyjson API with real database
   - `getRestaurants()` and `getRestaurant(id)` are Prisma-backed.
@@ -200,10 +203,12 @@ public
   - Helpers use `select`, active/available filters, id validation, and Decimal-to-number conversion.
 - [ ] 32. Build backend APIs
 - [x] 32a. Return to real route handlers with database-backed CRUD
-- [ ] 32b. Revisit deeper MySQL topics after Prisma basics:
-      indexes in Prisma, many-to-many in Prisma, deeper transactions,
-      normalization, performance, locks/concurrency, views, stored procedures,
-      and triggers.
+- [x] 32b. Revisit deeper MySQL topics after Prisma basics:
+  - Indexes: B-Tree lookup vs full table scan, when to add `@@index` manually,
+    read/write/storage tradeoff, added `@@index([userId])` to `ParentOrder`.
+  - Normalization: one source of truth rule, snapshot field exception (OrderItem.price/itemName).
+  - Many-to-many already covered via CartItem junction table.
+  - Views, stored procedures, triggers — deferred, not needed for FoodRush.
 
 ### ⏳ Phase 5 — Authentication + Cart + Orders
 
@@ -257,7 +262,34 @@ public
 - Auth notes app: protected routes
 - Mini checkout app: cart + order flow
 
+## Known Issues / Future Fixes
+
+- **Orphaned PAYMENT_PENDING orders**: If a user opens the Razorpay popup and cancels
+  without paying, the `ParentOrder`, `RestaurantOrder`, and `OrderItem` rows created
+  in `placeOrder` stay stuck at `PAYMENT_PENDING` forever. The fix is to implement
+  **Razorpay Webhooks** (`POST /api/webhooks/razorpay`) — Razorpay calls this endpoint
+  server-to-server when a payment is cancelled, failed, or expired. We then update the
+  order status to `CANCELLED` and the rows are cleaned up. A scheduled cleanup job
+  (DELETE orders older than 2 hours with PAYMENT_PENDING) is an alternative but should
+  only run at off-peak hours to avoid extra DB load during peak traffic.
+
+## UI Polish — Future Tasks (post admin panel)
+
+- **Navbar icons**: Add `lucide-react` icons for Home, Restaurants, Cart nav links
+  for a cleaner, more modern navbar look.
+- **Profile avatar with dropdown**: When logged in, replace plain text with a Gmail-style
+  avatar circle showing the user's first letter (`session.user.name[0].toUpperCase()`).
+  Clicking it opens a dropdown with: My Orders → `/orders`, Saved Addresses (future),
+  Logout. When logged out, show a Login button instead.
+- **Framer Motion animations**: Add page transitions, cart item animations, and
+  micro-interactions. Framer Motion is the React-native choice (not GSAP which is
+  DOM-level). Learn this after the admin panel phase is complete.
+- **Mobile responsive pass**: Full mobile layout audit — navbar hamburger menu,
+  card grids, cart page, orders page.
+
 ## What's Next
 
-- Next topic: Order history (step 40) - showing past orders with their status.
+- Currently building: Order history page (step 40) — `lib/orders.js` helper done.
+  Next: build `app/(user)/orders/page.js` UI.
+- After orders: Refactor Navbar — profile avatar + dropdown linking to `/orders`.
 - Then: Admin panel dashboard stats (step 43) + Restaurant/Menu CRUD operations (steps 44-45).

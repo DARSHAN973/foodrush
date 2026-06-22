@@ -6,11 +6,25 @@ datasource db {
   provider = "mysql"
 }
 
+// ─────────────────────────────────────────────────────────────
+// ENUMS — Use enums whenever a field has a fixed set of allowed
+// values. Prisma enforces these at the application layer and
+// MySQL stores them as strings, giving you type safety + clarity.
+// Rule: if you find yourself writing `status: "active" | "inactive"`
+// as a plain string, use an enum instead.
+// ─────────────────────────────────────────────────────────────
+
 enum UserRole {
   USER
   ADMIN
 }
 
+// ParentOrderStatus — tracks the lifecycle of a full checkout.
+// PAYMENT_PENDING: order rows created, waiting for payment confirmation.
+// PLACED: payment verified, order is active.
+// PARTIALLY_COMPLETED: some restaurants delivered, others still pending.
+// COMPLETED: all restaurants delivered.
+// CANCELLED: user cancelled or payment abandoned.
 enum ParentOrderStatus {
   PAYMENT_PENDING
   PLACED
@@ -19,6 +33,9 @@ enum ParentOrderStatus {
   CANCELLED
 }
 
+// RestaurantOrderStatus — each restaurant gets its own sub-order
+// that moves independently. A pizza place and a burger joint can
+// be at different stages at the same time.
 enum RestaurantOrderStatus {
   PLACED
   CONFIRMED
@@ -39,10 +56,35 @@ enum PaymentStatus {
   REFUNDED
 }
 
+// ─────────────────────────────────────────────────────────────
+// MODELS — Each model maps to one MySQL table.
+//
+// NORMALIZATION RULE (for future projects):
+//   Store each piece of data in exactly ONE place.
+//   Never duplicate data across tables — store the ID and use
+//   a relation to look it up. This prevents update anomalies
+//   (e.g., changing a restaurant name in one place updates everywhere).
+//
+// RELATION RULE:
+//   @relation(fields: [foreignKey], references: [primaryKey])
+//   The "fields" side is the table that holds the foreign key column.
+//   The "references" side is the table being pointed to.
+//
+// INDEX RULE:
+//   @id and @unique automatically create indexes.
+//   Add @@index([column]) manually on any column you frequently
+//   use in WHERE clauses that is NOT already @unique.
+//   Without an index, MySQL scans every row (full table scan).
+//   With an index, MySQL jumps directly to matching rows (B-Tree lookup).
+// ─────────────────────────────────────────────────────────────
+
 model User {
   id           Int           @id @default(autoincrement())
   name         String
+  // @unique creates an index automatically — fast lookup for login queries.
   email        String        @unique
+  // String? (nullable) — OAuth users (Google) have no local password.
+  // Always check !user.passwordHash before calling bcrypt.compare.
   passwordHash String?
   role         UserRole      @default(USER)
   cart         Cart?
@@ -51,11 +93,13 @@ model User {
   updatedAt    DateTime      @default(now()) @updatedAt
 }
 
-
 model Restaurant {
   id               Int               @id @default(autoincrement())
   name             String
   cuisine          String
+  // Decimal vs Float — ALWAYS use Decimal for money and ratings.
+  // Float has floating-point precision errors (0.1 + 0.2 = 0.30000000000000004).
+  // Decimal stores the exact value. @db.Decimal(2, 1) = max 2 digits, 1 decimal (e.g. 4.5).
   rating           Decimal           @default(0.0) @db.Decimal(2, 1)
   deliveryTime     Int
   imageUrl         String?
@@ -68,10 +112,14 @@ model Restaurant {
 
 model MenuItem {
   id           Int         @id @default(autoincrement())
+  // Foreign key — links this item to its restaurant.
+  // Prisma auto-creates an index on restaurantId for JOIN performance.
   restaurantId Int
   name         String
   description  String?
   imageUrl     String?
+  // @db.Decimal(10, 2) — up to 10 digits total, 2 after decimal (e.g. 99999.99).
+  // Use this for all price columns across every future project.
   price        Decimal     @db.Decimal(10, 2)
   category     String
   isVeg        Boolean     @default(true)
@@ -85,6 +133,8 @@ model MenuItem {
 
 model Cart {
   id        Int        @id @default(autoincrement())
+  // @unique — one cart per user. Also creates an index so
+  // WHERE userId = ? is an instant lookup, not a table scan.
   userId    Int        @unique
   user      User       @relation(fields: [userId], references: [id])
   items     CartItem[]
@@ -92,6 +142,11 @@ model Cart {
   updatedAt DateTime   @default(now()) @updatedAt
 }
 
+// CartItem — junction table (many-to-many bridge).
+// A Cart can have many MenuItems, a MenuItem can be in many Carts.
+// The junction table holds the relationship + extra data (quantity).
+// Rule: whenever you have many-to-many, create a junction table
+// with the two foreign keys + any extra fields (quantity, addedAt, etc.).
 model CartItem {
   id         Int      @id @default(autoincrement())
   cartId     Int
@@ -102,13 +157,23 @@ model CartItem {
   createdAt  DateTime @default(now())
   updatedAt  DateTime @default(now()) @updatedAt
 
+  // Composite unique constraint — prevents the same menu item
+  // being added as two separate rows in the same cart.
+  // Instead, the cartActions update the quantity on the existing row.
   @@unique([cartId, menuItemId])
 }
 
+// ParentOrder — one record per full checkout session.
+// Supports multi-restaurant checkout: one payment, many sub-orders.
+// Design pattern: store a snapshot of deliveryAddress/phone here
+// because the user might change their profile later — orders should
+// always reflect what was entered AT THE TIME of purchase.
 model ParentOrder {
   id               Int               @id @default(autoincrement())
   userId           Int
   status           ParentOrderStatus @default(PAYMENT_PENDING)
+  // Store all fee breakdowns separately — useful for admin dashboards,
+  // refund calculations, and financial reporting.
   subtotal         Decimal           @db.Decimal(10, 2)
   deliveryFee      Decimal           @default(0.00) @db.Decimal(10, 2)
   platformFee      Decimal           @default(0.00) @db.Decimal(10, 2)
@@ -120,8 +185,16 @@ model ParentOrder {
   payment          Payment?
   createdAt        DateTime          @default(now())
   updatedAt        DateTime          @default(now()) @updatedAt
+
+  // @@index — userId is not @unique here (one user can have many orders),
+  // so we manually add an index. Every order history query filters by userId.
+  // Without this, MySQL scans the entire orders table on every page load.
+  @@index([userId])
 }
 
+// RestaurantOrder — one record per restaurant within a checkout.
+// Example: cart has Pizza (rest A) + Burger (rest B) = 2 RestaurantOrders
+// under 1 ParentOrder. Each restaurant sees only their sub-order.
 model RestaurantOrder {
   id            Int                   @id @default(autoincrement())
   parentOrderId Int
@@ -135,10 +208,15 @@ model RestaurantOrder {
   updatedAt     DateTime              @default(now()) @updatedAt
 }
 
+// OrderItem — snapshot of what was ordered.
+// We store itemName and price directly here (not just menuItemId) because
+// menu prices can change later. The order must always show the price
+// the user actually paid, not today's price.
 model OrderItem {
   id                Int             @id @default(autoincrement())
   restaurantOrderId Int
   menuItemId        Int
+  // Snapshot fields — store values at time of purchase, not live references.
   itemName          String
   price             Decimal         @db.Decimal(10, 2)
   quantity          Int
@@ -148,10 +226,16 @@ model OrderItem {
   updatedAt         DateTime        @default(now()) @updatedAt
 }
 
+// Payment — separate table for payment records.
+// Rule: never mix payment data into the order table. Keep them separate
+// so you can support multiple payment attempts, refunds, and different
+// payment providers in the future without changing the order schema.
 model Payment {
   id                Int             @id @default(autoincrement())
+  // @unique — one payment record per order (one-to-one relation).
   parentOrderId     Int             @unique
   provider          PaymentProvider @default(RAZORPAY)
+  // Store provider IDs for reconciliation with Razorpay dashboard.
   providerOrderId   String?
   providerPaymentId String?
   status            PaymentStatus   @default(PENDING)
