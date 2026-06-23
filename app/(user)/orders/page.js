@@ -97,7 +97,6 @@ export default async function OrdersPage() {
   return (
     <main className="min-h-screen bg-gray-50 px-4 py-8 sm:px-6">
       <div className="mx-auto max-w-3xl">
-
         {/* Page header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900">My Orders</h1>
@@ -146,7 +145,6 @@ export default async function OrdersPage() {
               <div className="divide-y divide-gray-100">
                 {order.restaurantOrders.map((ro) => (
                   <div key={ro.id} className="px-5 py-5">
-
                     {/* Restaurant avatar + name + its own status */}
                     <div className="mb-4 flex items-center justify-between">
                       <div className="flex items-center gap-3">

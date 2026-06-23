@@ -159,6 +159,9 @@ public
 ### 🔄 Phase 2 — FoodRush UI Polish & Next.js Upgrade
 
 - [ ] 12. Finish converting restaurant detail special files (loading, error, not-found)
+- [ ] 12b. Audit all pages for loading.js skeletons and proper empty states
+  (cart, orders, restaurants, restaurant detail — make sure every page handles
+  loading and empty gracefully before final UI polish pass)
 - [x] 13. Improve homepage with server fetching
 - [ ] 14. Improve filters/search using `searchParams`
 - [ ] 15. Polish Next Image usage
@@ -233,7 +236,9 @@ public
   - session.user.id now comes from the database (Int) for both credentials and Google login.
 - [x] 38. Checkout flow
 - [x] 39. Order placement
-- [ ] 40. Order history
+- [x] 40. Order history
+  - `lib/orders.js` helper with nested Prisma include + Decimal conversion.
+  - `app/(user)/orders/page.js` — Server Component, session-guarded, shows ParentOrder → RestaurantOrder → OrderItem breakdown with StatusBadge.
 
 ### ⏳ Phase 6 — Admin Dashboard
 
@@ -289,7 +294,8 @@ public
 
 ## What's Next
 
-- Currently building: Order history page (step 40) — `lib/orders.js` helper done.
-  Next: build `app/(user)/orders/page.js` UI.
-- After orders: Refactor Navbar — profile avatar + dropdown linking to `/orders`.
-- Then: Admin panel dashboard stats (step 43) + Restaurant/Menu CRUD operations (steps 44-45).
+- ✅ Step 40 complete — Order history page built and pushed.
+- ✅ Razorpay code revision complete — understood checkout, signatures, transactions, and redirects.
+- ✅ Navbar refactoring complete — implemented profile initial avatar, absolute dropdown menu, and click-outside closure logic.
+- Next: Fun practice break — building an interactive food decision roulette wheel (Spin the Wheel) on the homepage to practice CSS animations/transforms and modals in React.
+- After that: Admin panel dashboard stats (step 43) + Restaurant/Menu CRUD operations (steps 44-45).
