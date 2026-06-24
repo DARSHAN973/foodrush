@@ -160,8 +160,8 @@ public
 
 - [ ] 12. Finish converting restaurant detail special files (loading, error, not-found)
 - [ ] 12b. Audit all pages for loading.js skeletons and proper empty states
-  (cart, orders, restaurants, restaurant detail — make sure every page handles
-  loading and empty gracefully before final UI polish pass)
+      (cart, orders, restaurants, restaurant detail — make sure every page handles
+      loading and empty gracefully before final UI polish pass)
 - [x] 13. Improve homepage with server fetching
 - [ ] 14. Improve filters/search using `searchParams`
 - [ ] 15. Polish Next Image usage
@@ -244,11 +244,21 @@ public
 
 - [x] 41. Admin role setup
 - [x] 42. Protected admin routes
-- [ ] 43. Dashboard stats
-- [ ] 44. Restaurant CRUD
-- [ ] 45. Menu item CRUD
-- [ ] 46. Image upload with Cloudinary
-- [ ] 47. Order management + status updates
+- [x] 43. Dashboard stats
+- [x] 44. Restaurant CRUD
+- [x] 45. Menu item CRUD
+- [x] 46. Image upload with Cloudinary
+  - Installed Node.js `cloudinary` SDK and set credentials in `.env`.
+  - Configured `lib/cloudinary.js` with helper methods (`uploadImageToCloudinary` using callback Promise wrapping and stream end piping, `deleteImageFromCloudinary`, and `getOptimizedImageUrl`).
+  - Created `uploadImageAction` in `app/actions/uploadActions.js` to securely convert browser `File` objects to buffers.
+  - Built reusable `<ImageUpload>` client component with immediate local URL previews and loading state.
+  - Replaced restaurant text inputs with `<ImageUpload>` and hidden form inputs, saving to MySQL via existing server actions.
+  - Updated `next.config.mjs` to whitelist `res.cloudinary.com` in `remotePatterns`.
+- [x] 47. Order management + status updates
+  - Added `getAdminOrders` in `lib/admin.js` with nested Prisma includes and Decimal-to-number mapping (including the nested restaurant rating).
+  - Developed `updateRestaurantOrderStatusAction` in `app/actions/adminOrderActions.js` with status validation, sibling order checks, cascading parent status logic, and automatic revalidation.
+  - Converted `app/admin/orders/page.js` to an async Server Component with `noStore()`.
+  - Created card-based interactive `AdminOrdersClient` UI with tab filtering, customer details, and individual dropdown selectors powered by React `useTransition`.
 - [ ] 48. Email notifications with Nodemailer
 
 ### ⏳ Phase 7 — Payments + Deployment
@@ -294,8 +304,7 @@ public
 
 ## What's Next
 
-- ✅ Step 40 complete — Order history page built and pushed.
-- ✅ Razorpay code revision complete — understood checkout, signatures, transactions, and redirects.
-- ✅ Navbar refactoring complete — implemented profile initial avatar, absolute dropdown menu, and click-outside closure logic.
-- Next: Fun practice break — building an interactive food decision roulette wheel (Spin the Wheel) on the homepage to practice CSS animations/transforms and modals in React.
-- After that: Admin panel dashboard stats (step 43) + Restaurant/Menu CRUD operations (steps 44-45).
+- ✅ Steps 46 and 47 complete — Admin Orders management and Cloudinary image upload successfully integrated!
+- Next: Read and review the Cloudinary stream upload flow again to reinforce learning, and implement image deletion on Cloudinary when a restaurant/menu item is edited or removed (using the existing `deleteImageFromCloudinary` helper).
+- Next: Add conceptual explanation comments to the newly created files (`lib/cloudinary.js`, `app/actions/uploadActions.js`, and `components/ImageUpload.js`) following our mentorship commenting strategy.
+- Next: Add conceptual comments to the Admin Dashboard and Orders files (`lib/admin.js`, `app/actions/adminOrderActions.js`, and `components/AdminOrdersClient.js`) to complete the documentation for those features.

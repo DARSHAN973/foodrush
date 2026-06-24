@@ -10,6 +10,7 @@ import {
   activeRestaurantAction,
   createRestaurantAction,
 } from "@/app/actions/adminRestaurantActions";
+import ImageUpload from "@/components/ImageUpload";
 
 export default function AdminRestaurantsClient({ restaurants }) {
   const router = useRouter();
@@ -27,10 +28,12 @@ export default function AdminRestaurantsClient({ restaurants }) {
     rating: "",
     imageUrl: "",
   });
+  const [imageUrl, setImageUrl] = useState("");
 
   function closeEditModal() {
     setEditingRestaurant(null);
     setCreatingRestaurant(null);
+    setImageUrl("");
   }
 
   function showSuccessToast(message) {
@@ -119,7 +122,10 @@ export default function AdminRestaurantsClient({ restaurants }) {
 
         <button
           type="button"
-          onClick={() => setCreatingRestaurant(true)}
+          onClick={() => {
+            setCreatingRestaurant(true);
+            setImageUrl("");
+          }}
           className="w-fit rounded-md bg-orange-600 px-4 py-2 text-sm font-medium text-white hover:bg-orange-700"
         >
           Add Restaurant
@@ -190,7 +196,10 @@ export default function AdminRestaurantsClient({ restaurants }) {
               <div className="flex flex-wrap gap-2 sm:justify-end">
                 <button
                   type="button"
-                  onClick={() => setEditingRestaurant(restaurant)}
+                  onClick={() => {
+                    setEditingRestaurant(restaurant);
+                    setImageUrl(restaurant.imageUrl || "");
+                  }}
                   disabled={isStatusPending}
                   className="rounded-md border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60"
                 >
@@ -304,14 +313,11 @@ export default function AdminRestaurantsClient({ restaurants }) {
               </div>
 
               <div>
-                <label className="mb-1.5 block text-sm font-medium text-gray-700">
-                  Image URL
-                </label>
-                <input
-                  name="imageUrl"
-                  defaultValue={editingRestaurant.imageUrl || ""}
-                  className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100"
+                <ImageUpload
+                  onUploadSuccess={setImageUrl}
+                  defaultImageUrl={imageUrl}
                 />
+                <input type="hidden" name="imageUrl" value={imageUrl} />
               </div>
               {/* Hidden id — Server Actions receive FormData, so the restaurant
                   id must travel with the form even though admins should not edit it. */}
@@ -418,14 +424,11 @@ export default function AdminRestaurantsClient({ restaurants }) {
               </div>
 
               <div>
-                <label className="mb-1.5 block text-sm font-medium text-gray-700">
-                  Image URL
-                </label>
-                <input
-                  name="imageUrl"
-                  defaultValue={fields.imageUrl}
-                  className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100"
+                <ImageUpload
+                  onUploadSuccess={setImageUrl}
+                  defaultImageUrl={imageUrl}
                 />
+                <input type="hidden" name="imageUrl" value={imageUrl} />
               </div>
 
               <div className="flex justify-end gap-3 border-t border-gray-200 pt-5 sm:col-span-2">

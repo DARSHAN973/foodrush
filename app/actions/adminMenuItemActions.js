@@ -9,7 +9,14 @@ import {
   deleteMenuItem,
 } from "@/lib/menuItems";
 
-function getMenuItemFormFields({ name, description, price, imageUrl, category, isVeg }) {
+function getMenuItemFormFields({
+  name,
+  description,
+  price,
+  imageUrl,
+  category,
+  isVeg,
+}) {
   return { name, description, price, imageUrl, category, isVeg };
 }
 
