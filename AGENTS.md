@@ -305,6 +305,6 @@ public
 ## What's Next
 
 - ✅ Steps 46 and 47 complete — Admin Orders management and Cloudinary image upload successfully integrated!
-- Next: Read and review the Cloudinary stream upload flow again to reinforce learning, and implement image deletion on Cloudinary when a restaurant/menu item is edited or removed (using the existing `deleteImageFromCloudinary` helper).
-- Next: Add conceptual explanation comments to the newly created files (`lib/cloudinary.js`, `app/actions/uploadActions.js`, and `components/ImageUpload.js`) following our mentorship commenting strategy.
+- ✅ Database-backed Cloudinary image deletion implemented successfully for both Restaurants and Menu Items.
+- ✅ Conceptual explanation comments added to `lib/cloudinary.js`, `app/actions/uploadActions.js`, and `components/ImageUpload.js`.
 - Next: Add conceptual comments to the Admin Dashboard and Orders files (`lib/admin.js`, `app/actions/adminOrderActions.js`, and `components/AdminOrdersClient.js`) to complete the documentation for those features.

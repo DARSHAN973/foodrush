@@ -2,25 +2,25 @@
 
 import { uploadImageToCloudinary } from "@/lib/cloudinary";
 
-/**
- * Server Action: Uploads an image file received from a client component to Cloudinary.
- * @param {FormData} formData - Form data containing the key 'file'
- */
 export async function uploadImageAction(formData) {
   try {
     const file = formData.get("file");
 
+    // Guard clause: Ensures the received form field is a valid Web API File object 
+    // rather than plain text, preventing runtime errors on type mismatch.
     if (!file || !(file instanceof File)) {
       return { error: "No valid file selected" };
     }
 
-    // 1. Convert Web API File object (browser format) to standard array buffer
+    // Web-to-Node bridge: A browser File object is a client-side metadata pointer. 
+    // Since Node.js SDKs cannot read browser File objects directly:
+    // 1. Read raw binary bytes from the file into a standard JavaScript ArrayBuffer.
     const arrayBuffer = await file.arrayBuffer();
 
-    // 2. Convert array buffer to Node.js Buffer for stream piping
+    // 2. Wrap the ArrayBuffer in a Node-native Buffer class to prepare it for streaming.
     const buffer = Buffer.from(arrayBuffer);
 
-    // 3. Trigger your utility stream helper
+    // 3. Trigger our custom utility which pipes the Node Buffer to Cloudinary.
     const uploadResult = await uploadImageToCloudinary(buffer);
 
     return {

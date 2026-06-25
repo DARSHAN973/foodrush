@@ -7,6 +7,8 @@ import {
   createRestaurant,
 } from "@/lib/restaurants";
 import { revalidatePath } from "next/cache";
+import { deleteImageFromCloudinary } from "@/lib/cloudinary";
+import { prisma } from "@/lib/prisma";
 
 export async function updateRestaurantAction(formData) {
   // FormData from admin modal — inputs use name="" attributes, and the browser
@@ -17,6 +19,7 @@ export async function updateRestaurantAction(formData) {
   const deliveryTime = Number(formData.get("deliveryTime"));
   const rating = Number(formData.get("rating"));
   const imageUrl = formData.get("imageUrl")?.trim();
+  const imagePublicId = formData.get("imagePublicId")?.trim();
 
   if (!name || !cuisine || !imageUrl) {
     return { error: "Name, cuisine, and image are required" };
@@ -33,6 +36,17 @@ export async function updateRestaurantAction(formData) {
   if (Number.isNaN(rating) || rating < 0 || rating > 5) {
     return { error: "Rating must be between 0 and 5" };
   }
+  const oldRestaurant = await prisma.restaurant.findUnique({
+    where: { id: Number(id) },
+    select: { imagePublicId: true },
+  });
+
+  if (
+    oldRestaurant?.imagePublicId &&
+    oldRestaurant.imagePublicId !== imagePublicId
+  ) {
+    await deleteImageFromCloudinary(oldRestaurant.imagePublicId);
+  }
 
   const data = {
     name,
@@ -40,6 +54,7 @@ export async function updateRestaurantAction(formData) {
     deliveryTime,
     rating,
     imageUrl,
+    imagePublicId,
   };
 
   await updateRestaurant(id, data);
@@ -83,6 +98,7 @@ export async function createRestaurantAction(formData) {
   const deliveryTime = Number(formData.get("deliveryTime"));
   const rating = Number(formData.get("rating"));
   const imageUrl = formData.get("imageUrl")?.trim();
+  const imagePublicId = formData.get("imagePublicId")?.trim();
 
   if (!name || !cuisine || !imageUrl) {
     return {
@@ -118,6 +134,7 @@ export async function createRestaurantAction(formData) {
     deliveryTime,
     rating,
     imageUrl,
+    imagePublicId,
   };
 
   await createRestaurant(data);

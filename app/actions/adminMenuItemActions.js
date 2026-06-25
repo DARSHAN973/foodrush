@@ -8,6 +8,8 @@ import {
   activeMenuItem,
   deleteMenuItem,
 } from "@/lib/menuItems";
+import { prisma } from "@/lib/prisma";
+import { deleteImageFromCloudinary } from "@/lib/cloudinary";
 
 function getMenuItemFormFields({
   name,
@@ -31,6 +33,7 @@ export async function updateMenuItemAction(formData) {
   const imageUrl = formData.get("imageUrl")?.trim();
   const category = formData.get("category")?.trim();
   const isVeg = formData.get("isVeg") === "on";
+  const imagePublicId = formData.get("imagePublicId")?.trim();
 
   if (!name || !category || !imageUrl) {
     return { error: "Name, category, and image URL are required" };
@@ -44,6 +47,18 @@ export async function updateMenuItemAction(formData) {
     return { error: "Price must be a positive number" };
   }
 
+  const oldMenuItem = await prisma.menuItem.findUnique({
+    where: { id: Number(menuItemId) },
+    select: { imagePublicId: true },
+  });
+
+  if (
+    oldMenuItem?.imagePublicId &&
+    oldMenuItem.imagePublicId !== imagePublicId
+  ) {
+    await deleteImageFromCloudinary(oldMenuItem.imagePublicId);
+  }
+
   const menuItemData = {
     name,
     description,
@@ -51,6 +66,7 @@ export async function updateMenuItemAction(formData) {
     imageUrl,
     category,
     isVeg,
+    imagePublicId,
   };
 
   const updatedMenuItem = await updateMenuItem(
@@ -78,6 +94,7 @@ export async function createMenuItemAction(formData) {
   const imageUrl = formData.get("imageUrl")?.trim();
   const category = formData.get("category")?.trim();
   const isVeg = formData.get("isVeg") === "on";
+  const imagePublicId = formData.get("imagePublicId")?.trim();
 
   if (!name || !category || !imageUrl) {
     return {
@@ -128,6 +145,7 @@ export async function createMenuItemAction(formData) {
     imageUrl,
     category,
     isVeg,
+    imagePublicId,
   };
 
   const createdMenuItem = await createMenuItem(restaurantId, menuItemData);
@@ -180,6 +198,9 @@ export async function deleteMenuItemAction(restaurantId, menuItemId) {
 
   if (!deletedMenuItem) {
     return { error: "Menu Item not found" };
+  }
+  if (deletedMenuItem.imagePublicId) {
+    await deleteImageFromCloudinary(deletedMenuItem.imagePublicId);
   }
 
   revalidatePath(`/admin/restaurants/${restaurantId}/menu-items`);

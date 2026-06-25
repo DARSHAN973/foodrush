@@ -29,6 +29,7 @@ export default function AdminRestaurantsClient({ restaurants }) {
     imageUrl: "",
   });
   const [imageUrl, setImageUrl] = useState("");
+  const [imagePublicId, setImagePublicId] = useState("");
 
   function closeEditModal() {
     setEditingRestaurant(null);
@@ -314,10 +315,18 @@ export default function AdminRestaurantsClient({ restaurants }) {
 
               <div>
                 <ImageUpload
-                  onUploadSuccess={setImageUrl}
+                  onUploadSuccess={(url, publicId) => {
+                    setImageUrl(url);
+                    setImagePublicId(publicId);
+                  }}
                   defaultImageUrl={imageUrl}
                 />
                 <input type="hidden" name="imageUrl" value={imageUrl} />
+                <input
+                  type="hidden"
+                  name="imagePublicId"
+                  value={imagePublicId}
+                />
               </div>
               {/* Hidden id — Server Actions receive FormData, so the restaurant
                   id must travel with the form even though admins should not edit it. */}
@@ -425,10 +434,18 @@ export default function AdminRestaurantsClient({ restaurants }) {
 
               <div>
                 <ImageUpload
-                  onUploadSuccess={setImageUrl}
+                  onUploadSuccess={(url, publicId) => {
+                    setImageUrl(url);
+                    setImagePublicId(publicId);
+                  }}
                   defaultImageUrl={imageUrl}
                 />
                 <input type="hidden" name="imageUrl" value={imageUrl} />
+                <input
+                  type="hidden"
+                  name="imagePublicId"
+                  value={imagePublicId}
+                />
               </div>
 
               <div className="flex justify-end gap-3 border-t border-gray-200 pt-5 sm:col-span-2">

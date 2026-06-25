@@ -103,6 +103,7 @@ model Restaurant {
   rating           Decimal           @default(0.0) @db.Decimal(2, 1)
   deliveryTime     Int
   imageUrl         String?
+  imagePublicId    String?
   isActive         Boolean           @default(true)
   menuItems        MenuItem[]
   restaurantOrders RestaurantOrder[]
@@ -118,6 +119,7 @@ model MenuItem {
   name         String
   description  String?
   imageUrl     String?
+  imagePublicId    String?
   // @db.Decimal(10, 2) — up to 10 digits total, 2 after decimal (e.g. 99999.99).
   // Use this for all price columns across every future project.
   price        Decimal     @db.Decimal(10, 2)

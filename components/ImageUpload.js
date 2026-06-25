@@ -7,9 +7,14 @@ export default function ImageUpload({ onUploadSuccess, defaultImageUrl = "" }) {
   const [previewUrl, setPreviewUrl] = useState(defaultImageUrl);
   const [isUploading, setIsUploading] = useState(false);
   const [error, setError] = useState("");
+
+  // DOM Reference hook: We hide the standard browser file input (which is hard to style)
+  // and trigger its click event programmatically using this reference pointer.
   const fileInputRef = useRef(null);
 
   const handleFileChange = async (e) => {
+    // Optional chaining (?.[0]) prevents crashing if the user opens the dialog
+    // but cancels without selecting any file.
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -27,11 +32,14 @@ export default function ImageUpload({ onUploadSuccess, defaultImageUrl = "" }) {
     setError("");
     setIsUploading(true);
 
-    // 2. Set instant local preview URL for beautiful UX
+    // 2. Set instant local preview URL for beautiful UX:
+    // URL.createObjectURL creates a temporary local browser pointer to the file in memory.
+    // This allows the user to see their selected image instantly without waiting for the network upload.
     const localUrl = URL.createObjectURL(file);
     setPreviewUrl(localUrl);
 
-    // 3. Prepare FormData and call the Server Action
+    // 3. Prepare FormData and call the Server Action.
+    // Standard JSON cannot transport binary files, so we package the file inside FormData.
     const formData = new FormData();
     formData.append("file", file);
 
@@ -42,6 +50,9 @@ export default function ImageUpload({ onUploadSuccess, defaultImageUrl = "" }) {
         setError(result.error);
         setPreviewUrl(defaultImageUrl); // rollback preview on error
       } else if (result.success && result.url) {
+        // Lifting State Up: Trigger the callback prop supplied by the parent.
+        // This updates the parent's state, updating the hidden input field's value
+        // so that the Cloudinary URL is included in the final form submission to MySQL.
         onUploadSuccess(result.url);
       }
     } catch (err) {
@@ -53,6 +64,7 @@ export default function ImageUpload({ onUploadSuccess, defaultImageUrl = "" }) {
   };
 
   const triggerFileInput = () => {
+    // Triggers the hidden file input programmatically
     fileInputRef.current?.click();
   };
 

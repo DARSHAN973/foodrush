@@ -10,6 +10,7 @@ import {
   activeMenuItemAction,
   deleteMenuItemAction,
 } from "@/app/actions/adminMenuItemActions";
+import ImageUpload from "@/components/ImageUpload";
 
 export default function AdminMenuItemsClient({ restaurant, menuItems }) {
   const router = useRouter();
@@ -21,6 +22,9 @@ export default function AdminMenuItemsClient({ restaurant, menuItems }) {
   const [pendingMenuItemId, setPendingMenuItemId] = useState(null);
   const [successMessage, setSuccessMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
+  const [imageUrl, setImageUrl] = useState("");
+  const [imagePublicId, setImagePublicId] = useState("");
+
   const [fields, setFields] = useState({
     name: "",
     description: "",
@@ -33,6 +37,8 @@ export default function AdminMenuItemsClient({ restaurant, menuItems }) {
   function closeModal() {
     setEditingMenuItem(null);
     setCreatingMenuItem(false);
+    setImageUrl("");
+    setImagePublicId("");
   }
 
   function showSuccessToast(message) {
@@ -138,7 +144,11 @@ export default function AdminMenuItemsClient({ restaurant, menuItems }) {
 
         <button
           type="button"
-          onClick={() => setCreatingMenuItem(true)}
+          onClick={() => {
+            setCreatingMenuItem(true);
+            setImageUrl("");
+            setImagePublicId("");
+          }}
           className="w-fit rounded-md bg-orange-600 px-4 py-2 text-sm font-medium text-white hover:bg-orange-700"
         >
           Add Menu Item
@@ -215,7 +225,11 @@ export default function AdminMenuItemsClient({ restaurant, menuItems }) {
               <div className="flex flex-wrap gap-2 sm:justify-end">
                 <button
                   type="button"
-                  onClick={() => setEditingMenuItem(menuItem)}
+                  onClick={() => {
+                    setEditingMenuItem(menuItem);
+                    setImageUrl(menuItem.imageUrl || "");
+                    setImagePublicId(menuItem.imagePublicId || "");
+                  }}
                   disabled={isPending}
                   className="rounded-md border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60"
                 >
@@ -335,12 +349,20 @@ export default function AdminMenuItemsClient({ restaurant, menuItems }) {
 
               <div>
                 <label className="mb-1.5 block text-sm font-medium text-gray-700">
-                  Image URL
+                  Image
                 </label>
+                <ImageUpload
+                  onUploadSuccess={(url, publicId) => {
+                    setImageUrl(url);
+                    setImagePublicId(publicId);
+                  }}
+                  defaultImageUrl={imageUrl}
+                />
+                <input type="hidden" name="imageUrl" value={imageUrl} />
                 <input
-                  name="imageUrl"
-                  defaultValue={editingMenuItem.imageUrl || ""}
-                  className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100"
+                  type="hidden"
+                  name="imagePublicId"
+                  value={imagePublicId}
                 />
               </div>
 
@@ -466,12 +488,20 @@ export default function AdminMenuItemsClient({ restaurant, menuItems }) {
 
               <div>
                 <label className="mb-1.5 block text-sm font-medium text-gray-700">
-                  Image URL
+                  Image
                 </label>
+                <ImageUpload
+                  onUploadSuccess={(url, publicId) => {
+                    setImageUrl(url);
+                    setImagePublicId(publicId);
+                  }}
+                  defaultImageUrl={imageUrl}
+                />
+                <input type="hidden" name="imageUrl" value={imageUrl} />
                 <input
-                  name="imageUrl"
-                  defaultValue={fields.imageUrl}
-                  className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100"
+                  type="hidden"
+                  name="imagePublicId"
+                  value={imagePublicId}
                 />
               </div>
 
