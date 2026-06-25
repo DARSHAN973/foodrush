@@ -6,6 +6,7 @@
 - I built a React FoodRush app and migrated it to Next.js App Router
 - I learn by doing — I understand concepts but struggle writing code from memory
 - I want honest mentorship, not just answers handed to me
+- https://foodrush-nu.vercel.app
 
 ## How I Learn Best — ALWAYS FOLLOW THIS, never skip
 
@@ -259,14 +260,14 @@ public
   - Developed `updateRestaurantOrderStatusAction` in `app/actions/adminOrderActions.js` with status validation, sibling order checks, cascading parent status logic, and automatic revalidation.
   - Converted `app/admin/orders/page.js` to an async Server Component with `noStore()`.
   - Created card-based interactive `AdminOrdersClient` UI with tab filtering, customer details, and individual dropdown selectors powered by React `useTransition`.
-- [ ] 48. Email notifications with Nodemailer
+- [ ] 48. Email notifications with Nodemailer (Deferred to V2)
 
 ### ⏳ Phase 7 — Payments + Deployment
 
 - [x] 49. Razorpay integration
 - [x] 50. Payment success/failure handling
-- [ ] 51. Deploy on Vercel
-- [ ] 52. Connect production database
+- [x] 51. Deploy on Vercel
+- [x] 52. Connect production database
 - [ ] 53. README + portfolio writeup
 
 ## Practice Projects (build between phases for independence)
