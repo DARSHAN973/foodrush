@@ -68,20 +68,12 @@ export async function generateStaticParams() {
 - Path: `/home/darshan/darshan/web_development_revision/foodrush`
 - Stack: Next.js App Router, Tailwind CSS, React, MySQL, Prisma
 - Product identity: FoodRush is a food ordering app, not a recipe finder.
-  Temporary DummyJSON recipe data is only placeholder data.
-- Correct future product flow:
+- Correct product flow:
   user browses restaurants → opens a restaurant → sees menu items →
   adds menu items to cart → checks out cart → pays → receives restaurant-wise orders.
-- Future database/schema should model real ordering concepts:
-  `User`, `Restaurant`, `MenuItem`, `Cart`, `CartItem`, `ParentOrder`,
-  `RestaurantOrder`, `OrderItem`, and `Payment`.
-- FoodRush V1 should support multi-restaurant checkout:
-  one cart can contain menu items from multiple restaurants, one payment covers
-  the full checkout, and the app splits that checkout into restaurant-wise
-  orders with separate statuses.
-- Do not design Prisma schema around DummyJSON recipe-only fields like
-  `ingredients` and `instructions`; those can disappear when real FoodRush data
-  replaces the placeholder API.
+- FoodRush supports multi-restaurant checkout:
+  one cart can contain items from multiple restaurants, one payment covers
+  the full checkout, and the app splits it into restaurant-wise orders.
 
 ### Project Structure
 
@@ -93,13 +85,16 @@ app
 │   ├── authActions.js
 │   ├── cartActions.js
 │   ├── adminRestaurantActions.js
-│   └── adminMenuItemActions.js
+│   ├── adminMenuItemActions.js
+│   ├── adminOrderActions.js
+│   └── uploadActions.js
 ├── (user)
 │   ├── layout.js
 │   ├── page.js
 │   ├── restaurants/page.js, loading.js, error.js
 │   ├── restaurants/[id]/page.js, loading.js, error.js, not-found.js
 │   ├── cart/page.js
+│   ├── orders/page.js
 │   └── login/page.js
 ├── admin
 │   ├── layout.js, page.js
@@ -109,9 +104,9 @@ app
 │   └── restaurants/route.js, [id]/route.js
 components
 ├── AddToCartButton.js, Button.js, EmptyState.js
-├── AdminRestaurantsClient.js, AdminMenuItemsClient.js
+├── AdminRestaurantsClient.js, AdminMenuItemsClient.js, AdminOrdersClient.js
 ├── CartItemControls.js, ErrorMessage.js, Footer.js
-├── Input.js, Loading.js, MenuAddButton.js
+├── ImageUpload.js, Input.js, Loading.js, MenuAddButton.js
 ├── MenuClient.js, Navbar.js, NavbarClient.js
 ├── RestaurantCard.js, ScrollToTop.js, Toast.js
 context
@@ -119,11 +114,13 @@ context
 hooks
 └── useRestaurants.js
 lib
+├── admin.js
 ├── cart.js
+├── cloudinary.js
 ├── menuItems.js
+├── orders.js
 ├── prisma.js
-├── restaurants.js
-└── generated Prisma client output removed in favor of standard @prisma/client
+└── restaurants.js
 prisma
 ├── schema.prisma
 ├── seed.js
@@ -132,180 +129,211 @@ public
 └── videos/hero-video.mp4
 ```
 
-## Full Learning Roadmap
+### Current Prisma Schema Models
 
-### ✅ Phase 1 — Next.js Fundamentals (Complete)
+`User`, `Restaurant`, `MenuItem`, `Cart`, `CartItem`,
+`ParentOrder`, `RestaurantOrder`, `OrderItem`, `Payment`
 
-- [x] 1. generateMetadata properly (SEO titles/descriptions)
-- [x] 2. SSR vs SSG vs CSR final revision
-- [x] 3. fetch caching deeper practice
-- [x] 4. Route handlers / API routes GET basics (`GET /api/restaurants`, `GET /api/restaurants/[id]`)
-- [x] 5. Environment variables basics
-- [x] 6. Middleware + protected route basics
-- [x] 7. Cookies & headers in Next.js (`cookies()`, `headers()`)
-- [x] 8. Server Actions (forms without API routes)
-- [x] 9. Client vs Server components (deep dive)
-- [x] 10. Streaming & Suspense
-- [x] 11. generateStaticParams for dynamic restaurant pages
+---
 
-### 🔄 Temporary Learning Order Update
+## ✅ V1 — Complete
 
-- Phase 4 was started before finishing all remaining Phase 1 backend topics.
-- Reason: MySQL + Prisma makes route handlers, orders, admin CRUD, and auth
-  more real instead of practicing fake POST routes without persistence.
-- Environment variables are being learned naturally through Prisma `DATABASE_URL`.
-- Park serious `POST /api/orders`, full CRUD APIs, middleware, cookies, and auth
-  until Prisma/database foundations are stronger.
+All core features shipped. Summary of what was built:
 
-### 🔄 Phase 2 — FoodRush UI Polish & Next.js Upgrade
+- **Next.js fundamentals** — SSR/SSG/CSR, metadata, route handlers, server actions,
+  client vs server components, Suspense/streaming, generateStaticParams
+- **Web & browser fundamentals** — HTTP, REST, localStorage/cookies, JWT/sessions,
+  httpOnly cookies, CORS, Fetch API
+- **MySQL + Prisma** — schema design, CRUD, relations, joins, transactions, indexes,
+  normalization, database-backed API routes
+- **Auth** — NextAuth.js, email/password with bcrypt, Google OAuth, protected routes,
+  session-based user ID in cart and orders
+- **Cart + Orders** — database-backed cart, multi-restaurant checkout, Razorpay payment,
+  order history with ParentOrder → RestaurantOrder → OrderItem breakdown
+- **Admin Dashboard** — protected admin routes, dashboard stats, restaurant CRUD,
+  menu item CRUD, Cloudinary image upload/delete, order management with status updates
+- **Deployment** — Vercel deploy, production MySQL database connected
 
-- [ ] 12. Finish converting restaurant detail special files (loading, error, not-found)
-- [ ] 12b. Audit all pages for loading.js skeletons and proper empty states
-      (cart, orders, restaurants, restaurant detail — make sure every page handles
-      loading and empty gracefully before final UI polish pass)
-- [x] 13. Improve homepage with server fetching
-- [ ] 14. Improve filters/search using `searchParams`
-- [ ] 15. Polish Next Image usage
-- [ ] 16. Mobile responsive pass
+---
 
-### ⏳ Phase 3 — Web & Browser Fundamentals (Don't skip)
+## 🚀 V2 — Roadmap
 
-- [x] 17. How HTTP works (request, response, status codes)
-- [x] 18. REST API design principles
-- [x] 19. How browsers store data — localStorage, sessionStorage, cookies
-- [x] 20. Cookies vs Sessions vs JWT — how auth actually works in browser
-- [x] 21. httpOnly cookies — what they are and why they matter
-- [x] 22. CORS — what it is and why it breaks things
-- [x] 23. Fetch API deeply vs Axios
+V2 is the finishing and polishing version. Goal: make FoodRush feel like a real product.
 
-### 🔄 Phase 4 — MySQL + Prisma
+### Known V1 Bugs to Fix First
 
-- [x] 24. MySQL basics
-- [x] 25. Prisma setup + connect to MySQL
-- [x] 26. Schema design (User, Restaurant, MenuItem, Cart, CartItem, ParentOrder, RestaurantOrder, OrderItem, Payment)
-  - Current schema has the V1 multi-restaurant checkout models.
-  - V1 design decision: support multi-restaurant checkout by grouping one
-    checkout/payment under `ParentOrder`, then splitting it into
-    restaurant-wise `RestaurantOrder` records.
-  - Schema migration for these models has been applied.
-- [x] 27. Prisma CRUD operations
-  - Covered: `findMany`, `findUnique`, `findFirst`, `create`, `update`,
-    `updateMany`, `delete`, `deleteMany`, `createMany`, `where`, `orderBy`,
-    `include`, `select`, and Decimal conversion before UI/API responses.
-- [x] 28. Relations & joins properly
-  - MySQL joins covered.
-  - Prisma relation queries covered with nested create, `include`, `select`,
-    `connect`, and `connectOrCreate` basics.
-- [x] 29. Transactions in Prisma
-  - `prisma.$transaction(async (tx) => {})` — all-or-nothing atomicity.
-  - External API calls (Razorpay) must stay OUTSIDE the transaction to avoid DB row locks during network calls.
-  - ACID covered: Atomicity, Consistency, Isolation (row-level locking), Durability.
-- [x] 30. Database sample data practice
-- [x] 31. Replace dummyjson API with real database
-  - `getRestaurants()` and `getRestaurant(id)` are Prisma-backed.
-  - `GET /api/restaurants` and `GET /api/restaurants/[id]` work in Thunder Client.
-  - Helpers use `select`, active/available filters, id validation, and Decimal-to-number conversion.
-- [ ] 32. Build backend APIs
-- [x] 32a. Return to real route handlers with database-backed CRUD
-- [x] 32b. Revisit deeper MySQL topics after Prisma basics:
-  - Indexes: B-Tree lookup vs full table scan, when to add `@@index` manually,
-    read/write/storage tradeoff, added `@@index([userId])` to `ParentOrder`.
-  - Normalization: one source of truth rule, snapshot field exception (OrderItem.price/itemName).
-  - Many-to-many already covered via CartItem junction table.
-  - Views, stored procedures, triggers — deferred, not needed for FoodRush.
+- **Orphaned PAYMENT_PENDING orders** — If a user cancels the Razorpay popup without
+  paying, the `ParentOrder`/`RestaurantOrder`/`OrderItem` rows stay stuck at
+  `PAYMENT_PENDING` forever. Fix: implement **Razorpay Webhooks**
+  (`POST /api/webhooks/razorpay`) — Razorpay calls this server-to-server when a
+  payment is cancelled/failed/expired, and we update the order status to `CANCELLED`.
 
-### ⏳ Phase 5 — Authentication + Cart + Orders
+### V2 Schema Changes Needed
 
-- [x] 33. NextAuth.js setup
-- [x] 34a. Simple email/password signup + login data flow
-  - Signup creates `User` rows with bcrypt password hashes.
-  - Login verifies email/password with bcrypt compare.
-- [x] 34b. Real auth sessions with NextAuth/email-password flow
-- [x] 35. Google OAuth
-  - GoogleProvider added to NextAuth config.
-  - jwt callback auto-creates or finds User row by email; stores DB integer id.
-  - passwordHash made optional (String?) to support OAuth users with no local password.
-  - "Continue with Google" button added to login page with real Google SVG icon.
-- [x] 36. Protected routes
-- [x] 37a. Database-backed cart basics
-  - Add menu items to MySQL cart.
-  - Increase/decrease/remove cart items.
-  - Render cart page from server data.
-  - Render navbar count from server data.
-  - Add pending UI for cart actions.
-- [x] 37b. Replace temporary user id with real logged-in user session
-  - session.user.id now comes from the database (Int) for both credentials and Google login.
-- [x] 38. Checkout flow
-- [x] 39. Order placement
-- [x] 40. Order history
-  - `lib/orders.js` helper with nested Prisma include + Decimal conversion.
-  - `app/(user)/orders/page.js` — Server Component, session-guarded, shows ParentOrder → RestaurantOrder → OrderItem breakdown with StatusBadge.
+Before building V2 features, the schema needs these additions:
 
-### ⏳ Phase 6 — Admin Dashboard
+```
+User.role        → add VENDOR alongside CUSTOMER and ADMIN
+Restaurant.ownerId    → FK to User (which vendor owns this restaurant)
+Restaurant.status     → PENDING | ACTIVE | SUSPENDED (replaces simple boolean)
+Restaurant.isOpen     → boolean (vendor toggles this live)
 
-- [x] 41. Admin role setup
-- [x] 42. Protected admin routes
-- [x] 43. Dashboard stats
-- [x] 44. Restaurant CRUD
-- [x] 45. Menu item CRUD
-- [x] 46. Image upload with Cloudinary
-  - Installed Node.js `cloudinary` SDK and set credentials in `.env`.
-  - Configured `lib/cloudinary.js` with helper methods (`uploadImageToCloudinary` using callback Promise wrapping and stream end piping, `deleteImageFromCloudinary`, and `getOptimizedImageUrl`).
-  - Created `uploadImageAction` in `app/actions/uploadActions.js` to securely convert browser `File` objects to buffers.
-  - Built reusable `<ImageUpload>` client component with immediate local URL previews and loading state.
-  - Replaced restaurant text inputs with `<ImageUpload>` and hidden form inputs, saving to MySQL via existing server actions.
-  - Updated `next.config.mjs` to whitelist `res.cloudinary.com` in `remotePatterns`.
-- [x] 47. Order management + status updates
-  - Added `getAdminOrders` in `lib/admin.js` with nested Prisma includes and Decimal-to-number mapping (including the nested restaurant rating).
-  - Developed `updateRestaurantOrderStatusAction` in `app/actions/adminOrderActions.js` with status validation, sibling order checks, cascading parent status logic, and automatic revalidation.
-  - Converted `app/admin/orders/page.js` to an async Server Component with `noStore()`.
-  - Created card-based interactive `AdminOrdersClient` UI with tab filtering, customer details, and individual dropdown selectors powered by React `useTransition`.
-- [ ] 48. Email notifications with Nodemailer (Deferred to V2)
+New models:
+  OperatingHours  — per-day weekly schedule (Mon–Sun open/close times)
+  Review          — rating + comment + userId + restaurantId
+  SavedAddress    — userId + full address fields
+  PromoCode       — code, discountType, discountValue, minOrder, expiresAt
+  VendorWarning   — restaurantId + message + createdAt (admin sends to vendor)
+```
 
-### ⏳ Phase 7 — Payments + Deployment
+---
 
-- [x] 49. Razorpay integration
-- [x] 50. Payment success/failure handling
-- [x] 51. Deploy on Vercel
-- [x] 52. Connect production database
-- [ ] 53. README + portfolio writeup
+### 🔴 Phase 1 — MUST DO (non-negotiable, ~40–50 hrs)
 
-## Practice Projects (build between phases for independence)
+#### [ ] 1. Razorpay Webhooks — Fix V1 Bug (2–3 hrs)
 
-- Mini routing app: home/list/detail/loading/error/not-found
-- Product filter app: searchParams + client filters
-- CRUD dashboard: Prisma + forms
-- Auth notes app: protected routes
-- Mini checkout app: cart + order flow
+- `POST /api/webhooks/razorpay` endpoint
+- Verify Razorpay signature server-to-server
+- Update stuck `PAYMENT_PENDING` orders to `CANCELLED`
+- **Teaches:** webhook pattern, signature verification, background event handling
 
-## Known Issues / Future Fixes
+#### [ ] 2. Mobile-First UI + UI Upgrade (10–12 hrs)
 
-- **Orphaned PAYMENT_PENDING orders**: If a user opens the Razorpay popup and cancels
-  without paying, the `ParentOrder`, `RestaurantOrder`, and `OrderItem` rows created
-  in `placeOrder` stay stuck at `PAYMENT_PENDING` forever. The fix is to implement
-  **Razorpay Webhooks** (`POST /api/webhooks/razorpay`) — Razorpay calls this endpoint
-  server-to-server when a payment is cancelled, failed, or expired. We then update the
-  order status to `CANCELLED` and the rows are cleaned up. A scheduled cleanup job
-  (DELETE orders older than 2 hours with PAYMENT_PENDING) is an alternative but should
-  only run at off-peak hours to avoid extra DB load during peak traffic.
+- Full mobile responsive pass — navbar hamburger menu, card grids, cart, orders, admin
+- Profile avatar with dropdown (Gmail-style first-letter avatar)
+  - Logged in: avatar → dropdown (My Orders, Logout)
+  - Logged out: Login button
+- Navbar icons with `lucide-react`
+- **Teaches:** responsive design, mobile-first thinking
 
-## UI Polish — Future Tasks (post admin panel)
+#### [ ] 3. Restaurant Search + Filter with searchParams (3–4 hrs)
 
-- **Navbar icons**: Add `lucide-react` icons for Home, Restaurants, Cart nav links
-  for a cleaner, more modern navbar look.
-- **Profile avatar with dropdown**: When logged in, replace plain text with a Gmail-style
-  avatar circle showing the user's first letter (`session.user.name[0].toUpperCase()`).
-  Clicking it opens a dropdown with: My Orders → `/orders`, Saved Addresses (future),
-  Logout. When logged out, show a Login button instead.
-- **Framer Motion animations**: Add page transitions, cart item animations, and
-  micro-interactions. Framer Motion is the React-native choice (not GSAP which is
-  DOM-level). Learn this after the admin panel phase is complete.
-- **Mobile responsive pass**: Full mobile layout audit — navbar hamburger menu,
-  card grids, cart page, orders page.
+- Search bar on restaurants page (by name, cuisine)
+- Filter by cuisine type, rating, open/closed
+- URL-based state with `searchParams` — shareable links
+- **Teaches:** searchParams, URL as state, server-side filtering
+
+#### [ ] 4. Loading States + SEO Audit (5–7 hrs)
+
+- Audit all pages: loading.js skeletons, empty states, error.js
+- Proper `generateMetadata` on all dynamic pages
+- Next Image optimization pass
+- **Teaches:** SEO best practices, skeleton UI patterns
+
+#### [ ] 5. Vendor Onboarding + Admin Approval (8–10 hrs)
+
+- **Vendor signup flow** — register as vendor, submit restaurant application
+  (name, address, cuisine, opening hours, logo/banner via Cloudinary)
+- **Admin "Applications" tab** — Approve / Reject with reason
+- **Vendor dashboard** (`/vendor` route group, separate from `/admin`)
+  - Menu items CRUD (their restaurant only)
+  - Open/Close toggle (live status)
+  - Operating hours schedule (Mon–Sun)
+  - Incoming orders for their restaurant + update status
+  - Revenue/earnings view (daily/weekly/monthly)
+- **Admin controls over vendors**
+  - Suspend / Unsuspend restaurant
+  - Send warning (stored in DB, shown on vendor dashboard)
+  - Force-close restaurant (admin overrides vendor's open/close)
+  - Master analytics — per-restaurant revenue, top sellers, low performers
+- **Teaches:** multi-role auth, role-based route protection, platform architecture
+
+#### [ ] 6. Real-Time Order Tracking with SSE (4–6 hrs)
+
+- Use **Server-Sent Events (SSE)** — correct tool for server→client only updates
+- `GET /api/orders/[id]/stream` — streams status updates to the client
+- Order tracking page shows live status (Placed → Preparing → Out for Delivery → Delivered)
+- **Note:** SSE is native to HTTP, works on Vercel (unlike raw WebSockets).
+  WebSockets require a persistent server — learn separately via a mini chat project.
+- **Teaches:** SSE, ReadableStream in Next.js, real-time UX pattern
+
+#### [ ] 7. Reviews + Ratings (5–6 hrs)
+
+- Users can rate and review a restaurant after an order is delivered
+- Star rating component, review text, posted with user name
+- Restaurant card shows average rating (recalculate on new review)
+- **Teaches:** aggregate queries in Prisma, review/trust-signal UX pattern
+
+---
+
+### 🟡 Phase 2 — SHOULD DO (high value, ~30–40 hrs)
+
+#### [ ] 8. Framer Motion Animations (6–8 hrs)
+
+- Page transitions, cart item animations, micro-interactions
+- Framer Motion is React-native (not GSAP which is DOM-level)
+- Do this during/after mobile UI pass for best effect
+
+#### [ ] 9. Saved Delivery Addresses (4–5 hrs)
+
+- Users save multiple addresses, pick one at checkout
+- `SavedAddress` model in schema
+
+#### [ ] 10. Promo Codes + Discounts (6–8 hrs)
+
+- Admin creates promo codes with discount type (flat/percent), min order, expiry
+- User applies code at checkout, discount reflected in total
+- `PromoCode` model in schema
+- **Teaches:** business logic, discount calculation, coupon UX
+
+#### [ ] 11. Push Notifications (6–8 hrs)
+
+- Web Push API + Service Workers
+- Notify user when order status changes
+- Firebase Cloud Messaging (FCM) or native Web Push
+- **Teaches:** Service Workers, push API, background tasks
+
+#### [ ] 12. AI Assistant (8–10 hrs)
+
+- Customer assistant: "What's good here?", "Find me pizza under ₹200"
+- Admin assistant: "Which restaurant had lowest sales this week?"
+- Use OpenAI API or Gemini API
+- **Teaches:** AI API integration, prompt engineering basics
+
+---
+
+### ⚪ Phase 3 — NICE TO HAVE (polish, ~25–30 hrs)
+
+#### [ ] 13. Email Notifications with Nodemailer (5–6 hrs)
+
+- Order confirmation email, vendor approval/rejection email
+- Pairs with vendor onboarding flow
+
+#### [ ] 14. Forgot Password + Reset (4–5 hrs)
+
+- Send reset link via email (needs Nodemailer)
+- Token-based reset flow
+
+#### [ ] 15. Favorites / Wishlist (3–4 hrs)
+
+- Save restaurants to favorites, quick access from profile
+
+#### [ ] 16. Dark Mode (2–3 hrs)
+
+- CSS variables + Tailwind dark class toggle
+- Store preference in localStorage
+
+#### [ ] 17. Saved Mobile Number (1–2 hrs)
+
+- Paired with saved addresses at checkout
+
+#### [ ] 18. Admin Dashboard Reports (6–8 hrs)
+
+- Charts (revenue over time, orders per day)
+- Use `recharts` or `chart.js`
+- Top-performing restaurants, most ordered items
+
+#### [ ] 19. README + Portfolio Writeup (3–4 hrs)
+
+- Full README with setup instructions, tech stack, screenshots
+- Architecture diagram, design decisions documented
+- Step 53 from original roadmap — do this at the very end
+
+---
 
 ## What's Next
 
-- ✅ Steps 46 and 47 complete — Admin Orders management and Cloudinary image upload successfully integrated!
-- ✅ Database-backed Cloudinary image deletion implemented successfully for both Restaurants and Menu Items.
-- ✅ Conceptual explanation comments added to `lib/cloudinary.js`, `app/actions/uploadActions.js`, and `components/ImageUpload.js`.
-- Next: Add conceptual comments to the Admin Dashboard and Orders files (`lib/admin.js`, `app/actions/adminOrderActions.js`, and `components/AdminOrdersClient.js`) to complete the documentation for those features.
+- V1 is fully complete and deployed ✅
+- V2 starts with **Phase 1, Step 2: Mobile-First UI + UI Upgrade** (foundation first — make it look and feel production-grade)
+- Razorpay Webhooks (Step 1) will be done immediately after mobile UI since it's a quick backend fix
+- Goal for now: make FoodRush look like a real product people would actually use

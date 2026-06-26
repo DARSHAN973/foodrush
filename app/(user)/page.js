@@ -11,7 +11,7 @@ export default async function Home() {
 
   return (
     <main className="min-h-screen bg-gray-50">
-      <section className="relative min-h-140 overflow-hidden md:min-h-170">
+      <section className="relative h-[60vh] min-h-[420px] md:h-[70vh] md:min-h-[560px] w-full overflow-hidden">
         <video
           className="absolute inset-0 h-full w-full object-cover"
           autoPlay
@@ -24,33 +24,33 @@ export default async function Home() {
           <source src="/videos/hero-video.mp4" type="video/mp4" />
         </video>
 
-        <div className="absolute inset-0 bg-black/45" />
+        <div className="absolute inset-0 bg-black/50" />
 
-        <div className="relative z-10 flex min-h-140 flex-col justify-center px-6 text-white md:min-h-170 md:px-16">
-          <p className="mb-3 text-sm font-semibold uppercase tracking-wide text-orange-100">
+        <div className="relative z-10 flex h-full w-full flex-col justify-center px-4 md:px-16 text-white">
+          <p className="mb-2 text-xs md:text-sm font-semibold uppercase tracking-wider text-orange-400">
             FoodRush delivery
           </p>
 
-          <h1 className="max-w-3xl text-4xl font-bold leading-tight md:text-6xl">
-            Hot meals, fast delivery, zero waiting drama.
+          <h1 className="max-w-3xl text-3xl font-black leading-tight sm:text-4xl md:text-6xl">
+            Hot meals, fast delivery, <span className="text-orange-500">zero waiting drama.</span>
           </h1>
 
-          <p className="mt-5 max-w-xl text-base text-gray-100 md:text-lg">
+          <p className="mt-4 max-w-xl text-sm text-gray-200 md:text-lg">
             Discover top-rated restaurants, browse cuisines, and build your cart
             in minutes.
           </p>
 
-          <div className="mt-8 flex flex-wrap gap-3">
+          <div className="mt-6 flex flex-wrap gap-3">
             <Link
               href="/restaurants"
-              className="rounded-md bg-orange-600 px-5 py-3 font-semibold text-white transition hover:bg-orange-700"
+              className="rounded-xl bg-orange-600 px-5 py-3 text-sm md:text-base font-bold text-white shadow-lg shadow-orange-600/30 hover:bg-orange-700 hover:shadow-orange-700/40 active:scale-95 transition-all duration-200"
             >
               Order Now
             </Link>
 
             <Link
               href="/restaurants"
-              className="rounded-md border border-white px-5 py-3 font-semibold text-white transition hover:bg-white hover:text-orange-600"
+              className="rounded-xl border border-white/60 bg-white/10 backdrop-blur-sm px-5 py-3 text-sm md:text-base font-bold text-white hover:bg-white hover:text-orange-600 hover:border-white active:scale-95 transition-all duration-200"
             >
               Explore Restaurants
             </Link>
@@ -77,7 +77,7 @@ export default async function Home() {
             </Link>
           </div>
 
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid grid-cols-2 gap-4 sm:gap-6 md:grid-cols-3 lg:grid-cols-4">
             {trendingRestaurants.map((restaurant) => (
               <RestaurantCard key={restaurant.id} restaurant={restaurant} />
             ))}

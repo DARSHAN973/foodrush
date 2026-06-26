@@ -2,7 +2,14 @@
 
 import { useMemo, useState } from "react";
 import RestaurantCard from "@/components/RestaurantCard";
-import EmptyState from "@/components/EmptyState";
+import {
+  Search,
+  SlidersHorizontal,
+  Truck,
+  ShieldCheck,
+  UtensilsCrossed,
+  Smartphone,
+} from "lucide-react";
 
 export default function RestaurantsClient({ restaurants }) {
   // UI state — stores the user's current search, cuisine filter, and sort choice.
@@ -69,48 +76,67 @@ export default function RestaurantsClient({ restaurants }) {
           </p>
         </div>
 
-        <div className="mb-8 grid gap-4 rounded-lg bg-white p-4 shadow-sm md:grid-cols-3">
-          {/*
-            Controlled input pattern — value displays React state, onChange updates it.
-            See components/Input.js
-          */}
-          <input
-            type="text"
-            placeholder="Search Restaurants..."
-            value={searchText}
-            // Event handler — pass a function so React can call it later when the user types.
-            // e.target.value is the current text from the input.
-            onChange={(e) => setSearchText(e.target.value)}
-            className="w-full rounded-md border border-gray-300 px-4 py-2 outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100"
-          />
-          {/*
-             Controlled select — React state decides the selected option,
-             and onChange updates that state when the user chooses a cuisine.
-          */}
-          <select
-            value={selectedCuisine}
-            onChange={(e) => setSelectedCuisine(e.target.value)}
-            className="w-full rounded-md border border-gray-300 px-4 py-2 outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100"
-          >
-            {cuisines.map((cuisine) => (
-              <option key={cuisine} value={cuisine}>
-                {cuisine}
-              </option>
-            ))}
-          </select>
+        <div className="mb-6 flex flex-col gap-3 rounded-2xl bg-white p-3.5 shadow-sm border border-gray-100 md:grid md:grid-cols-3 md:gap-4 md:p-4">
+          {/* Search Bar (Full width on mobile) */}
+          <div className="relative w-full">
+            <span className="absolute inset-y-0 left-3 flex items-center text-gray-400 pointer-events-none">
+              <Search size={18} />
+            </span>
+            <input
+              type="text"
+              placeholder="Search restaurants or cuisines..."
+              value={searchText}
+              onChange={(e) => setSearchText(e.target.value)}
+              className="w-full rounded-xl border border-gray-200 pl-10 pr-4 py-2.5 text-sm text-gray-900 outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100 placeholder-gray-400 transition-all"
+            />
+          </div>
 
-          <select
-            value={sortBy}
-            onChange={(e) => setSortBy(e.target.value)}
-            className="w-full rounded-md border border-gray-300 px-4 py-2 outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100"
-          >
-            <option value="default">Default</option>
-            <option value="rating">Rating: High to Low</option>
-            <option value="time">Delivery Time: Low to High</option>
-          </select>
+          {/* Select filters (Side-by-side on mobile, individual grid items on desktop) */}
+          <div className="grid grid-cols-2 gap-2 md:contents">
+            {/* Cuisine Select */}
+            <div className="relative w-full">
+              <span className="absolute inset-y-0 left-3 flex items-center text-gray-400 pointer-events-none">
+                <SlidersHorizontal size={14} />
+              </span>
+              <select
+                value={selectedCuisine}
+                onChange={(e) => setSelectedCuisine(e.target.value)}
+                className="w-full appearance-none rounded-xl border border-gray-200 pl-8 pr-8 py-2.5 text-xs sm:text-sm text-gray-700 bg-white outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100 transition-all cursor-pointer"
+              >
+                {cuisines.map((cuisine) => (
+                  <option key={cuisine} value={cuisine}>
+                    {cuisine}
+                  </option>
+                ))}
+              </select>
+              <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none text-gray-400">
+                <svg className="h-4 w-4 fill-current" viewBox="0 0 20 20">
+                  <path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" />
+                </svg>
+              </div>
+            </div>
+
+            {/* Sort Select */}
+            <div className="relative w-full">
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value)}
+                className="w-full appearance-none rounded-xl border border-gray-200 pl-4 pr-8 py-2.5 text-xs sm:text-sm text-gray-700 bg-white outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100 transition-all cursor-pointer"
+              >
+                <option value="default">Sort: Default</option>
+                <option value="rating">Sort: Top Rated</option>
+                <option value="time">Sort: Delivery Time</option>
+              </select>
+              <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none text-gray-400">
+                <svg className="h-4 w-4 fill-current" viewBox="0 0 20 20">
+                  <path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" />
+                </svg>
+              </div>
+            </div>
+          </div>
         </div>
 
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+        <div className="grid grid-cols-2 gap-4 sm:gap-6 md:grid-cols-3 lg:grid-cols-4">
           {displayRestaurants.length === 0 ? (
             <EmptyState
               title="No restaurants found"
@@ -126,6 +152,63 @@ export default function RestaurantsClient({ restaurants }) {
             ))
           )}
         </div>
+
+        {/* --- VALUE PROPOSITION / FEATURES SECTION --- */}
+        <section className="mt-16 border-t border-gray-200/60 pt-16">
+          <div className="text-center mb-10">
+            <h2 className="text-2xl font-extrabold text-gray-900 tracking-tight sm:text-3xl">
+              Why order from FoodRush?
+            </h2>
+            <p className="mt-2 text-sm text-gray-500 max-w-md mx-auto">
+              We ensure your food delivery experience is lightning-fast,
+              hygienic, and completely hassle-free.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
+            {/* Feature 1 */}
+            <div className="flex flex-col items-center text-center p-6 bg-white rounded-2xl border border-gray-100 shadow-sm transition hover:shadow-md">
+              <div className="bg-orange-100 p-4 rounded-2xl text-orange-600 mb-4">
+                <Truck size={28} />
+              </div>
+              <h3 className="text-base font-bold text-gray-900">
+                Super Fast Delivery
+              </h3>
+              <p className="mt-2 text-xs text-gray-500 leading-relaxed">
+                Our delivery partner network ensures your food arrives hot,
+                fresh, and on time.
+              </p>
+            </div>
+
+            {/* Feature 2 */}
+            <div className="flex flex-col items-center text-center p-6 bg-white rounded-2xl border border-gray-100 shadow-sm transition hover:shadow-md">
+              <div className="bg-orange-100 p-4 rounded-2xl text-orange-600 mb-4">
+                <ShieldCheck size={28} />
+              </div>
+              <h3 className="text-base font-bold text-gray-900">
+                Hygiene Standards
+              </h3>
+              <p className="mt-2 text-xs text-gray-500 leading-relaxed">
+                From restaurant kitchen to your doorstep, safety and sanitation
+                are our top priority.
+              </p>
+            </div>
+
+            {/* Feature 3 */}
+            <div className="flex flex-col items-center text-center p-6 bg-white rounded-2xl border border-gray-100 shadow-sm transition hover:shadow-md">
+              <div className="bg-orange-100 p-4 rounded-2xl text-orange-600 mb-4">
+                <UtensilsCrossed size={28} />
+              </div>
+              <h3 className="text-base font-bold text-gray-900">
+                Endless Cuisines
+              </h3>
+              <p className="mt-2 text-xs text-gray-500 leading-relaxed">
+                Discover local delights and international favorites all in one
+                single checkout.
+              </p>
+            </div>
+          </div>
+        </section>
       </div>
     </main>
   );
