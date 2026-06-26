@@ -23,12 +23,16 @@ export default function NavbarClient({ cartCount }) {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
+  const navRef = useRef(null);
   const dropdownRef = useRef(null);
 
+  // Click outside handler — closes both desktop dropdown and mobile hamburger menu
+  // when clicking anywhere else on the page.
   useEffect(() => {
     function handleClickOutside(event) {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+      if (navRef.current && !navRef.current.contains(event.target)) {
         setIsDropdownOpen(false);
+        setIsMobileMenuOpen(false);
       }
     }
     document.addEventListener("mousedown", handleClickOutside);
@@ -48,29 +52,57 @@ export default function NavbarClient({ cartCount }) {
   ).toUpperCase();
 
   return (
-    <nav className="sticky top-0 z-50 bg-orange-600/95 backdrop-blur-md text-white shadow-md border-b border-orange-500/20">
+    <nav
+      ref={navRef}
+      className="sticky top-0 z-50 bg-orange-600/95 backdrop-blur-md text-white shadow-md border-b border-orange-500/20"
+    >
       {/* --- TOP BAR (Logo & Mobile Toggle) --- */}
       <div className="flex items-center justify-between px-4 py-3 sm:px-6">
         <div>
           <h2>
-            <Link href="/" className="flex items-center gap-2 group focus:outline-none select-none">
+            <Link
+              href="/"
+              className="flex items-center gap-2 group focus:outline-none select-none"
+            >
               <div className="bg-amber-400 text-orange-600 p-1.5 rounded-xl shadow-inner group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
                 <Flame size={20} className="fill-orange-600 animate-pulse" />
               </div>
               <span className="text-2xl font-black italic tracking-tighter text-white">
-                Food<span className="text-amber-300 group-hover:text-amber-400 transition-colors">Rush</span>
+                Food
+                <span className="text-amber-300 group-hover:text-amber-400 transition-colors">
+                  Rush
+                </span>
               </span>
             </Link>
           </h2>
         </div>
 
-        {/* Mobile Hamburger Button (Hidden on sm and larger) */}
+        {/* Mobile Hamburger Button with CSS animations */}
         <button
-          className="sm:hidden text-white hover:text-orange-200 focus:outline-none transition-all p-2 -mr-2 active:bg-orange-700 active:scale-95 rounded-lg"
+          className="sm:hidden text-white hover:text-orange-200 focus:outline-none transition-all p-2.5 -mr-2.5 active:scale-90 rounded-xl"
           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
           aria-label="Toggle mobile menu"
         >
-          {isMobileMenuOpen ? <X size={28} /> : <Menu size={28} />}
+          <div className="relative w-5 h-5 flex items-center justify-center">
+            {/* Top Bar */}
+            <span
+              className={`absolute block h-0.5 w-5 bg-current transform transition-all duration-300 ease-in-out ${
+                isMobileMenuOpen ? "rotate-45" : "-translate-y-1.5"
+              }`}
+            />
+            {/* Middle Bar */}
+            <span
+              className={`absolute block h-0.5 w-5 bg-current transition-all duration-300 ease-in-out ${
+                isMobileMenuOpen ? "opacity-0" : "opacity-100"
+              }`}
+            />
+            {/* Bottom Bar */}
+            <span
+              className={`absolute block h-0.5 w-5 bg-current transform transition-all duration-300 ease-in-out ${
+                isMobileMenuOpen ? "-rotate-45" : "translate-y-1.5"
+              }`}
+            />
+          </div>
         </button>
 
         {/* --- DESKTOP MENU (Hidden on mobile) --- */}
@@ -88,30 +120,31 @@ export default function NavbarClient({ cartCount }) {
         </div>
       </div>
 
-      {/* --- MOBILE MENU DROPDOWN (Visible only when toggle is open) --- */}
-      {isMobileMenuOpen && (
-        <div className="sm:hidden bg-orange-700 px-4 pt-2 pb-6 shadow-inner">
-          <ul className="flex flex-col gap-3">
-            <NavLinks
-              pathname={pathname}
-              cartCount={cartCount}
+      {/* --- MOBILE MENU DROPDOWN (Obsidian Glassmorphic Card Layout) --- */}
+      <div
+        className={`absolute top-16 left-4 right-4 sm:hidden bg-orange-950/96 backdrop-blur-xl rounded-2xl border border-orange-500/20 p-4 shadow-2xl shadow-black/30 transition-all duration-300 transform origin-top-right z-50 ${
+          isMobileMenuOpen
+            ? "opacity-100 scale-100 translate-y-0"
+            : "opacity-0 scale-95 -translate-y-4 pointer-events-none"
+        }`}
+        aria-hidden={!isMobileMenuOpen}
+      >
+        <ul className="flex flex-col gap-2">
+          <NavLinks pathname={pathname} cartCount={cartCount} isMobile={true} />
+
+          {/* Divider line before user actions */}
+          <div className="mt-1.5 pt-3 border-t border-white/5">
+            <UserMenu
+              session={session}
+              isDropdownOpen={isDropdownOpen}
+              setIsDropdownOpen={setIsDropdownOpen}
+              avatarLetter={avatarLetter}
+              dropdownRef={dropdownRef}
               isMobile={true}
             />
-
-            {/* Divider line before user actions */}
-            <div className="mt-2 pt-4 border-t border-orange-500">
-              <UserMenu
-                session={session}
-                isDropdownOpen={isDropdownOpen}
-                setIsDropdownOpen={setIsDropdownOpen}
-                avatarLetter={avatarLetter}
-                dropdownRef={dropdownRef}
-                isMobile={true}
-              />
-            </div>
-          </ul>
-        </div>
-      )}
+          </div>
+        </ul>
+      </div>
     </nav>
   );
 }
@@ -122,13 +155,20 @@ export default function NavbarClient({ cartCount }) {
 
 function NavLinks({ pathname, cartCount, isMobile }) {
   // Common link styling depending on if it's mobile or desktop
-  const baseClasses = `flex items-center gap-2 rounded-md font-semibold transition ${
-    isMobile ? "px-4 py-3 text-base w-full" : "px-3 py-2 text-sm sm:text-base"
+  const baseClasses = `flex items-center gap-2 font-bold transition-all duration-200 ${
+    isMobile
+      ? "px-4 py-3 text-base w-full rounded-xl active:scale-[0.98]"
+      : "px-3 py-2 text-sm sm:text-base rounded-lg hover:scale-105 active:scale-95"
   }`;
 
   const getActiveClasses = (path) => {
-    return pathname === path
-      ? "bg-white text-orange-600"
+    if (pathname === path) {
+      return isMobile
+        ? "bg-orange-600 text-white shadow-md shadow-orange-600/10 border border-orange-500/20"
+        : "bg-white text-orange-600 shadow-sm";
+    }
+    return isMobile
+      ? "text-orange-100/80 hover:bg-white/5 hover:text-white"
       : "text-white hover:bg-orange-700 hover:text-white";
   };
 
@@ -158,8 +198,8 @@ function NavLinks({ pathname, cartCount, isMobile }) {
           Cart
           {cartCount > 0 && (
             <span
-              className={`absolute flex h-5 min-w-5 items-center justify-center rounded-full bg-gray-900 px-1 text-xs font-bold text-white shadow-sm
-              ${isMobile ? "right-4 top-3" : "-right-1 -top-2"}`}
+              className={`absolute flex h-5 min-w-5 items-center justify-center rounded-full bg-orange-600 px-1 text-[10px] font-bold text-white shadow-sm border border-orange-500/20
+              ${isMobile ? "right-4 top-3.5" : "bg-gray-900 -right-1 -top-2"}`}
             >
               {cartCount}
             </span>
@@ -183,10 +223,10 @@ function UserMenu({
       <li>
         <Link
           href="/login"
-          className={`flex items-center gap-2 rounded-md font-semibold transition bg-orange-800 text-white hover:bg-orange-900 ${
+          className={`flex items-center gap-2 font-bold transition-all bg-orange-600 text-white hover:bg-orange-750 active:scale-95 ${
             isMobile
-              ? "px-4 py-3 text-base w-full justify-center mt-2"
-              : "px-4 py-2 text-sm sm:text-base"
+              ? "px-4 py-3 text-base w-full justify-center mt-2 rounded-xl shadow-lg shadow-orange-950/10 border border-orange-500/10"
+              : "px-4 py-2 text-sm sm:text-base rounded-md"
           }`}
         >
           <LogIn size={isMobile ? 20 : 18} />
@@ -199,20 +239,24 @@ function UserMenu({
   // --- MOBILE USER MENU ---
   if (isMobile) {
     return (
-      <div className="flex flex-col gap-3">
-        <div className="flex items-center gap-3 px-4 py-2">
-          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white text-orange-600 font-extrabold border-2 border-orange-500">
+      <div className="flex flex-col gap-2">
+        <div className="flex items-center gap-3 px-4 py-3 bg-white/5 rounded-xl border border-white/5">
+          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white text-orange-600 font-extrabold border-2 border-orange-500/50 shadow-inner">
             {avatarLetter}
           </div>
-          <div>
-            <p className="text-sm font-bold text-white">{session.user.name}</p>
-            <p className="text-xs text-orange-200">{session.user.email}</p>
+          <div className="min-w-0">
+            <p className="text-sm font-extrabold text-white truncate">
+              {session.user.name}
+            </p>
+            <p className="text-xs text-orange-200/80 truncate mt-0.5">
+              {session.user.email}
+            </p>
           </div>
         </div>
         <li>
           <Link
             href="/orders"
-            className="flex items-center gap-2 rounded-md px-4 py-3 text-base font-semibold text-white hover:bg-orange-800 transition"
+            className="flex items-center gap-2 rounded-xl px-4 py-3 text-base font-bold text-white hover:bg-white/5 active:scale-[0.98] transition-all"
           >
             <FileText size={20} />
             My Orders
@@ -221,7 +265,7 @@ function UserMenu({
         <li>
           <button
             onClick={() => signOut({ callbackUrl: "/" })}
-            className="flex w-full items-center gap-2 rounded-md px-4 py-3 text-base font-semibold text-red-200 hover:bg-red-500 hover:text-white transition"
+            className="flex w-full items-center gap-2 rounded-xl px-4 py-3 text-base font-bold text-red-300 hover:bg-red-500/10 active:scale-[0.98] transition-all"
           >
             <LogOut size={20} />
             Logout
