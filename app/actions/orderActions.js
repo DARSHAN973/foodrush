@@ -138,6 +138,20 @@ export async function placeOrder({ address, phone }) {
     receipt: `order_${order.id}`,
   });
 
+  // Payment record initialization — we create a pending transaction record
+  // in our database right after generating the Razorpay order. This links
+  // our internal ParentOrder to Razorpay's order ID (providerOrderId), allowing
+  // background webhooks to identify this order if the payment fails or is abandoned.
+  await prisma.payment.create({
+    data: {
+      parentOrderId: order.id,
+      provider: "RAZORPAY",
+      providerOrderId: razorpayOrder.id,
+      amount: total,
+      status: "PENDING",
+    },
+  });
+
   // Return the Razorpay order details to the client so CheckoutForm.js can
   // open the payment popup. The cart is NOT cleared here — it clears only
   // after the user's payment is verified in verifyPayment.
@@ -178,7 +192,16 @@ export async function verifyPayment({
     where: { id: parentOrderId },
     data: { status: "PLACED" },
   });
-
+  // Transaction completion — update the Payment status to PAID and record
+  // the official Razorpay payment ID. This ensures we have a complete audit
+  // trail connecting our order records directly to the payment gateway's logs.
+  await prisma.payment.update({
+    where: { parentOrderId: parentOrderId },
+    data: {
+      status: "PAID",
+      providerPaymentId: razorpayPaymentId,
+    },
+  });
   // Cart is cleared HERE (not in placeOrder) because we only want to remove
   // items after we are 100% sure the payment succeeded. If we cleared the cart
   // in placeOrder and the user's payment failed or was abandoned, their cart

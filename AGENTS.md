@@ -193,8 +193,10 @@ New models:
 #### [ ] 1. Razorpay Webhooks — Fix V1 Bug (2–3 hrs)
 
 - `POST /api/webhooks/razorpay` endpoint
-- Verify Razorpay signature server-to-server
-- Update stuck `PAYMENT_PENDING` orders to `CANCELLED`
+- [x] Create Route Handler with signature verification
+- [x] Update `placeOrder` & `verifyPayment` to create/track `Payment` records in DB
+- [ ] Implement database status updates for `payment.failed` in the webhook route handler
+- [ ] Configure webhook URLs (Ngrok local / Vercel production) in Razorpay Dashboard
 - **Teaches:** webhook pattern, signature verification, background event handling
 
 #### [ ] 2. Mobile-First UI + UI Upgrade (10–12 hrs)
