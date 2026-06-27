@@ -334,6 +334,8 @@ New models:
 ## What's Next
 
 - V1 is fully complete and deployed ✅
-- V2 starts with **Phase 1, Step 2: Mobile-First UI + UI Upgrade** (foundation first — make it look and feel production-grade)
+- V2 starts with **Phase 1, Step 2: Mobile-First UI + UI Upgrade**:
+  - [x] **Consumer UI Pass:** Responsive grids, video wrapper scales, side-by-side restaurant catalog search/filters, hybrid cards, grouped list cart format, and animated hamburger with glassmorphic obsidian card layout.
+  - [x] **Admin UI Pass:** Dynamic mobile headers, mobile-friendly navigation links, responsive metrics layouts, and wrapping admin tables (orders, restaurants) into mobile-friendly cards.
 - Razorpay Webhooks (Step 1) will be done immediately after mobile UI since it's a quick backend fix
 - Goal for now: make FoodRush look like a real product people would actually use

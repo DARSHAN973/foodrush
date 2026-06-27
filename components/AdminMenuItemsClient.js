@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import {
@@ -134,12 +135,34 @@ export default function AdminMenuItemsClient({ restaurant, menuItems }) {
 
   return (
     <div>
+      {/* Breadcrumbs navigation */}
+      <nav className="mb-3 flex items-center flex-wrap gap-1.5 text-xs lg:text-sm font-semibold text-gray-400 select-none">
+        <Link href="/admin" className="hover:text-orange-600 transition-colors">
+          Admin
+        </Link>
+        <span className="text-gray-300">/</span>
+        <Link
+          href="/admin/restaurants"
+          className="hover:text-orange-600 transition-colors"
+        >
+          Restaurants
+        </Link>
+        <span className="text-gray-300">/</span>
+        <span className="text-gray-500 font-bold max-w-[120px] sm:max-w-none truncate">
+          {restaurant.name}
+        </span>
+        <span className="text-gray-300">/</span>
+        <span className="text-gray-400 font-normal">Menu</span>
+      </nav>
+
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">
+          <h1 className="text-2xl sm:text-3xl font-black text-gray-900 tracking-tight">
             {restaurant.name}
           </h1>
-          <p className="mt-1 text-gray-600">Manage menu items.</p>
+          <p className="mt-1 text-xs sm:text-sm text-gray-500">
+            Manage menu items.
+          </p>
         </div>
 
         <button
@@ -149,21 +172,21 @@ export default function AdminMenuItemsClient({ restaurant, menuItems }) {
             setImageUrl("");
             setImagePublicId("");
           }}
-          className="w-fit rounded-md bg-orange-600 px-4 py-2 text-sm font-medium text-white hover:bg-orange-700"
+          className="w-full sm:w-auto text-center rounded-xl bg-orange-600 px-4 py-2.5 text-sm font-bold text-white hover:bg-orange-700 hover:shadow-md active:scale-95 transition-all duration-200 cursor-pointer"
         >
           Add Menu Item
         </button>
       </div>
 
       {successMessage && (
-        <div className="fixed right-6 top-6 z-50 rounded-md border border-green-200 bg-green-50 px-4 py-3 text-sm font-medium text-green-700 shadow-md">
+        <div className="fixed right-6 top-6 z-50 rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm font-semibold text-green-700 shadow-xl animate-fade-in-down">
           {successMessage}
         </div>
       )}
 
-      <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
+      <div className="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm">
         {menuItems.length === 0 && (
-          <p className="px-6 py-10 text-center text-sm text-gray-500">
+          <p className="px-6 py-10 text-center text-xs sm:text-sm text-gray-400 font-medium">
             No menu items yet. Add your first item to get started.
           </p>
         )}
@@ -171,8 +194,8 @@ export default function AdminMenuItemsClient({ restaurant, menuItems }) {
         {menuItems.map((menuItem) => {
           const isPending = pendingMenuItemId === menuItem.id;
           const availabilityButtonText = menuItem.isAvailable
-            ? "Mark Unavailable"
-            : "Mark Available";
+            ? "Mark Hide"
+            : "Mark Active";
           const pendingAvailabilityButtonText = menuItem.isAvailable
             ? "Hiding..."
             : "Showing...";
@@ -180,10 +203,10 @@ export default function AdminMenuItemsClient({ restaurant, menuItems }) {
           return (
             <div
               key={menuItem.id}
-              className="flex flex-col gap-4 border-b border-gray-100 p-4 last:border-b-0 sm:flex-row sm:items-center sm:justify-between"
+              className="flex flex-col border-b border-gray-100 p-4 last:border-b-0 sm:flex-row sm:items-center sm:justify-between gap-4"
             >
               <div className="flex min-w-0 items-center gap-4">
-                <div className="h-16 w-16 shrink-0 overflow-hidden rounded-lg bg-gray-100">
+                <div className="h-16 w-16 shrink-0 overflow-hidden rounded-xl bg-gray-50 border border-gray-100 flex items-center justify-center">
                   {menuItem.imageUrl ? (
                     <Image
                       src={menuItem.imageUrl}
@@ -193,28 +216,41 @@ export default function AdminMenuItemsClient({ restaurant, menuItems }) {
                       className="h-full w-full object-cover"
                     />
                   ) : (
-                    <div className="flex h-full w-full items-center justify-center text-sm font-semibold text-gray-400">
+                    <div className="text-xl">
                       {menuItem.isVeg ? "🟢" : "🔴"}
                     </div>
                   )}
                 </div>
 
                 <div className="min-w-0">
-                  <h2 className="truncate font-semibold text-gray-900">
+                  <h2 className="truncate font-extrabold text-base sm:text-lg text-gray-900">
                     {menuItem.name}
                   </h2>
-                  <p className="mt-1 text-sm text-gray-600">
+                  <p className="mt-0.5 text-xs sm:text-sm text-gray-500 font-medium">
                     {menuItem.category}
                   </p>
-                  <div className="mt-2 flex flex-wrap gap-3 text-sm text-gray-500">
-                    <span>₹{menuItem.price.toFixed(2)}</span>
-                    <span>{menuItem.isVeg ? "Veg" : "Non-Veg"}</span>
+                  <div className="mt-1.5 flex flex-wrap items-center gap-2.5 text-xs text-gray-450">
+                    <span className="font-extrabold text-gray-800">
+                      ₹{menuItem.price.toFixed(2)}
+                    </span>
+                    <span className="h-1 w-1 rounded-full bg-gray-200" />
+                    <span className="font-bold flex items-center gap-1">
+                      {menuItem.isVeg ? (
+                        <>
+                          <span className="text-[10px]">🟢</span> Veg
+                        </>
+                      ) : (
+                        <>
+                          <span className="text-[10px]">🔴</span> Non-Veg
+                        </>
+                      )}
+                    </span>
                   </div>
                   <span
-                    className={`rounded-full px-2 py-0.5 text-xs font-semibold ${
+                    className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold uppercase border mt-2 ${
                       menuItem.isAvailable
-                        ? "bg-green-50 text-green-700"
-                        : "bg-gray-100 text-gray-600"
+                        ? "bg-green-50 text-green-700 border-green-200/60"
+                        : "bg-gray-50 text-gray-500 border-gray-200/60"
                     }`}
                   >
                     {menuItem.isAvailable ? "Available" : "Unavailable"}
@@ -222,7 +258,8 @@ export default function AdminMenuItemsClient({ restaurant, menuItems }) {
                 </div>
               </div>
 
-              <div className="flex flex-wrap gap-2 sm:justify-end">
+              {/* Action Buttons: Stacked in 3-columns on mobile, row-aligned on desktop */}
+              <div className="grid grid-cols-3 gap-2 sm:flex sm:items-center sm:justify-end sm:gap-2">
                 <button
                   type="button"
                   onClick={() => {
@@ -231,7 +268,7 @@ export default function AdminMenuItemsClient({ restaurant, menuItems }) {
                     setImagePublicId(menuItem.imagePublicId || "");
                   }}
                   disabled={isPending}
-                  className="rounded-md border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60"
+                  className="rounded-xl border border-gray-200 bg-white px-3 py-2 text-xs font-bold text-gray-700 hover:bg-gray-50 active:scale-95 transition-all text-center disabled:cursor-not-allowed disabled:opacity-60 cursor-pointer"
                 >
                   Edit
                 </button>
@@ -240,11 +277,7 @@ export default function AdminMenuItemsClient({ restaurant, menuItems }) {
                   type="button"
                   onClick={() => handleToggleMenuItemStatus(menuItem)}
                   disabled={isPending}
-                  className={`rounded-md border px-3 py-2 text-sm font-medium ${
-                    menuItem.isAvailable
-                      ? "border-red-200 text-red-600 hover:bg-red-50"
-                      : "border-green-200 text-green-700 hover:bg-green-50"
-                  } disabled:cursor-not-allowed disabled:opacity-60`}
+                  className="rounded-xl border border-gray-250 bg-white px-3 py-2 text-xs font-bold text-gray-700 hover:bg-gray-50 active:scale-95 transition-all text-center disabled:cursor-not-allowed disabled:opacity-60 cursor-pointer"
                 >
                   {isPending
                     ? pendingAvailabilityButtonText
@@ -255,7 +288,7 @@ export default function AdminMenuItemsClient({ restaurant, menuItems }) {
                   type="button"
                   onClick={() => handleDeleteMenuItem(menuItem)}
                   disabled={isPending}
-                  className="rounded-md border border-red-200 px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-60"
+                  className="rounded-xl border border-red-200 bg-red-55 px-3 py-2 text-xs font-bold text-red-600 hover:bg-red-100 hover:border-red-300 active:scale-95 transition-all text-center disabled:cursor-not-allowed disabled:opacity-60 cursor-pointer"
                 >
                   {isPending ? "Deleting..." : "Delete"}
                 </button>
@@ -267,14 +300,14 @@ export default function AdminMenuItemsClient({ restaurant, menuItems }) {
 
       {/* ── Edit Modal ── */}
       {editingMenuItem && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4 py-8">
-          <div className="w-full max-w-5xl rounded-xl bg-white shadow-xl md:w-3/4">
-            <div className="flex items-start justify-between gap-4 border-b border-gray-200 px-6 py-5">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 overflow-y-auto">
+          <div className="w-full max-w-2xl rounded-2xl bg-white shadow-2xl overflow-hidden my-auto animate-zoom-in">
+            <div className="flex items-start justify-between gap-4 border-b border-gray-150 px-5 py-4">
               <div>
-                <h2 className="text-xl font-bold text-gray-900">
+                <h2 className="text-lg font-bold text-gray-900">
                   Edit Menu Item
                 </h2>
-                <p className="mt-1 text-sm text-gray-500">
+                <p className="mt-0.5 text-xs text-gray-500">
                   Update the details shown across FoodRush.
                 </p>
               </div>
@@ -282,7 +315,7 @@ export default function AdminMenuItemsClient({ restaurant, menuItems }) {
               <button
                 type="button"
                 onClick={closeModal}
-                className="rounded-md px-2 py-1 text-2xl leading-none text-gray-400 hover:bg-gray-100 hover:text-gray-700"
+                className="rounded-xl p-1.5 text-xl leading-none text-gray-400 hover:bg-gray-100 hover:text-gray-700 transition"
                 aria-label="Close edit form"
               >
                 &times;
@@ -291,39 +324,39 @@ export default function AdminMenuItemsClient({ restaurant, menuItems }) {
 
             <form
               action={handleUpdateMenuItem}
-              className="grid gap-5 px-6 py-6 sm:grid-cols-2"
+              className="grid gap-4 px-5 py-5 sm:grid-cols-2"
             >
               {errorMessage && (
-                <p className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-600 sm:col-span-2">
+                <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-xs font-semibold text-red-600 sm:col-span-2">
                   {errorMessage}
                 </p>
               )}
 
               <div className="sm:col-span-2">
-                <label className="mb-1.5 block text-sm font-medium text-gray-700">
+                <label className="mb-1.5 block text-xs font-bold text-gray-500 uppercase tracking-wider">
                   Item Name
                 </label>
                 <input
                   name="name"
                   defaultValue={editingMenuItem.name}
-                  className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100"
+                  className="w-full rounded-xl border border-gray-250 px-3.5 py-2 text-sm outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100 transition-all font-semibold"
                 />
               </div>
 
               <div className="sm:col-span-2">
-                <label className="mb-1.5 block text-sm font-medium text-gray-700">
+                <label className="mb-1.5 block text-xs font-bold text-gray-500 uppercase tracking-wider">
                   Description
                 </label>
                 <textarea
                   name="description"
                   defaultValue={editingMenuItem.description || ""}
                   rows={2}
-                  className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100"
+                  className="w-full rounded-xl border border-gray-250 px-3.5 py-2 text-sm outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100 transition-all font-semibold"
                 />
               </div>
 
               <div>
-                <label className="mb-1.5 block text-sm font-medium text-gray-700">
+                <label className="mb-1.5 block text-xs font-bold text-gray-500 uppercase tracking-wider">
                   Price (₹)
                 </label>
                 <input
@@ -332,24 +365,24 @@ export default function AdminMenuItemsClient({ restaurant, menuItems }) {
                   step="0.01"
                   defaultValue={editingMenuItem.price}
                   min="0"
-                  className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100"
+                  className="w-full rounded-xl border border-gray-250 px-3.5 py-2 text-sm outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100 transition-all font-semibold"
                 />
               </div>
 
               <div>
-                <label className="mb-1.5 block text-sm font-medium text-gray-700">
+                <label className="mb-1.5 block text-xs font-bold text-gray-500 uppercase tracking-wider">
                   Category
                 </label>
                 <input
                   name="category"
                   defaultValue={editingMenuItem.category || ""}
-                  className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100"
+                  className="w-full rounded-xl border border-gray-250 px-3.5 py-2 text-sm outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100 transition-all font-semibold"
                 />
               </div>
 
-              <div>
-                <label className="mb-1.5 block text-sm font-medium text-gray-700">
-                  Image
+              <div className="sm:col-span-2">
+                <label className="mb-1.5 block text-xs font-bold text-gray-500 uppercase tracking-wider">
+                  Item Image
                 </label>
                 <ImageUpload
                   onUploadSuccess={(url, publicId) => {
@@ -366,20 +399,18 @@ export default function AdminMenuItemsClient({ restaurant, menuItems }) {
                 />
               </div>
 
-              <div className="flex items-center gap-6">
-                <label className="flex cursor-pointer items-center gap-2 text-sm font-medium text-gray-700">
+              <div className="flex items-center gap-6 sm:col-span-2 py-1.5">
+                <label className="flex cursor-pointer items-center gap-2.5 text-sm font-bold text-gray-700">
                   <input
                     type="checkbox"
                     name="isVeg"
                     defaultChecked={editingMenuItem.isVeg}
-                    className="h-4 w-4 accent-orange-600"
+                    className="h-4.5 w-4.5 rounded border-gray-300 text-orange-600 focus:ring-orange-500 accent-orange-600"
                   />
-                  Veg
+                  Vegetarian Food Item
                 </label>
               </div>
 
-              {/* Hidden relation ids — visible fields edit item data, while these
-                  ids tell the Server Action which restaurant/item pair to update. */}
               <input
                 type="hidden"
                 name="menuItemId"
@@ -387,17 +418,17 @@ export default function AdminMenuItemsClient({ restaurant, menuItems }) {
               />
               <input type="hidden" name="restaurantId" value={restaurant.id} />
 
-              <div className="flex justify-end gap-3 border-t border-gray-200 pt-5 sm:col-span-2">
+              <div className="flex justify-end gap-2.5 border-t border-gray-100 pt-4 mt-2 sm:col-span-2">
                 <button
                   type="button"
                   onClick={closeModal}
-                  className="rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                  className="rounded-xl border border-gray-205 px-4 py-2 text-xs font-bold text-gray-700 hover:bg-gray-50 transition cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="rounded-md bg-orange-600 px-4 py-2 text-sm font-medium text-white hover:bg-orange-700"
+                  className="rounded-xl bg-orange-600 px-4 py-2 text-xs font-bold text-white hover:bg-orange-700 active:scale-95 transition cursor-pointer"
                 >
                   Save Changes
                 </button>
@@ -409,19 +440,22 @@ export default function AdminMenuItemsClient({ restaurant, menuItems }) {
 
       {/* ── Create Modal ── */}
       {creatingMenuItem && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4 py-8">
-          <div className="w-full max-w-5xl rounded-xl bg-white shadow-xl md:w-3/4">
-            <div className="flex items-start justify-between gap-4 border-b border-gray-200 px-6 py-5">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 overflow-y-auto">
+          <div className="w-full max-w-2xl rounded-2xl bg-white shadow-2xl overflow-hidden my-auto animate-zoom-in">
+            <div className="flex items-start justify-between gap-4 border-b border-gray-150 px-5 py-4">
               <div>
-                <h2 className="text-xl font-bold text-gray-900">
+                <h2 className="text-lg font-bold text-gray-900">
                   Add Menu Item
                 </h2>
+                <p className="mt-0.5 text-xs text-gray-500">
+                  Add a brand new dish to the menu.
+                </p>
               </div>
 
               <button
                 type="button"
                 onClick={closeModal}
-                className="rounded-md px-2 py-1 text-2xl leading-none text-gray-400 hover:bg-gray-100 hover:text-gray-700"
+                className="rounded-xl p-1.5 text-xl leading-none text-gray-400 hover:bg-gray-100 hover:text-gray-700 transition"
                 aria-label="Close form"
               >
                 &times;
@@ -430,39 +464,39 @@ export default function AdminMenuItemsClient({ restaurant, menuItems }) {
 
             <form
               action={handleCreateMenuItem}
-              className="grid gap-5 px-6 py-6 sm:grid-cols-2"
+              className="grid gap-4 px-5 py-5 sm:grid-cols-2"
             >
               {errorMessage && (
-                <p className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-600 sm:col-span-2">
+                <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-xs font-semibold text-red-600 sm:col-span-2">
                   {errorMessage}
                 </p>
               )}
 
               <div className="sm:col-span-2">
-                <label className="mb-1.5 block text-sm font-medium text-gray-700">
+                <label className="mb-1.5 block text-xs font-bold text-gray-500 uppercase tracking-wider">
                   Item Name
                 </label>
                 <input
                   name="name"
                   defaultValue={fields.name}
-                  className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100"
+                  className="w-full rounded-xl border border-gray-250 px-3.5 py-2 text-sm outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100 transition-all font-semibold"
                 />
               </div>
 
               <div className="sm:col-span-2">
-                <label className="mb-1.5 block text-sm font-medium text-gray-700">
+                <label className="mb-1.5 block text-xs font-bold text-gray-500 uppercase tracking-wider">
                   Description
                 </label>
                 <textarea
                   name="description"
                   defaultValue={fields.description}
                   rows={2}
-                  className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100"
+                  className="w-full rounded-xl border border-gray-250 px-3.5 py-2 text-sm outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100 transition-all font-semibold"
                 />
               </div>
 
               <div>
-                <label className="mb-1.5 block text-sm font-medium text-gray-700">
+                <label className="mb-1.5 block text-xs font-bold text-gray-500 uppercase tracking-wider">
                   Price (₹)
                 </label>
                 <input
@@ -471,24 +505,24 @@ export default function AdminMenuItemsClient({ restaurant, menuItems }) {
                   step="0.01"
                   defaultValue={fields.price}
                   min="0"
-                  className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100"
+                  className="w-full rounded-xl border border-gray-250 px-3.5 py-2 text-sm outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100 transition-all font-semibold"
                 />
               </div>
 
               <div>
-                <label className="mb-1.5 block text-sm font-medium text-gray-700">
+                <label className="mb-1.5 block text-xs font-bold text-gray-500 uppercase tracking-wider">
                   Category
                 </label>
                 <input
                   name="category"
                   defaultValue={fields.category}
-                  className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100"
+                  className="w-full rounded-xl border border-gray-250 px-3.5 py-2 text-sm outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100 transition-all font-semibold"
                 />
               </div>
 
-              <div>
-                <label className="mb-1.5 block text-sm font-medium text-gray-700">
-                  Image
+              <div className="sm:col-span-2">
+                <label className="mb-1.5 block text-xs font-bold text-gray-500 uppercase tracking-wider">
+                  Item Image
                 </label>
                 <ImageUpload
                   onUploadSuccess={(url, publicId) => {
@@ -505,31 +539,31 @@ export default function AdminMenuItemsClient({ restaurant, menuItems }) {
                 />
               </div>
 
-              <div className="flex items-center gap-6">
-                <label className="flex cursor-pointer items-center gap-2 text-sm font-medium text-gray-700">
+              <div className="flex items-center gap-6 sm:col-span-2 py-1.5">
+                <label className="flex cursor-pointer items-center gap-2.5 text-sm font-bold text-gray-700">
                   <input
                     type="checkbox"
                     name="isVeg"
                     defaultChecked={fields.isVeg}
-                    className="h-4 w-4 accent-orange-600"
+                    className="h-4.5 w-4.5 rounded border-gray-300 text-orange-600 focus:ring-orange-500 accent-orange-600"
                   />
-                  Veg
+                  Vegetarian Food Item
                 </label>
               </div>
 
               <input type="hidden" name="restaurantId" value={restaurant.id} />
 
-              <div className="flex justify-end gap-3 border-t border-gray-200 pt-5 sm:col-span-2">
+              <div className="flex justify-end gap-2.5 border-t border-gray-100 pt-4 mt-2 sm:col-span-2">
                 <button
                   type="button"
                   onClick={closeModal}
-                  className="rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                  className="rounded-xl border border-gray-205 px-4 py-2 text-xs font-bold text-gray-700 hover:bg-gray-50 transition cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="rounded-md bg-orange-600 px-4 py-2 text-sm font-medium text-white hover:bg-orange-700"
+                  className="rounded-xl bg-orange-600 px-4 py-2 text-xs font-bold text-white hover:bg-orange-700 active:scale-95 transition cursor-pointer"
                 >
                   Add Menu Item
                 </button>

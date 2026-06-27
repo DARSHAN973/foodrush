@@ -117,8 +117,12 @@ export default function AdminRestaurantsClient({ restaurants }) {
     <div>
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Restaurants</h1>
-          <p className="mt-1 text-gray-600">Manage restaurant listings.</p>
+          <h1 className="text-2xl sm:text-3xl font-black text-gray-900 tracking-tight">
+            Restaurants
+          </h1>
+          <p className="mt-1 text-xs sm:text-sm text-gray-500">
+            Manage restaurant listings.
+          </p>
         </div>
 
         <button
@@ -127,19 +131,19 @@ export default function AdminRestaurantsClient({ restaurants }) {
             setCreatingRestaurant(true);
             setImageUrl("");
           }}
-          className="w-fit rounded-md bg-orange-600 px-4 py-2 text-sm font-medium text-white hover:bg-orange-700"
+          className="w-full sm:w-auto text-center rounded-xl bg-orange-600 px-4 py-2.5 text-sm font-bold text-white hover:bg-orange-700 hover:shadow-md active:scale-95 transition-all duration-200 cursor-pointer"
         >
           Add Restaurant
         </button>
       </div>
 
       {successMessage && (
-        <div className="fixed right-6 top-6 z-50 rounded-md border border-green-200 bg-green-50 px-4 py-3 text-sm font-medium text-green-700 shadow-md">
+        <div className="fixed right-6 top-6 z-50 rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm font-semibold text-green-700 shadow-xl animate-fade-in-down">
           {successMessage}
         </div>
       )}
 
-      <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
+      <div className="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm">
         {restaurants.map((restaurant) => {
           const isStatusPending = pendingRestaurantId === restaurant.id;
           const statusButtonText = restaurant.isActive
@@ -152,10 +156,10 @@ export default function AdminRestaurantsClient({ restaurants }) {
           return (
             <div
               key={restaurant.id}
-              className="flex flex-col gap-4 border-b border-gray-100 p-4 last:border-b-0 sm:flex-row sm:items-center sm:justify-between"
+              className="flex flex-col border-b border-gray-100 p-4 last:border-b-0 sm:flex-row sm:items-center sm:justify-between gap-4"
             >
               <div className="flex min-w-0 items-center gap-4">
-                <div className="h-16 w-16 shrink-0 overflow-hidden rounded-lg bg-gray-100">
+                <div className="h-16 w-16 shrink-0 overflow-hidden rounded-xl bg-gray-50 border border-gray-100">
                   {restaurant.imageUrl ? (
                     <Image
                       src={restaurant.imageUrl}
@@ -165,28 +169,31 @@ export default function AdminRestaurantsClient({ restaurants }) {
                       className="h-full w-full object-cover"
                     />
                   ) : (
-                    <div className="flex h-full w-full items-center justify-center text-sm font-semibold text-gray-400">
+                    <div className="flex h-full w-full items-center justify-center text-sm font-bold text-gray-400">
                       FR
                     </div>
                   )}
                 </div>
 
                 <div className="min-w-0">
-                  <h2 className="truncate font-semibold text-gray-900">
+                  <h2 className="truncate font-extrabold text-base sm:text-lg text-gray-900">
                     {restaurant.name}
                   </h2>
-                  <p className="mt-1 text-sm text-gray-600">
+                  <p className="mt-0.5 text-xs sm:text-sm text-gray-500 font-medium">
                     {restaurant.cuisine}
                   </p>
-                  <div className="mt-2 flex flex-wrap gap-3 text-sm text-gray-500">
-                    <span>Rating {restaurant.rating}</span>
+                  <div className="mt-1.5 flex flex-wrap items-center gap-2.5 text-xs text-gray-400">
+                    <span className="flex items-center gap-1 font-semibold text-amber-500">
+                      ★ {restaurant.rating}
+                    </span>
+                    <span className="h-1 w-1 rounded-full bg-gray-200" />
                     <span>{restaurant.deliveryTime} mins</span>
                   </div>
                   <span
-                    className={`rounded-full px-2 py-0.5 text-xs font-semibold ${
+                    className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold uppercase border mt-2 ${
                       restaurant.isActive
-                        ? "bg-green-50 text-green-700"
-                        : "bg-gray-100 text-gray-600"
+                        ? "bg-green-50 text-green-700 border-green-200/60"
+                        : "bg-gray-50 text-gray-500 border-gray-200/60"
                     }`}
                   >
                     {restaurant.isActive ? "Active" : "Inactive"}
@@ -194,7 +201,8 @@ export default function AdminRestaurantsClient({ restaurants }) {
                 </div>
               </div>
 
-              <div className="flex flex-wrap gap-2 sm:justify-end">
+              {/* Action Buttons: Stacked in 3-columns on mobile, row-aligned on desktop */}
+              <div className="grid grid-cols-3 gap-2 sm:flex sm:items-center sm:justify-end sm:gap-2">
                 <button
                   type="button"
                   onClick={() => {
@@ -202,21 +210,21 @@ export default function AdminRestaurantsClient({ restaurants }) {
                     setImageUrl(restaurant.imageUrl || "");
                   }}
                   disabled={isStatusPending}
-                  className="rounded-md border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60"
+                  className="rounded-xl border border-gray-200 bg-white px-3 py-2 text-xs font-bold text-gray-700 hover:bg-gray-50 active:scale-95 transition-all text-center disabled:cursor-not-allowed disabled:opacity-60 cursor-pointer"
                 >
                   Edit
                 </button>
                 <Link
                   href={`/admin/restaurants/${restaurant.id}/menu-items`}
-                  className="rounded-md border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                  className="rounded-xl border border-gray-200 bg-white px-3 py-2 text-xs font-bold text-gray-700 hover:bg-gray-50 active:scale-95 transition-all text-center cursor-pointer"
                 >
-                  Menu Items
+                  Menu
                 </Link>
                 <button
                   type="button"
                   onClick={() => handleToggleRestaurantStatus(restaurant)}
                   disabled={isStatusPending}
-                  className={`rounded-md border px-3 py-2 text-sm font-medium ${
+                  className={`rounded-xl border px-3 py-2 text-xs font-bold active:scale-95 transition-all text-center cursor-pointer ${
                     restaurant.isActive
                       ? "border-red-200 text-red-600 hover:bg-red-50"
                       : "border-green-200 text-green-700 hover:bg-green-50"
@@ -231,14 +239,14 @@ export default function AdminRestaurantsClient({ restaurants }) {
       </div>
 
       {editingRestaurant && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4 py-8">
-          <div className="w-full max-w-5xl rounded-xl bg-white shadow-xl md:w-3/4">
-            <div className="flex items-start justify-between gap-4 border-b border-gray-200 px-6 py-5">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 overflow-y-auto">
+          <div className="w-full max-w-2xl rounded-2xl bg-white shadow-2xl overflow-hidden my-auto animate-zoom-in">
+            <div className="flex items-start justify-between gap-4 border-b border-gray-150 px-5 py-4">
               <div>
-                <h2 className="text-xl font-bold text-gray-900">
+                <h2 className="text-lg font-bold text-gray-900">
                   Edit Restaurant
                 </h2>
-                <p className="mt-1 text-sm text-gray-500">
+                <p className="mt-0.5 text-xs text-gray-500">
                   Update the details shown across FoodRush.
                 </p>
               </div>
@@ -246,7 +254,7 @@ export default function AdminRestaurantsClient({ restaurants }) {
               <button
                 type="button"
                 onClick={closeEditModal}
-                className="rounded-md px-2 py-1 text-2xl leading-none text-gray-400 hover:bg-gray-100 hover:text-gray-700"
+                className="rounded-xl p-1.5 text-xl leading-none text-gray-400 hover:bg-gray-100 hover:text-gray-700 transition"
                 aria-label="Close edit form"
               >
                 &times;
@@ -255,51 +263,51 @@ export default function AdminRestaurantsClient({ restaurants }) {
 
             <form
               action={handleUpdateRestaurant}
-              className="grid gap-5 px-6 py-6 sm:grid-cols-2"
+              className="grid gap-4 px-5 py-5 sm:grid-cols-2"
             >
               {errorMessage && (
-                <p className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-600 sm:col-span-2">
+                <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-xs font-semibold text-red-600 sm:col-span-2">
                   {errorMessage}
                 </p>
               )}
 
               <div className="sm:col-span-2">
-                <label className="mb-1.5 block text-sm font-medium text-gray-700">
+                <label className="mb-1.5 block text-xs font-bold text-gray-500 uppercase tracking-wider">
                   Restaurant Name
                 </label>
                 <input
                   name="name"
                   defaultValue={editingRestaurant.name}
-                  className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100"
+                  className="w-full rounded-xl border border-gray-250 px-3.5 py-2 text-sm outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100 transition-all font-semibold"
                 />
               </div>
 
               <div>
-                <label className="mb-1.5 block text-sm font-medium text-gray-700">
+                <label className="mb-1.5 block text-xs font-bold text-gray-500 uppercase tracking-wider">
                   Cuisine
                 </label>
                 <input
                   name="cuisine"
                   defaultValue={editingRestaurant.cuisine}
-                  className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100"
+                  className="w-full rounded-xl border border-gray-250 px-3.5 py-2 text-sm outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100 transition-all font-semibold"
                 />
               </div>
 
               <div>
-                <label className="mb-1.5 block text-sm font-medium text-gray-700">
-                  Delivery Time
+                <label className="mb-1.5 block text-xs font-bold text-gray-500 uppercase tracking-wider">
+                  Delivery Time (mins)
                 </label>
                 <input
                   type="number"
                   name="deliveryTime"
                   defaultValue={editingRestaurant.deliveryTime}
                   min="1"
-                  className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100"
+                  className="w-full rounded-xl border border-gray-250 px-3.5 py-2 text-sm outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100 transition-all font-semibold"
                 />
               </div>
 
-              <div>
-                <label className="mb-1.5 block text-sm font-medium text-gray-700">
+              <div className="sm:col-span-2">
+                <label className="mb-1.5 block text-xs font-bold text-gray-500 uppercase tracking-wider">
                   Rating
                 </label>
                 <input
@@ -309,11 +317,14 @@ export default function AdminRestaurantsClient({ restaurants }) {
                   min="0"
                   max="5"
                   step="0.1"
-                  className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100"
+                  className="w-full rounded-xl border border-gray-250 px-3.5 py-2 text-sm outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100 transition-all font-semibold"
                 />
               </div>
 
-              <div>
+              <div className="sm:col-span-2">
+                <label className="mb-1.5 block text-xs font-bold text-gray-500 uppercase tracking-wider">
+                  Restaurant Banner Image
+                </label>
                 <ImageUpload
                   onUploadSuccess={(url, publicId) => {
                     setImageUrl(url);
@@ -328,21 +339,20 @@ export default function AdminRestaurantsClient({ restaurants }) {
                   value={imagePublicId}
                 />
               </div>
-              {/* Hidden id — Server Actions receive FormData, so the restaurant
-                  id must travel with the form even though admins should not edit it. */}
+
               <input type="hidden" name="id" value={editingRestaurant.id} />
 
-              <div className="flex justify-end gap-3 border-t border-gray-200 pt-5 sm:col-span-2">
+              <div className="flex justify-end gap-2.5 border-t border-gray-100 pt-4 mt-2 sm:col-span-2">
                 <button
                   type="button"
                   onClick={closeEditModal}
-                  className="rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                  className="rounded-xl border border-gray-205 px-4 py-2 text-xs font-bold text-gray-700 hover:bg-gray-50 transition cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="rounded-md bg-orange-600 px-4 py-2 text-sm font-medium text-white hover:bg-orange-700"
+                  className="rounded-xl bg-orange-600 px-4 py-2 text-xs font-bold text-white hover:bg-orange-700 active:scale-95 transition cursor-pointer"
                 >
                   Save Changes
                 </button>
@@ -353,19 +363,22 @@ export default function AdminRestaurantsClient({ restaurants }) {
       )}
 
       {creatingRestaurant && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4 py-8">
-          <div className="w-full max-w-5xl rounded-xl bg-white shadow-xl md:w-3/4">
-            <div className="flex items-start justify-between gap-4 border-b border-gray-200 px-6 py-5">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 overflow-y-auto">
+          <div className="w-full max-w-2xl rounded-2xl bg-white shadow-2xl overflow-hidden my-auto animate-zoom-in">
+            <div className="flex items-start justify-between gap-4 border-b border-gray-150 px-5 py-4">
               <div>
-                <h2 className="text-xl font-bold text-gray-900">
+                <h2 className="text-lg font-bold text-gray-900">
                   Create New Restaurant
                 </h2>
+                <p className="mt-0.5 text-xs text-gray-500">
+                  Add a brand new restaurant partner.
+                </p>
               </div>
 
               <button
                 type="button"
                 onClick={closeEditModal}
-                className="rounded-md px-2 py-1 text-2xl leading-none text-gray-400 hover:bg-gray-100 hover:text-gray-700"
+                className="rounded-xl p-1.5 text-xl leading-none text-gray-400 hover:bg-gray-100 hover:text-gray-700 transition"
                 aria-label="Close edit form"
               >
                 &times;
@@ -374,52 +387,52 @@ export default function AdminRestaurantsClient({ restaurants }) {
 
             <form
               action={handleCreateRestaurant}
-              className="grid gap-5 px-6 py-6 sm:grid-cols-2"
+              className="grid gap-4 px-5 py-5 sm:grid-cols-2"
             >
               {errorMessage && (
-                <p className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-600 sm:col-span-2">
+                <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-xs font-semibold text-red-600 sm:col-span-2">
                   {errorMessage}
                 </p>
               )}
 
               <div className="sm:col-span-2">
-                <label className="mb-1.5 block text-sm font-medium text-gray-700">
+                <label className="mb-1.5 block text-xs font-bold text-gray-500 uppercase tracking-wider">
                   Restaurant Name
                 </label>
                 <input
                   name="name"
                   defaultValue={fields.name}
-                  className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100"
+                  className="w-full rounded-xl border border-gray-250 px-3.5 py-2 text-sm outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100 transition-all font-semibold"
                 />
               </div>
 
               <div>
-                <label className="mb-1.5 block text-sm font-medium text-gray-700">
+                <label className="mb-1.5 block text-xs font-bold text-gray-500 uppercase tracking-wider">
                   Cuisine
                 </label>
                 <input
                   name="cuisine"
                   defaultValue={fields.cuisine}
-                  className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100"
+                  className="w-full rounded-xl border border-gray-250 px-3.5 py-2 text-sm outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100 transition-all font-semibold"
                 />
               </div>
 
               <div>
-                <label className="mb-1.5 block text-sm font-medium text-gray-700">
-                  Delivery Time
+                <label className="mb-1.5 block text-xs font-bold text-gray-500 uppercase tracking-wider">
+                  Delivery Time (mins)
                 </label>
                 <input
                   type="number"
                   name="deliveryTime"
                   defaultValue={fields.deliveryTime}
                   min="1"
-                  className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100"
+                  className="w-full rounded-xl border border-gray-250 px-3.5 py-2 text-sm outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100 transition-all font-semibold"
                 />
               </div>
 
-              <div>
-                <label className="mb-1.5 block text-sm font-medium text-gray-700">
-                  Rating
+              <div className="sm:col-span-2">
+                <label className="mb-1.5 block text-xs font-bold text-gray-500 uppercase tracking-wider">
+                  Initial Rating
                 </label>
                 <input
                   type="number"
@@ -428,11 +441,14 @@ export default function AdminRestaurantsClient({ restaurants }) {
                   min="0"
                   max="5"
                   step="0.1"
-                  className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100"
+                  className="w-full rounded-xl border border-gray-250 px-3.5 py-2 text-sm outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100 transition-all font-semibold"
                 />
               </div>
 
-              <div>
+              <div className="sm:col-span-2">
+                <label className="mb-1.5 block text-xs font-bold text-gray-500 uppercase tracking-wider">
+                  Restaurant Banner Image
+                </label>
                 <ImageUpload
                   onUploadSuccess={(url, publicId) => {
                     setImageUrl(url);
@@ -448,17 +464,17 @@ export default function AdminRestaurantsClient({ restaurants }) {
                 />
               </div>
 
-              <div className="flex justify-end gap-3 border-t border-gray-200 pt-5 sm:col-span-2">
+              <div className="flex justify-end gap-2.5 border-t border-gray-100 pt-4 mt-2 sm:col-span-2">
                 <button
                   type="button"
                   onClick={closeEditModal}
-                  className="rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                  className="rounded-xl border border-gray-205 px-4 py-2 text-xs font-bold text-gray-700 hover:bg-gray-50 transition cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="rounded-md bg-orange-600 px-4 py-2 text-sm font-medium text-white hover:bg-orange-700"
+                  className="rounded-xl bg-orange-600 px-4 py-2 text-xs font-bold text-white hover:bg-orange-700 active:scale-95 transition cursor-pointer"
                 >
                   Create Restaurant
                 </button>
