@@ -14,6 +14,7 @@ import {
   FileText,
   LogOut,
   Flame,
+  User,
 } from "lucide-react";
 
 export default function NavbarClient({ cartCount }) {
@@ -255,11 +256,11 @@ function UserMenu({
         </div>
         <li>
           <Link
-            href="/orders"
+            href="/profile"
             className="flex items-center gap-2 rounded-xl px-4 py-3 text-base font-bold text-white hover:bg-white/5 active:scale-[0.98] transition-all"
           >
-            <FileText size={20} />
-            My Orders
+            <User size={20} />
+            My Profile
           </Link>
         </li>
         <li>
@@ -299,12 +300,12 @@ function UserMenu({
           </div>
           <div className="py-1">
             <Link
-              href="/orders"
+              href="/profile"
               onClick={() => setIsDropdownOpen(false)}
               className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-orange-50 hover:text-orange-600 transition-colors"
             >
-              <FileText size={16} />
-              My Orders
+              <User size={16} />
+              My Profile
             </Link>
           </div>
           <div className="py-1">

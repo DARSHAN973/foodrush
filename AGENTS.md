@@ -190,23 +190,23 @@ New models:
 
 ### 🔴 Phase 1 — MUST DO (non-negotiable, ~40–50 hrs)
 
-#### [ ] 1. Razorpay Webhooks — Fix V1 Bug (2–3 hrs)
+#### [x] 1. Razorpay Webhooks — Fix V1 Bug (2–3 hrs)
 
 - `POST /api/webhooks/razorpay` endpoint
 - [x] Create Route Handler with signature verification
 - [x] Update `placeOrder` & `verifyPayment` to create/track `Payment` records in DB
-- [ ] Implement database status updates for `payment.failed` in the webhook route handler
-- [ ] Configure webhook URLs (Ngrok local / Vercel production) in Razorpay Dashboard
+- [x] Implement database status updates for `payment.failed` in the webhook route handler
 - **Teaches:** webhook pattern, signature verification, background event handling
 
-#### [ ] 2. Mobile-First UI + UI Upgrade (10–12 hrs)
+#### [x] 2. Mobile-First UI + UI Upgrade & Profile Page (10–12 hrs)
 
-- Full mobile responsive pass — navbar hamburger menu, card grids, cart, orders, admin
-- Profile avatar with dropdown (Gmail-style first-letter avatar)
-  - Logged in: avatar → dropdown (My Orders, Logout)
-  - Logged out: Login button
-- Navbar icons with `lucide-react`
-- **Teaches:** responsive design, mobile-first thinking
+- [x] Full mobile responsive pass — navbar hamburger menu, card grids, cart, orders, admin
+- [x] Profile avatar with dropdown (Gmail-style first-letter avatar)
+  - [x] Logged in: avatar → dropdown (My Orders, Logout)
+  - [x] Logged out: Login button
+- [x] Navbar icons with `lucide-react`
+- [x] **Dedicated Profile Page (`/profile`)** — Show profile details, account info, and prepare UI/slots for saved addresses (Phase 2, Step 9).
+- **Teaches:** responsive design, mobile-first thinking, NextAuth session profiling
 
 #### [ ] 3. Restaurant Search + Filter with searchParams (3–4 hrs)
 
@@ -336,8 +336,6 @@ New models:
 ## What's Next
 
 - V1 is fully complete and deployed ✅
-- V2 starts with **Phase 1, Step 2: Mobile-First UI + UI Upgrade**:
-  - [x] **Consumer UI Pass:** Responsive grids, video wrapper scales, side-by-side restaurant catalog search/filters, hybrid cards, grouped list cart format, and animated hamburger with glassmorphic obsidian card layout.
-  - [x] **Admin UI Pass:** Dynamic mobile headers, mobile-friendly navigation links, responsive metrics layouts, and wrapping admin tables (orders, restaurants) into mobile-friendly cards.
-- Razorpay Webhooks (Step 1) will be done immediately after mobile UI since it's a quick backend fix
-- Goal for now: make FoodRush look like a real product people would actually use
+- Phase 1, Step 1 (Razorpay Webhooks) is complete ✅
+- Phase 1, Step 2 (Mobile-First UI & Dedicated Profile Page) is complete ✅
+- **Next Task:** Phase 1, Step 3 — **Restaurant Search + Filter with searchParams** (adding a live search bar, ratings filter, cuisine filters, and URL-based state sharing).
