@@ -13,6 +13,8 @@ function RestaurantCard({ restaurant }) {
     router.push(`/restaurants/${restaurant.id}#menu`);
   };
 
+  const isClosed = restaurant.isOpen === false;
+
   return (
     <>
       {/* --- MOBILE LAYOUT (Clickable card, no buttons, compact aspect-ratio, visible only on mobile) --- */}
@@ -28,12 +30,18 @@ function RestaurantCard({ restaurant }) {
               alt={restaurant.name}
               fill
               sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-              className="object-cover group-hover:scale-105 transition-transform duration-500"
+              className={`object-cover group-hover:scale-105 transition-transform duration-500 ${isClosed ? "opacity-60" : ""}`}
             />
             {/* Cuisine Badge overlay */}
             <span className="absolute left-3 top-3 rounded-lg bg-black/60 backdrop-blur-md px-2.5 py-1 text-[10px] font-semibold text-white tracking-wide">
               {restaurant.cuisine}
             </span>
+            {/* Closed Badge overlay */}
+            {isClosed && (
+              <span className="absolute right-3 top-3 rounded-lg bg-red-600 px-2.5 py-1 text-[10px] font-bold text-white tracking-wide shadow-sm">
+                Closed
+              </span>
+            )}
           </div>
 
           {/* Card Details */}
@@ -61,13 +69,21 @@ function RestaurantCard({ restaurant }) {
 
       {/* --- DESKTOP LAYOUT (Original layout with buttons, visible only from sm breakpoint up) --- */}
       <article className="hidden sm:flex h-full w-full flex-col rounded-lg border border-gray-200 bg-white p-5 shadow-sm transition hover:-translate-y-1 hover:shadow-md">
-        <Image
-          src={restaurant.imageUrl}
-          alt={restaurant.name}
-          width={400}
-          height={320}
-          className="mb-4 h-80 w-full rounded-md object-cover"
-        />
+        <div className="relative mb-4 h-80 w-full overflow-hidden rounded-md">
+          <Image
+            src={restaurant.imageUrl}
+            alt={restaurant.name}
+            fill
+            sizes="(max-width: 1024px) 33vw, 25vw"
+            className={`object-cover rounded-md ${isClosed ? "opacity-60" : ""}`}
+          />
+          {/* Closed Badge overlay */}
+          {isClosed && (
+            <span className="absolute right-3 top-3 rounded-lg bg-red-600 px-3 py-1.5 text-xs font-bold text-white tracking-wide shadow-md">
+              Closed
+            </span>
+          )}
+        </div>
         <div className="flex flex-1 flex-col items-center text-center">
           <h3 className="text-lg font-semibold leading-snug text-gray-900">
             {restaurant.name}

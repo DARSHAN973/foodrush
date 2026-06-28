@@ -208,11 +208,11 @@ New models:
 - [x] **Dedicated Profile Page (`/profile`)** — Show profile details, account info, and prepare UI/slots for saved addresses (Phase 2, Step 9).
 - **Teaches:** responsive design, mobile-first thinking, NextAuth session profiling
 
-#### [ ] 3. Restaurant Search + Filter with searchParams (3–4 hrs)
+#### [x] 3. Restaurant Search + Filter with searchParams (3–4 hrs)
 
-- Search bar on restaurants page (by name, cuisine)
-- Filter by cuisine type, rating, open/closed
-- URL-based state with `searchParams` — shareable links
+- [x] Search bar on restaurants page (by name, cuisine)
+- [x] Filter by cuisine type, rating, open/closed
+- [x] URL-based state with `searchParams` — shareable links
 - **Teaches:** searchParams, URL as state, server-side filtering
 
 #### [ ] 4. Loading States + SEO Audit (5–7 hrs)
@@ -292,40 +292,47 @@ New models:
 - Use OpenAI API or Gemini API
 - **Teaches:** AI API integration, prompt engineering basics
 
+#### [ ] 13. Pagination for Restaurants & Admin Tables (3–4 hrs)
+
+- Implement page/limit state using `searchParams` on restaurant lists
+- Add database-level pagination using Prisma `take` and `skip`
+- Integrate pagination controls (Prev/Next buttons, page counters)
+- **Teaches:** SQL Limit/Offset pagination, URL-based page tracking
+
 ---
 
 ### ⚪ Phase 3 — NICE TO HAVE (polish, ~25–30 hrs)
 
-#### [ ] 13. Email Notifications with Nodemailer (5–6 hrs)
+#### [ ] 14. Email Notifications with Nodemailer (5–6 hrs)
 
 - Order confirmation email, vendor approval/rejection email
 - Pairs with vendor onboarding flow
 
-#### [ ] 14. Forgot Password + Reset (4–5 hrs)
+#### [ ] 15. Forgot Password + Reset (4–5 hrs)
 
 - Send reset link via email (needs Nodemailer)
 - Token-based reset flow
 
-#### [ ] 15. Favorites / Wishlist (3–4 hrs)
+#### [ ] 16. Favorites / Wishlist (3–4 hrs)
 
 - Save restaurants to favorites, quick access from profile
 
-#### [ ] 16. Dark Mode (2–3 hrs)
+#### [ ] 17. Dark Mode (2–3 hrs)
 
 - CSS variables + Tailwind dark class toggle
 - Store preference in localStorage
 
-#### [ ] 17. Saved Mobile Number (1–2 hrs)
+#### [ ] 18. Saved Mobile Number (1–2 hrs)
 
 - Paired with saved addresses at checkout
 
-#### [ ] 18. Admin Dashboard Reports (6–8 hrs)
+#### [ ] 19. Admin Dashboard Reports (6–8 hrs)
 
 - Charts (revenue over time, orders per day)
 - Use `recharts` or `chart.js`
 - Top-performing restaurants, most ordered items
 
-#### [ ] 19. README + Portfolio Writeup (3–4 hrs)
+#### [ ] 20. README + Portfolio Writeup (3–4 hrs)
 
 - Full README with setup instructions, tech stack, screenshots
 - Architecture diagram, design decisions documented
@@ -338,4 +345,5 @@ New models:
 - V1 is fully complete and deployed ✅
 - Phase 1, Step 1 (Razorpay Webhooks) is complete ✅
 - Phase 1, Step 2 (Mobile-First UI & Dedicated Profile Page) is complete ✅
-- **Next Task:** Phase 1, Step 3 — **Restaurant Search + Filter with searchParams** (adding a live search bar, ratings filter, cuisine filters, and URL-based state sharing).
+- Phase 1, Step 3 (Restaurant Search + Filter with searchParams) is complete ✅
+- **Next Task:** Phase 1, Step 4 — **Loading States + SEO Audit** (auditing page skeletons, empty states, dynamic metadata/SEO configuration, and Image optimization).

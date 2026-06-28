@@ -1,66 +1,69 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useState } from "react";
+import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import RestaurantCard from "@/components/RestaurantCard";
+import EmptyState from "@/components/EmptyState";
 import {
   Search,
   SlidersHorizontal,
   Truck,
   ShieldCheck,
   UtensilsCrossed,
-  Smartphone,
+  Star,
 } from "lucide-react";
 
-export default function RestaurantsClient({ restaurants }) {
-  // UI state — stores the user's current search, cuisine filter, and sort choice.
-  // These values control how the restaurant list is derived below.
-  const [searchText, setSearchText] = useState("");
-  const [selectedCuisine, setSelectedCuisine] = useState("All");
-  const [sortBy, setSortBy] = useState("default");
-  // useMemo — caches the filtered/sorted list until one of its real inputs changes.
-  // It is for calculated values, not for storing user-editable state.
-  // useMemo for derived options — recalculates cuisine choices only when restaurants change.
-  const cuisines = useMemo(() => {
-    // Derived filter options — builds the cuisine dropdown from restaurant data.
-    // Set removes duplicate cuisines, and "All" lets the user clear the cuisine filter.
-    return [
-      "All",
-      ...new Set(restaurants.map((restaurant) => restaurant.cuisine)),
-    ];
-  }, [restaurants]);
-  // Derived restaurant list — combines search, cuisine filter, and sorting.
-  // We calculate this from existing data instead of storing another state value.
-  // Avoiding extra state prevents stale or duplicated data bugs.
-  const displayRestaurants = useMemo(() => {
-    // Normalized search text — trim removes extra spaces and lowercase makes search case-insensitive.
-    const searchQuery = searchText.trim().toLowerCase();
+export default function RestaurantsClient({ restaurants, cuisines = [] }) {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
 
-    // filter — creates a new array with only restaurants that match the search text and selected cuisine.
-    // The original restaurants array stays unchanged.
-    const filteredRestaurants = restaurants.filter((restaurant) => {
-      const matchesSearch = restaurant.name.toLowerCase().includes(searchQuery);
-      // Cuisine match — "All" means no cuisine filter; otherwise cuisine must match exactly.
-      const matchesCuisine =
-        selectedCuisine === "All" || restaurant.cuisine === selectedCuisine;
-      // A restaurant must pass both filters to stay visible.
-      return matchesSearch && matchesCuisine;
-    });
-    // Copy before sort — sort() mutates arrays, so we sort a copied array.
-    // This keeps the filtered result safe and avoids accidental data mutation.
-    return [...filteredRestaurants].sort((a, b) => {
-      if (sortBy === "rating") {
-        return b.rating - a.rating;
+  // Read current filter state from URL query parameters
+  const selectedCuisine = searchParams.get("cuisine") || "All";
+  const sortBy = searchParams.get("sortBy") || "default";
+  const selectedRating = searchParams.get("rating") || "";
+  const isOpenOnly = searchParams.get("isOpen") === "true";
+
+  // Local state for smooth, non-laggy search input typing
+  const [searchText, setSearchText] = useState(
+    searchParams.get("search") || "",
+  );
+
+  // Debouncing — updates URL only after user stops typing for 300ms.
+  // This prevents spamming the database with a query on every keypress.
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      const params = new URLSearchParams(searchParams.toString());
+      if (searchText.trim()) {
+        params.set("search", searchText.trim());
+      } else {
+        params.delete("search");
       }
+      router.replace(`${pathname}?${params.toString()}`);
+    }, 300);
 
-      if (sortBy === "time") {
-        return a.deliveryTime - b.deliveryTime;
-      }
+    return () => clearTimeout(handler);
+  }, [searchText, router, pathname, searchParams]);
 
-      return 0;
-    });
-  }, [restaurants, searchText, selectedCuisine, sortBy]);
+  // Instant filter update for dropdowns and checkboxes
+  const handleFilterChange = (key, value) => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (
+      value &&
+      value !== "All" &&
+      value !== "default" &&
+      value !== "false" &&
+      value !== ""
+    ) {
+      params.set(key, value);
+    } else {
+      params.delete(key);
+    }
+    router.replace(`${pathname}?${params.toString()}`);
+  };
 
-  // Visible limit — shows only the first 24 matching restaurants to keep the grid manageable.
+  const cuisineOptions = ["All", ...cuisines];
+  const displayRestaurants = restaurants;
   const visibleRestaurants = displayRestaurants.slice(0, 24);
 
   return (
@@ -76,9 +79,10 @@ export default function RestaurantsClient({ restaurants }) {
           </p>
         </div>
 
-        <div className="mb-6 flex flex-col gap-3 rounded-2xl bg-white p-3.5 shadow-sm border border-gray-100 md:grid md:grid-cols-3 md:gap-4 md:p-4">
-          {/* Search Bar (Full width on mobile) */}
-          <div className="relative w-full">
+        {/* Filters Panel - Styled with 12 column grid on desktop, wrapping gracefully */}
+        <div className="mb-6 grid grid-cols-1 gap-3 rounded-2xl bg-white p-3.5 shadow-sm border border-gray-100 sm:grid-cols-2 lg:grid-cols-12 lg:gap-4 lg:p-4 items-center">
+          {/* Search Bar */}
+          <div className="relative w-full sm:col-span-2 lg:col-span-4">
             <span className="absolute inset-y-0 left-3 flex items-center text-gray-400 pointer-events-none">
               <Search size={18} />
             </span>
@@ -91,48 +95,87 @@ export default function RestaurantsClient({ restaurants }) {
             />
           </div>
 
-          {/* Select filters (Side-by-side on mobile, individual grid items on desktop) */}
-          <div className="grid grid-cols-2 gap-2 md:contents">
-            {/* Cuisine Select */}
-            <div className="relative w-full">
-              <span className="absolute inset-y-0 left-3 flex items-center text-gray-400 pointer-events-none">
-                <SlidersHorizontal size={14} />
-              </span>
-              <select
-                value={selectedCuisine}
-                onChange={(e) => setSelectedCuisine(e.target.value)}
-                className="w-full appearance-none rounded-xl border border-gray-200 pl-8 pr-8 py-2.5 text-xs sm:text-sm text-gray-700 bg-white outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100 transition-all cursor-pointer"
-              >
-                {cuisines.map((cuisine) => (
-                  <option key={cuisine} value={cuisine}>
-                    {cuisine}
-                  </option>
-                ))}
-              </select>
-              <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none text-gray-400">
-                <svg className="h-4 w-4 fill-current" viewBox="0 0 20 20">
-                  <path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" />
-                </svg>
-              </div>
+          {/* Cuisine Select */}
+          <div className="relative w-full lg:col-span-2">
+            <span className="absolute inset-y-0 left-3 flex items-center text-gray-400 pointer-events-none">
+              <SlidersHorizontal size={14} />
+            </span>
+            <select
+              value={selectedCuisine}
+              onChange={(e) => handleFilterChange("cuisine", e.target.value)}
+              className="w-full appearance-none rounded-xl border border-gray-200 pl-8 pr-8 py-2.5 text-xs sm:text-sm text-gray-700 bg-white outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100 transition-all cursor-pointer"
+            >
+              {cuisineOptions.map((cuisine) => (
+                <option key={cuisine} value={cuisine}>
+                  {cuisine}
+                </option>
+              ))}
+            </select>
+            <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none text-gray-400">
+              <svg className="h-4 w-4 fill-current" viewBox="0 0 20 20">
+                <path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" />
+              </svg>
             </div>
+          </div>
 
-            {/* Sort Select */}
-            <div className="relative w-full">
-              <select
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value)}
-                className="w-full appearance-none rounded-xl border border-gray-200 pl-4 pr-8 py-2.5 text-xs sm:text-sm text-gray-700 bg-white outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100 transition-all cursor-pointer"
-              >
-                <option value="default">Sort: Default</option>
-                <option value="rating">Sort: Top Rated</option>
-                <option value="time">Sort: Delivery Time</option>
-              </select>
-              <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none text-gray-400">
-                <svg className="h-4 w-4 fill-current" viewBox="0 0 20 20">
-                  <path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" />
-                </svg>
-              </div>
+          {/* Rating Filter */}
+          <div className="relative w-full lg:col-span-2">
+            <span className="absolute inset-y-0 left-3 flex items-center text-gray-400 pointer-events-none">
+              <Star size={14} className="fill-gray-400 text-gray-400" />
+            </span>
+            <select
+              value={selectedRating}
+              onChange={(e) => handleFilterChange("rating", e.target.value)}
+              className="w-full appearance-none rounded-xl border border-gray-200 pl-8 pr-8 py-2.5 text-xs sm:text-sm text-gray-700 bg-white outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100 transition-all cursor-pointer"
+            >
+              <option value="">All Ratings</option>
+              <option value="4.0">4.0+ Stars</option>
+              <option value="4.5">4.5+ Stars</option>
+            </select>
+            <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none text-gray-400">
+              <svg className="h-4 w-4 fill-current" viewBox="0 0 20 20">
+                <path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" />
+              </svg>
             </div>
+          </div>
+
+          {/* Sort Select */}
+          <div className="relative w-full lg:col-span-2">
+            <select
+              value={sortBy}
+              onChange={(e) => handleFilterChange("sortBy", e.target.value)}
+              className="w-full appearance-none rounded-xl border border-gray-200 pl-4 pr-8 py-2.5 text-xs sm:text-sm text-gray-700 bg-white outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100 transition-all cursor-pointer"
+            >
+              <option value="default">Sort: Default</option>
+              <option value="rating">Sort: Top Rated</option>
+              <option value="time">Sort: Delivery Time</option>
+            </select>
+            <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none text-gray-400">
+              <svg className="h-4 w-4 fill-current" viewBox="0 0 20 20">
+                <path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" />
+              </svg>
+            </div>
+          </div>
+
+          {/* Open/Closed Toggle */}
+          <div className="flex items-center justify-start sm:justify-center lg:col-span-2 lg:justify-end pl-1 sm:pl-0">
+            <label className="relative inline-flex items-center cursor-pointer select-none">
+              <input
+                type="checkbox"
+                checked={isOpenOnly}
+                onChange={(e) =>
+                  handleFilterChange(
+                    "isOpen",
+                    e.target.checked ? "true" : "false",
+                  )
+                }
+                className="sr-only peer"
+              />
+              <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-orange-100 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-orange-500"></div>
+              <span className="ml-3 text-sm font-semibold text-gray-700">
+                Open Only
+              </span>
+            </label>
           </div>
         </div>
 
@@ -143,11 +186,7 @@ export default function RestaurantsClient({ restaurants }) {
               message="Try changing your search or filters."
             />
           ) : (
-            // List rendering with map — converts each restaurant object into a RestaurantCard.
-            // This keeps the UI driven by data instead of hardcoding cards manually.
             visibleRestaurants.map((restaurant) => (
-              // key — gives React a stable identity for each list item,
-              // so updates stay correct when restaurants are added, removed, or reordered.
               <RestaurantCard key={restaurant.id} restaurant={restaurant} />
             ))
           )}
