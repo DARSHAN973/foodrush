@@ -18,6 +18,7 @@ export default async function Home() {
           muted
           loop
           playsInline
+          preload="auto"
         >
           {/* Public asset path — files inside /public are served from the site root,
               so public/videos/hero-video.mp4 is referenced as /videos/hero-video.mp4. */}
@@ -32,7 +33,8 @@ export default async function Home() {
           </p>
 
           <h1 className="max-w-3xl text-3xl font-black leading-tight sm:text-4xl md:text-6xl">
-            Hot meals, fast delivery, <span className="text-orange-500">zero waiting drama.</span>
+            Hot meals, fast delivery,{" "}
+            <span className="text-orange-500">zero waiting drama.</span>
           </h1>
 
           <p className="mt-4 max-w-xl text-sm text-gray-200 md:text-lg">

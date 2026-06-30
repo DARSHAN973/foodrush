@@ -13,8 +13,12 @@ const geistMono = Geist_Mono({
 // Static metadata — default SEO title and description for the app.
 // Individual pages can override this with their own metadata when needed.
 export const metadata = {
-  title: "Food Rush",
-  description: "Food Delivery App Built With Next.js",
+  title: {
+    default: "FoodRush - Super Fast Food Delivery",
+    template: "%s | FoodRush",
+  },
+  description:
+    "Order food online from your favorite local restaurants with super-fast delivery on FoodRush.",
 };
 
 // Root layout — creates the document shell shared by the whole app.

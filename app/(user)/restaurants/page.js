@@ -1,6 +1,11 @@
 import RestaurantsClient from "@/components/RestaurantsClient";
 import { getRestaurants } from "@/lib/restaurants";
 import { getCuisines } from "@/lib/restaurants";
+export const metadata = {
+  title: "All Restaurants",
+  description:
+    "Explore the best cuisines, top-rated restaurants, and fast delivery options near you on FoodRush.",
+};
 
 // Server fetching in page.js — this runs before the page HTML is sent,
 // so the route can render with restaurant data already available.

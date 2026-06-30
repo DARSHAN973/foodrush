@@ -26,18 +26,18 @@ export async function generateMetadata({ params }) {
 
     if (restaurant === null) {
       return {
-        title: "Restaurant | FoodRush",
+        title: "Restaurant",
         description: "View restaurant details on FoodRush",
       };
     }
 
     return {
-      title: `${restaurant.name} | FoodRush`,
+      title: `${restaurant.name}`,
       description: `Order from ${restaurant.name} on FoodRush`,
     };
   } catch {
     return {
-      title: "Restaurant | FoodRush",
+      title: "Restaurant ",
       description: "View restaurant details on FoodRush",
     };
   }

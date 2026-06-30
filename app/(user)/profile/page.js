@@ -21,7 +21,7 @@ import {
 } from "lucide-react";
 
 export const metadata = {
-  title: "My Account | FoodRush",
+  title: "My Account",
   description:
     "Manage your profile, saved addresses, and view your order history.",
 };

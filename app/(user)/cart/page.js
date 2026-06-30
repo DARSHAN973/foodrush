@@ -5,6 +5,10 @@ import Image from "next/image";
 import { getCart } from "@/lib/cart";
 import CartItemControls from "@/components/CartItemControls";
 import { ArrowLeft, Shield, Store } from "lucide-react";
+export const metadata = {
+  title: "My Cart",
+  description: "Review your items and proceed to secure checkout on FoodRush.",
+};
 
 export default async function Cart() {
   // Server-rendered cart — reads the latest database state before rendering,
