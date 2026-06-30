@@ -215,15 +215,14 @@ New models:
 - [x] URL-based state with `searchParams` — shareable links
 - **Teaches:** searchParams, URL as state, server-side filtering
 
-#### [ ] 4. Loading States + SEO Audit (5–7 hrs)
+#### [x] 4. Loading States + SEO Audit (5–7 hrs)
 
-- Audit all pages: loading.js skeletons, empty states, error.js
-- Proper `generateMetadata` on all dynamic pages
-- Next Image optimization pass
+- [x] Audit all pages: loading.js skeletons, empty states, error.js
+- [x] Proper `generateMetadata` on all dynamic pages
+- [x] Next Image optimization pass
 - **Teaches:** SEO best practices, skeleton UI patterns
 
 #### [ ] 5. Vendor Onboarding + Admin Approval (8–10 hrs)
-
 - **Vendor signup flow** — register as vendor, submit restaurant application
   (name, address, cuisine, opening hours, logo/banner via Cloudinary)
 - **Admin "Applications" tab** — Approve / Reject with reason
@@ -346,4 +345,5 @@ New models:
 - Phase 1, Step 1 (Razorpay Webhooks) is complete ✅
 - Phase 1, Step 2 (Mobile-First UI & Dedicated Profile Page) is complete ✅
 - Phase 1, Step 3 (Restaurant Search + Filter with searchParams) is complete ✅
-- **Next Task:** Phase 1, Step 4 — **Loading States + SEO Audit** (auditing page skeletons, empty states, dynamic metadata/SEO configuration, and Image optimization).
+- Phase 1, Step 4 (Loading States + SEO Audit) is complete ✅
+- **Next Task:** Phase 1, Step 5 — **Vendor Onboarding + Admin Approval** (Vendor signup flow, Admin Applications approval controls, Vendor dashboard & role architecture).
