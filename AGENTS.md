@@ -132,7 +132,13 @@ public
 ### Current Prisma Schema Models
 
 `User`, `Restaurant`, `MenuItem`, `Cart`, `CartItem`,
-`ParentOrder`, `RestaurantOrder`, `OrderItem`, `Payment`
+`ParentOrder`, `RestaurantOrder`, `OrderItem`, `Payment`,
+`OperatingHours`, `VendorWarning`
+
+### Current Prisma Enums
+
+`UserRole` (USER | VENDOR | ADMIN), `RestaurantStatus` (PENDING | ACTIVE | SUSPENDED | REJECTED),
+`DayOfWeek` (MON–SUN), `ParentOrderStatus`, `RestaurantOrderStatus`, `PaymentStatus`
 
 ---
 
@@ -168,23 +174,30 @@ V2 is the finishing and polishing version. Goal: make FoodRush feel like a real 
   (`POST /api/webhooks/razorpay`) — Razorpay calls this server-to-server when a
   payment is cancelled/failed/expired, and we update the order status to `CANCELLED`.
 
-### V2 Schema Changes Needed
+### V2 Schema Changes — ✅ ALL DONE
 
-Before building V2 features, the schema needs these additions:
+All schema changes for vendor onboarding are complete and live in the DB:
 
 ```
-User.role        → add VENDOR alongside CUSTOMER and ADMIN
-Restaurant.ownerId    → FK to User (which vendor owns this restaurant)
-Restaurant.status     → PENDING | ACTIVE | SUSPENDED (replaces simple boolean)
-Restaurant.isOpen     → boolean (vendor toggles this live)
+User.role            → VENDOR added (USER | VENDOR | ADMIN)
+Restaurant.ownerId   → FK to User (one vendor = one restaurant, @@unique)
+Restaurant.status    → RestaurantStatus enum (PENDING | ACTIVE | SUSPENDED | REJECTED)
+Restaurant.isOpen    → boolean (vendor toggles this live) — was already there
+Restaurant.address   → String? (restaurant physical address)
+Restaurant.phone     → String? (contact number)
+Restaurant.description → String? (about the restaurant)
+Restaurant.rejectionReason → String? (admin fills when rejecting)
+Restaurant.isActive  → REMOVED, replaced by status enum
 
-New models:
-  OperatingHours  — per-day weekly schedule (Mon–Sun open/close times)
-  Review          — rating + comment + userId + restaurantId
-  SavedAddress    — userId + full address fields
-  PromoCode       — code, discountType, discountValue, minOrder, expiresAt
-  VendorWarning   — restaurantId + message + createdAt (admin sends to vendor)
+New models added:
+  OperatingHours  — per-day schedule (Mon–Sun open/close times + isOpen)
+                    @@unique([restaurantId, openDay]) — no duplicate days
+  VendorWarning   — admin warnings to vendor (message + isRead + restaurantId)
+                    @@index([restaurantId]) — fast lookup by restaurant
 ```
+
+Key lesson: `isActive Boolean` (true/false) was replaced by `RestaurantStatus` enum
+because a boolean can't express PENDING, SUSPENDED, REJECTED states.
 
 ---
 
@@ -222,21 +235,46 @@ New models:
 - [x] Next Image optimization pass
 - **Teaches:** SEO best practices, skeleton UI patterns
 
-#### [ ] 5. Vendor Onboarding + Admin Approval (8–10 hrs)
-- **Vendor signup flow** — register as vendor, submit restaurant application
-  (name, address, cuisine, opening hours, logo/banner via Cloudinary)
-- **Admin "Applications" tab** — Approve / Reject with reason
-- **Vendor dashboard** (`/vendor` route group, separate from `/admin`)
-  - Menu items CRUD (their restaurant only)
-  - Open/Close toggle (live status)
-  - Operating hours schedule (Mon–Sun)
-  - Incoming orders for their restaurant + update status
-  - Revenue/earnings view (daily/weekly/monthly)
-- **Admin controls over vendors**
-  - Suspend / Unsuspend restaurant
-  - Send warning (stored in DB, shown on vendor dashboard)
-  - Force-close restaurant (admin overrides vendor's open/close)
-  - Master analytics — per-restaurant revenue, top sellers, low performers
+#### [~] 5. Vendor Onboarding + Admin Approval (8–10 hrs)
+
+**Sub-steps and build plan (8 total):**
+
+- [x] **Schema** — UserRole+VENDOR, RestaurantStatus enum, OperatingHours model,
+      VendorWarning model, Restaurant fields (ownerId, status, address, phone,
+      description, rejectionReason). Migration done.
+- [x] **Vendor signup flow** — `app/actions/vendorActions.js` → `createVendorApplication`
+      server action. Creates Restaurant with status PENDING + ownerId.
+- [x] **Profile page Vendor tab** — 4-state UI:
+  - State 1 (no app) → CTA banner + `VendorApplicationForm` client component
+  - State 2 (PENDING) → amber "Under Review" card
+  - State 3 (ACTIVE) → green card + "Go to Vendor Dashboard" link
+  - State 4 (REJECTED) → red card with admin's rejectionReason
+- [ ] **Admin Applications tab** — list PENDING restaurants, Approve/Reject with reason
+  - Approve: set status=ACTIVE + user.role=VENDOR
+  - Reject: set status=REJECTED + store rejectionReason
+- [ ] **Admin Vendor Controls** — Suspend/Unsuspend, Send Warning to vendor
+- [ ] **Vendor Layout + route protection** — `app/vendor/layout.js`,
+      only VENDOR role can access, sidebar nav
+- [ ] **Vendor Dashboard** (`/vendor`) — stats (orders, revenue, top items),
+      admin warnings bell icon
+- [ ] **Vendor Orders** (`/vendor/orders`) — incoming orders + status updates
+      (Preparing → Out for Delivery → Delivered)
+- [ ] **Vendor Management** (`/vendor/management`) — two tabs:
+  - Tab 1: Restaurant Info (edit details, open/close toggle, operating hours)
+  - Tab 2: Menu Items (add/edit/delete + available toggle)
+
+**New files created this session:**
+
+- `app/actions/vendorActions.js`
+- `components/VendorApplicationForm.js`
+- Modified: `app/(user)/profile/page.js`, `lib/restaurants.js`,
+  `components/AdminRestaurantsClient.js`, `app/actions/adminRestaurantActions.js`,
+  `prisma/seed.js`, `app/api/restaurants/[id]/route.js`
+
+**Key concept learned:** `prisma generate` must be run after schema changes.
+`db push` does not always regenerate the client. When you see "Unknown argument",
+run `npx prisma generate` then delete `.next` and restart.
+
 - **Teaches:** multi-role auth, role-based route protection, platform architecture
 
 #### [ ] 6. Real-Time Order Tracking with SSE (4–6 hrs)
@@ -346,4 +384,20 @@ New models:
 - Phase 1, Step 2 (Mobile-First UI & Dedicated Profile Page) is complete ✅
 - Phase 1, Step 3 (Restaurant Search + Filter with searchParams) is complete ✅
 - Phase 1, Step 4 (Loading States + SEO Audit) is complete ✅
-- **Next Task:** Phase 1, Step 5 — **Vendor Onboarding + Admin Approval** (Vendor signup flow, Admin Applications approval controls, Vendor dashboard & role architecture).
+- Phase 1, Step 5 (Vendor Onboarding) is **IN PROGRESS** 🔄
+  - Schema done ✅
+  - Vendor signup form (Profile page Vendor tab) done ✅
+  - **Next session:** Admin Applications tab (approve/reject vendor applications)
+    → then Admin Vendor Controls → then full Vendor Panel (layout + dashboard + orders + management)
+
+### Next Session Build Order
+
+```
+1. Admin: Applications tab — see PENDING apps, Approve/Reject
+   (completes the signup flow so it's fully testable end-to-end)
+2. Admin: Vendor controls — Send Warning, Suspend/Unsuspend
+3. Vendor layout + route protection (VENDOR role only)
+4. Vendor Dashboard — stats + warnings bell
+5. Vendor Orders — incoming orders + status updates
+6. Vendor Management — restaurant info + menu items (tabbed)
+```

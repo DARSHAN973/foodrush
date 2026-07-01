@@ -68,7 +68,7 @@ export async function updateRestaurantAction(formData) {
 
 export async function deactivateRestaurantAction(id) {
   // Soft delete action — admin "delete" hides the restaurant by setting
-  // isActive=false instead of removing historical data from the database.
+  // status=SUSPENDED instead of removing historical data from the database.
   const inactiveRestaurant = await deleteRestaurant(id);
 
   if (!inactiveRestaurant) {

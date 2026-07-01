@@ -71,7 +71,7 @@ export async function DELETE(request, { params }) {
   const { id } = await params;
 
   try {
-    // Soft delete — FoodRush hides restaurants with isActive: false instead
+    // Soft delete — FoodRush hides restaurants with status: SUSPENDED instead
     // of hard-deleting rows that future order/history data may still reference.
     const restaurant = await deleteRestaurant(id);
 

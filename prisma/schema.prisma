@@ -17,6 +17,14 @@ datasource db {
 enum UserRole {
   USER
   ADMIN
+  VENDOR
+}
+
+enum RestaurantStatus {
+  PENDING
+  ACTIVE
+  SUSPENDED
+  REJECTED
 }
 
 // ParentOrderStatus — tracks the lifecycle of a full checkout.
@@ -56,6 +64,16 @@ enum PaymentStatus {
   REFUNDED
 }
 
+enum DayOfWeek {
+  MON
+  TUE
+  WED
+  THU
+  FRI
+  SAT
+  SUN
+}
+
 // ─────────────────────────────────────────────────────────────
 // MODELS — Each model maps to one MySQL table.
 //
@@ -79,59 +97,71 @@ enum PaymentStatus {
 // ─────────────────────────────────────────────────────────────
 
 model User {
-  id           Int           @id @default(autoincrement())
-  name         String
+  id              Int           @id @default(autoincrement())
+  name            String
   // @unique creates an index automatically — fast lookup for login queries.
-  email        String        @unique
+  email           String        @unique
   // String? (nullable) — OAuth users (Google) have no local password.
   // Always check !user.passwordHash before calling bcrypt.compare.
-  passwordHash String?
-  role         UserRole      @default(USER)
-  cart         Cart?
-  parentOrders ParentOrder[]
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @default(now()) @updatedAt
+  passwordHash    String?
+  role            UserRole      @default(USER)
+  cart            Cart?
+  ownedRestaurant Restaurant?
+  parentOrders    ParentOrder[]
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @default(now()) @updatedAt
 }
 
 model Restaurant {
-  id               Int               @id @default(autoincrement())
-  name             String
-  cuisine          String
+  id              Int              @id @default(autoincrement())
+  name            String
+  cuisine         String
   // Decimal vs Float — ALWAYS use Decimal for money and ratings.
   // Float has floating-point precision errors (0.1 + 0.2 = 0.30000000000000004).
   // Decimal stores the exact value. @db.Decimal(2, 1) = max 2 digits, 1 decimal (e.g. 4.5).
-  rating           Decimal           @default(0.0) @db.Decimal(2, 1)
-  deliveryTime     Int
-  imageUrl         String?
-  imagePublicId    String?
-  isOpen           Boolean           @default(true)
-  isActive         Boolean           @default(true)
+  rating          Decimal          @default(0.0) @db.Decimal(2, 1)
+  deliveryTime    Int
+  imageUrl        String?
+  imagePublicId   String?
+  isOpen          Boolean          @default(true)
+  ownerId         Int?
+  status          RestaurantStatus @default(ACTIVE)
+  rejectionReason String?
+  address         String?
+  phone           String?
+  description     String?
+
   menuItems        MenuItem[]
   restaurantOrders RestaurantOrder[]
+  operatingHours   OperatingHours[]
+  warnings         VendorWarning[]
+  owner            User?             @relation(fields: [ownerId], references: [id])
   createdAt        DateTime          @default(now())
   updatedAt        DateTime          @default(now()) @updatedAt
+
+  @@unique([ownerId])
 }
 
 model MenuItem {
-  id           Int         @id @default(autoincrement())
+  id            Int         @id @default(autoincrement())
   // Foreign key — links this item to its restaurant.
   // Prisma auto-creates an index on restaurantId for JOIN performance.
-  restaurantId Int
-  name         String
-  description  String?
-  imageUrl     String?
-  imagePublicId    String?
+  restaurantId  Int
+  name          String
+  description   String?
+  imageUrl      String?
+  imagePublicId String?
   // @db.Decimal(10, 2) — up to 10 digits total, 2 after decimal (e.g. 99999.99).
   // Use this for all price columns across every future project.
-  price        Decimal     @db.Decimal(10, 2)
-  category     String
-  isVeg        Boolean     @default(true)
-  isAvailable  Boolean     @default(true)
-  restaurant   Restaurant  @relation(fields: [restaurantId], references: [id])
-  cartItems    CartItem[]
-  orderItems   OrderItem[]
-  createdAt    DateTime    @default(now())
-  updatedAt    DateTime    @default(now()) @updatedAt
+  price         Decimal     @db.Decimal(10, 2)
+  category      String
+  isVeg         Boolean     @default(true)
+  isAvailable   Boolean     @default(true)
+  restaurant    Restaurant  @relation(fields: [restaurantId], references: [id])
+  cartItems     CartItem[]
+  orderItems    OrderItem[]
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @default(now()) @updatedAt
 }
 
 model Cart {
@@ -246,4 +276,27 @@ model Payment {
   parentOrder       ParentOrder     @relation(fields: [parentOrderId], references: [id])
   createdAt         DateTime        @default(now())
   updatedAt         DateTime        @default(now()) @updatedAt
+}
+
+model OperatingHours {
+  id           Int        @id @default(autoincrement())
+  restaurantId Int
+  openDay      DayOfWeek
+  openTime     String?
+  closeTime    String?
+  isOpen       Boolean    @default(true)
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id])
+
+  @@unique([restaurantId, openDay])
+}
+
+model VendorWarning {
+  id           Int        @id @default(autoincrement())
+  restaurantId Int
+  message      String
+  isRead       Boolean    @default(false)
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id])
+  createdAt    DateTime   @default(now())
+
+  @@index([restaurantId])
 }

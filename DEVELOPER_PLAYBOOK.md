@@ -5,6 +5,7 @@ This is your master reference guide and pre-flight checklist for building, optim
 ---
 
 ## 📋 Section 1: The Pre-Flight Checklist
+
 Before you commit code, push to Vercel, or declare a page "done," run down this checklist:
 
 - [ ] **SEO & Metadata:** Does the page have a custom title and meta description? (No generic browser tabs).
@@ -29,6 +30,7 @@ Before you commit code, push to Vercel, or declare a page "done," run down this 
 ## ⚙️ Section 2: Project Setup & Configuration
 
 ### 1. Prisma Client Singleton (`lib/prisma.js`)
+
 Next.js hot-reloads modules in development on every file save. If you initialize the Prisma client normally, every save creates a new database connection pool, quickly exhausting your database limits. This pattern caches the client on the global object during development.
 
 ```javascript
@@ -39,7 +41,10 @@ const globalForPrisma = globalThis;
 export const prisma =
   globalForPrisma.prisma ??
   new PrismaClient({
-    log: process.env.NODE_ENV === "development" ? ["query", "error", "warn"] : ["error"],
+    log:
+      process.env.NODE_ENV === "development"
+        ? ["query", "error", "warn"]
+        : ["error"],
   });
 
 if (process.env.NODE_ENV !== "production") {
@@ -48,10 +53,11 @@ if (process.env.NODE_ENV !== "production") {
 ```
 
 ### 2. Environment Variables & `.env` Setup
+
 Keep secrets safe and decouple configuration from code.
 
-*   **Prefix Rule:** Variables referenced in Client Components *must* start with `NEXT_PUBLIC_`. If they don't, Next.js strips them from the bundle to prevent leaking secrets.
-*   **`.env.example` Pattern:** Always commit a `.env.example` file listing the variable names (with empty or placeholder values) so developers onboarding know what to set up.
+- **Prefix Rule:** Variables referenced in Client Components _must_ start with `NEXT_PUBLIC_`. If they don't, Next.js strips them from the bundle to prevent leaking secrets.
+- **`.env.example` Pattern:** Always commit a `.env.example` file listing the variable names (with empty or placeholder values) so developers onboarding know what to set up.
 
 ```txt
 # .env.example
@@ -64,6 +70,7 @@ NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME="your-cloudinary-name"
 ```
 
 ### 3. Remote Image Allowlist (`next.config.mjs`)
+
 Next.js optimizes remote images, but requires you to allowlist hostnames to prevent external domain spam attacks.
 
 ```javascript
@@ -91,6 +98,7 @@ export default nextConfig;
 ## 🗄️ Section 3: Data Layer & Database Best Practices
 
 ### 1. Indexing for Search and Filters
+
 Any database column that is frequently searched, filtered, or sorted **must** have an index.
 
 ```prisma
@@ -101,13 +109,14 @@ model ParentOrder {
   user            User              @relation(fields: [userId], references: [id])
   createdAt       DateTime          @default(now())
 
-  // Creates a B-Tree index on userId column. 
+  // Creates a B-Tree index on userId column.
   // Makes "WHERE userId = X" queries take 0.1ms instead of scanning the whole database.
   @@index([userId])
 }
 ```
 
 ### 2. Preventing the N+1 Query Problem (Joins)
+
 Never query inside a `.map()` loop. Use Prisma `include` to execute joins at the database engine level in one query.
 
 ```javascript
@@ -128,6 +137,7 @@ export async function getUserOrders(userId) {
 ```
 
 ### 3. Prisma Decimal Serialization
+
 Prisma returns SQL Decimal columns as objects (`Decimal.js` instances), which **cannot be sent over the network** from Server Components to Client Components. You must cast them to a JavaScript `Number`.
 
 ```javascript
@@ -144,13 +154,14 @@ export async function getRestaurant(id) {
 ```
 
 ### 4. Route Param Validation & Casting
+
 URL parameters are always parsed as strings. Before sending them to database queries, validate and cast them. This prevents server crashes and potential injections.
 
 ```javascript
 // app/(user)/restaurants/[id]/page.js
 export default async function RestaurantDetails({ params }) {
   const { id } = await params;
-  
+
   // Safely parse string parameter to integer
   const restaurantId = Number(id);
   if (!Number.isInteger(restaurantId) || restaurantId <= 0) {
@@ -163,6 +174,7 @@ export default async function RestaurantDetails({ params }) {
 ```
 
 ### 5. Atomic Database Transactions
+
 When running multiple queries where all must succeed together (e.g. placing an order and clearing a cart), wrap them in a transaction.
 
 ```javascript
@@ -189,6 +201,7 @@ export async function placeOrder(userId, items) {
 ## ⚡ Section 4: Server Patterns & Mutations
 
 ### 1. Server Actions & Cache Revalidation (`revalidatePath`)
+
 Server Actions run mutations on the server. Because Next.js aggressively caches pages, you must call `revalidatePath` to refresh the cached HTML of target routes so updates show instantly in the UI.
 
 ```javascript
@@ -204,7 +217,7 @@ export async function addToCart(menuItemId) {
   if (!session) return { error: "Please log in to add items." };
 
   await prisma.cartItem.create({
-    data: { menuItemId, quantity: 1 }
+    data: { menuItemId, quantity: 1 },
   });
 
   // Revalidate the cart page so changes reflect immediately in the header/cart views
@@ -215,6 +228,7 @@ export async function addToCart(menuItemId) {
 ```
 
 ### 2. Static Site Generation (`generateStaticParams`)
+
 Pre-build dynamic routes at compile-time instead of rendering them on-demand. This reduces server response time to 0ms.
 
 ```javascript
@@ -236,6 +250,7 @@ export async function generateStaticParams() {
 ## ⏱️ Section 5: Client Patterns
 
 ### 1. React Context + Provider (State Management)
+
 Use Context to share global state (like a shopping cart counter) across multiple components without prop-drilling.
 
 ```javascript
@@ -276,6 +291,7 @@ export const useCart = () => useContext(CartContext);
 ```
 
 ### 2. Client-Side Input Debouncing
+
 Prevent spamming server requests by waiting for the user to pause typing before triggering a search reload. Use `router.replace` instead of `router.push` to prevent polluting the browser's back button history.
 
 ```javascript
@@ -289,7 +305,7 @@ export default function SearchInput() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const pathname = usePathname();
-  
+
   const [text, setText] = useState(searchParams.get("search") || "");
 
   useEffect(() => {
@@ -300,7 +316,7 @@ export default function SearchInput() {
       } else {
         params.delete("search");
       }
-      
+
       router.replace(`${pathname}?${params.toString()}`);
     }, 400);
 
@@ -324,6 +340,7 @@ export default function SearchInput() {
 ## 🎨 Section 6: UI Patterns & Templates
 
 ### 1. Error Boundary Component (`error.js`)
+
 Next.js wraps route segments in a React Error Boundary. If any Server or Client component in the segment throws an error, Next.js displays the closest nested `error.js` instead of crashing the app.
 
 ```javascript
@@ -342,11 +359,14 @@ export default function ErrorBoundary({ error, reset }) {
       <div className="bg-red-50 text-red-600 rounded-full h-12 w-12 flex items-center justify-center text-lg font-bold">
         ⚠️
       </div>
-      <h2 className="mt-4 text-xl font-bold text-gray-900">Something went wrong!</h2>
+      <h2 className="mt-4 text-xl font-bold text-gray-900">
+        Something went wrong!
+      </h2>
       <p className="mt-2 text-sm text-gray-500 max-w-sm">
-        {error.message || "An unexpected error occurred while loading this page."}
+        {error.message ||
+          "An unexpected error occurred while loading this page."}
       </p>
-      
+
       <button
         onClick={() => reset()}
         className="mt-6 rounded-xl bg-orange-600 px-5 py-2.5 text-sm font-semibold text-white shadow-md hover:bg-orange-700 active:scale-95 transition-all"
@@ -359,6 +379,7 @@ export default function ErrorBoundary({ error, reset }) {
 ```
 
 ### 2. Not Found Page (`not-found.js`)
+
 Display a customized 404 message when database items do not exist.
 
 ```javascript
@@ -368,8 +389,12 @@ import Link from "next/link";
 export default function NotFound() {
   return (
     <main className="flex min-h-[50vh] flex-col items-center justify-center px-4 py-8 text-center">
-      <h2 className="text-2xl font-black text-gray-900 tracking-tight">Resource Not Found</h2>
-      <p className="mt-2 text-sm text-gray-500">We couldn't find the page or record you were looking for.</p>
+      <h2 className="text-2xl font-black text-gray-900 tracking-tight">
+        Resource Not Found
+      </h2>
+      <p className="mt-2 text-sm text-gray-500">
+        We couldn't find the page or record you were looking for.
+      </p>
       <Link
         href="/"
         className="mt-6 rounded-xl bg-orange-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-orange-700 active:scale-95 transition-all"
@@ -382,6 +407,7 @@ export default function NotFound() {
 ```
 
 ### 3. Reusable Empty State (`components/EmptyState.js`)
+
 When an array (like search results or cart items) returns empty, display a clean call-to-action instead of a blank screen.
 
 ```javascript
@@ -402,6 +428,7 @@ export default function EmptyState({ title, message, icon = "🔍" }) {
 ## ⚡ Section 7: Media & Cloudinary Integration
 
 ### 1. Responsive Image Sizes
+
 Always set the `sizes` attribute on `<Image />` tags using layouts. This instructs the browser to download a smaller, resized version on mobile and a larger version on desktop.
 
 ```jsx
@@ -424,6 +451,7 @@ export default function Card({ item }) {
 ```
 
 ### 2. Cloudinary File Upload Stream
+
 Standard REST APIs cannot parse files directly inside JSON payloads. This helper converts a buffer to an upload stream to pipe files safely to Cloudinary.
 
 ```javascript
@@ -443,7 +471,7 @@ export async function uploadImageToCloudinary(fileBuffer) {
       (error, result) => {
         if (error) return reject(error);
         resolve({ url: result.secure_url, publicId: result.public_id });
-      }
+      },
     );
     uploadStream.end(fileBuffer);
   });
@@ -455,6 +483,7 @@ export async function uploadImageToCloudinary(fileBuffer) {
 ## 🛡️ Section 8: Security & Authentication
 
 ### 1. Route Protection Middleware (`middleware.js`)
+
 Instead of manually writing authentication checks on every page/API route, NextAuth allows you to protect entire sub-folders using Next.js Middleware. Create this file at the root of your project (same level as `/app`).
 
 ```javascript
@@ -472,15 +501,12 @@ export default withAuth({
 
 // Configure which route patterns this middleware runs on
 export const config = {
-  matcher: [
-    "/profile/:path*",
-    "/admin/:path*",
-    "/vendor/:path*",
-  ],
+  matcher: ["/profile/:path*", "/admin/:path*", "/vendor/:path*"],
 };
 ```
 
 ### 2. Server Action Role Verification Pattern
+
 Always verify the active user session and authorization level on the server level when executing writes/mutations.
 
 ```javascript
@@ -511,6 +537,7 @@ export async function deleteRecord(recordId) {
 ## 🔍 Section 9: Advanced SEO & OpenGraph
 
 ### 1. Sitemap Generation (`app/sitemap.js`)
+
 Next.js supports dynamic sitemap generation. Search engines use sitemaps to crawl and index pages efficiently.
 
 ```javascript
@@ -538,6 +565,7 @@ export default async function sitemap() {
 ```
 
 ### 2. Robots.txt (`app/robots.js`)
+
 Configure search engine crawler permissions.
 
 ```javascript
@@ -555,6 +583,7 @@ export default function robots() {
 ```
 
 ### 3. OpenGraph Social Images (`og:image`)
+
 Add a dynamic or static preview card image when your links are shared on social platforms.
 
 ```javascript
@@ -580,6 +609,7 @@ export const metadata = {
 ## 🚀 Section 10: Deployment & Production Readiness
 
 ### 1. Build Verification Script
+
 Before deploying to Vercel, run the production build script locally to capture TypeScript compile errors, linting errors, or compilation issues:
 
 ```bash
@@ -587,13 +617,14 @@ npm run build
 ```
 
 ### 2. Vercel Configuration & Environment Variables
-*   **Database Connection:** Ensure you use a cloud-hosted MySQL/PostgreSQL instance (such as Aiven, PlanetScale, or Supabase). Local databases (`localhost:3306`) will not work on Vercel.
-*   **NextAuth Production Variables:** On Vercel, you must set:
-    *   `NEXTAUTH_URL` to your production domain (e.g. `https://foodrush.vercel.app`).
-    *   `NEXTAUTH_SECRET` to a secure cryptographically generated random string.
-*   **Preventing Build Cache Issues:** Add `prisma generate` to your Vercel postinstall command in `package.json` to ensure the Prisma engine client is generated correctly during deployments:
-    ```json
-    "scripts": {
-      "postinstall": "prisma generate"
-    }
-    ```
+
+- **Database Connection:** Ensure you use a cloud-hosted MySQL/PostgreSQL instance (such as Aiven, PlanetScale, or Supabase). Local databases (`localhost:3306`) will not work on Vercel.
+- **NextAuth Production Variables:** On Vercel, you must set:
+  - `NEXTAUTH_URL` to your production domain (e.g. `https://foodrush.vercel.app`).
+  - `NEXTAUTH_SECRET` to a secure cryptographically generated random string.
+- **Preventing Build Cache Issues:** Add `prisma generate` to your Vercel postinstall command in `package.json` to ensure the Prisma engine client is generated correctly during deployments:
+  ```json
+  "scripts": {
+    "postinstall": "prisma generate"
+  }
+  ```

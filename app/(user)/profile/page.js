@@ -18,7 +18,13 @@ import {
   Tag,
   Settings,
   CreditCard,
+  Store,
+  Clock,
+  CheckCircle2,
+  XCircle,
+  ExternalLink,
 } from "lucide-react";
+import VendorApplicationForm from "@/components/VendorApplicationForm";
 
 export const metadata = {
   title: "My Account",
@@ -120,6 +126,15 @@ export default async function ProfilePage({ searchParams }) {
     orders = await getUserOrders(session.user.id);
   }
 
+  // ONLY fetch vendor restaurant if we are on the vendor tab.
+  // ownedRestaurant drives the 4-state UI: none / PENDING / ACTIVE / REJECTED.
+  let ownedRestaurant = null;
+  if (activeTab === "vendor") {
+    ownedRestaurant = await prisma.restaurant.findUnique({
+      where: { ownerId: dbUser.id },
+    });
+  }
+
   const avatarLetter = (
     dbUser.name?.[0] ||
     dbUser.email?.[0] ||
@@ -185,6 +200,10 @@ export default async function ProfilePage({ searchParams }) {
             >
               <Settings size={18} />
               Settings
+            </Link>
+            <Link href="/profile?tab=vendor" className={getTabClass("vendor")}>
+              <Store size={18} />
+              Vendor Panel
             </Link>
 
             {/* Logout button at bottom of sidebar on desktop */}
@@ -560,6 +579,149 @@ export default async function ProfilePage({ searchParams }) {
                     Save Settings (Coming Soon)
                   </button>
                 </div>
+              </div>
+            )}
+
+            {/* --- TAB PANEL: VENDOR PANEL --- */}
+            {activeTab === "vendor" && (
+              <div className="space-y-6">
+                <div className="border-b border-gray-150 pb-4">
+                  <h2 className="text-xl font-bold text-gray-900">
+                    Vendor Panel
+                  </h2>
+                  <p className="text-sm text-gray-500 mt-0.5">
+                    List your restaurant on FoodRush and manage it from one
+                    place.
+                  </p>
+                </div>
+
+                {/* State 1 — No application yet: show CTA + form */}
+                {!ownedRestaurant && (
+                  <div>
+                    {/* Hero CTA */}
+                    <div className="rounded-2xl bg-gradient-to-br from-orange-50 to-amber-50 border border-orange-100 p-6 flex flex-col sm:flex-row items-start sm:items-center gap-5">
+                      <div className="p-4 bg-orange-600 text-white rounded-2xl shadow-md shadow-orange-600/20 shrink-0">
+                        <Store size={28} />
+                      </div>
+                      <div>
+                        <h3 className="text-lg font-extrabold text-gray-900">
+                          Become a Vendor on FoodRush
+                        </h3>
+                        <p className="text-sm text-gray-600 mt-1 max-w-lg">
+                          List your restaurant, manage your menu, track orders,
+                          and grow your business — all from one vendor
+                          dashboard. Apply below and our team will review your
+                          application within 24–48 hours.
+                        </p>
+                      </div>
+                    </div>
+                    {/* Application Form */}
+                    <div className="mt-6 border border-gray-100 rounded-2xl p-6 bg-gray-50/30">
+                      <h4 className="text-base font-bold text-gray-800 mb-1">
+                        Restaurant Application
+                      </h4>
+                      <p className="text-sm text-gray-500">
+                        Fill in your restaurant details. Our admin team will
+                        review and activate your account.
+                      </p>
+                      <VendorApplicationForm />
+                    </div>
+                  </div>
+                )}
+
+                {/* State 2 — Application is PENDING review */}
+                {ownedRestaurant?.status === "PENDING" && (
+                  <div className="rounded-2xl border border-amber-200 bg-amber-50 p-6 flex items-start gap-4">
+                    <div className="p-3 bg-amber-100 text-amber-600 rounded-xl shrink-0 mt-0.5">
+                      <Clock size={22} />
+                    </div>
+                    <div>
+                      <h3 className="text-base font-extrabold text-amber-900">
+                        Application Under Review
+                      </h3>
+                      <p className="text-sm text-amber-800 mt-1">
+                        We&apos;ve received your application for{" "}
+                        <span className="font-bold">
+                          {ownedRestaurant.name}
+                        </span>
+                        . Our team is currently reviewing it. This usually takes{" "}
+                        <span className="font-bold">24–48 hours</span>.
+                        We&apos;ll update your account status once a decision is
+                        made.
+                      </p>
+                      <p className="text-xs text-amber-600 mt-3 font-semibold">
+                        Cuisine: {ownedRestaurant.cuisine} ·{" "}
+                        {ownedRestaurant.address}
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {/* State 3 — Approved: show vendor dashboard link */}
+                {ownedRestaurant?.status === "ACTIVE" && (
+                  <div className="space-y-4">
+                    <div className="rounded-2xl border border-green-200 bg-green-50 p-6 flex items-start gap-4">
+                      <div className="p-3 bg-green-100 text-green-600 rounded-xl shrink-0 mt-0.5">
+                        <CheckCircle2 size={22} />
+                      </div>
+                      <div>
+                        <h3 className="text-base font-extrabold text-green-900">
+                          Your Vendor Account is Active!
+                        </h3>
+                        <p className="text-sm text-green-800 mt-1">
+                          <span className="font-bold">
+                            {ownedRestaurant.name}
+                          </span>{" "}
+                          is live on FoodRush. Head to your vendor dashboard to
+                          manage your menu, track incoming orders, and view your
+                          earnings.
+                        </p>
+                      </div>
+                    </div>
+                    <Link
+                      href="/vendor"
+                      className="flex items-center justify-center gap-2 w-full sm:w-auto sm:inline-flex rounded-xl bg-orange-600 px-6 py-3 text-sm font-bold text-white shadow-md shadow-orange-600/20 hover:bg-orange-700 transition"
+                    >
+                      Go to Vendor Dashboard
+                      <ExternalLink size={15} />
+                    </Link>
+                  </div>
+                )}
+
+                {/* State 4 — Application REJECTED */}
+                {ownedRestaurant?.status === "REJECTED" && (
+                  <div className="rounded-2xl border border-red-200 bg-red-50 p-6 flex items-start gap-4">
+                    <div className="p-3 bg-red-100 text-red-500 rounded-xl shrink-0 mt-0.5">
+                      <XCircle size={22} />
+                    </div>
+                    <div>
+                      <h3 className="text-base font-extrabold text-red-900">
+                        Application Not Approved
+                      </h3>
+                      <p className="text-sm text-red-800 mt-1">
+                        Unfortunately, your application for{" "}
+                        <span className="font-bold">
+                          {ownedRestaurant.name}
+                        </span>{" "}
+                        was not approved.
+                      </p>
+                      {ownedRestaurant.rejectionReason && (
+                        <div className="mt-3 rounded-xl bg-white border border-red-100 px-4 py-3">
+                          <p className="text-xs font-bold text-red-600 uppercase tracking-wide mb-1">
+                            Reason from Admin
+                          </p>
+                          <p className="text-sm text-gray-700">
+                            {ownedRestaurant.rejectionReason}
+                          </p>
+                        </div>
+                      )}
+                      <p className="text-xs text-red-600 mt-3">
+                        If you believe this is a mistake, please contact
+                        support.
+                      </p>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </section>

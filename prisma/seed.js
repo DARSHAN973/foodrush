@@ -18,7 +18,7 @@ async function main() {
       deliveryTime: 35,
       imageUrl:
         "https://images.unsplash.com/photo-1585937421612-70a008356fbe?w=800&auto=format&fit=crop",
-      isActive: true,
+      status: "ACTIVE",
       menuItems: {
         create: [
           {
@@ -92,7 +92,7 @@ async function main() {
       deliveryTime: 30,
       imageUrl:
         "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=800&auto=format&fit=crop",
-      isActive: true,
+      status: "ACTIVE",
       menuItems: {
         create: [
           {
@@ -166,7 +166,7 @@ async function main() {
       deliveryTime: 25,
       imageUrl:
         "https://images.unsplash.com/photo-1563245372-f21724e3856d?w=800&auto=format&fit=crop",
-      isActive: true,
+      status: "ACTIVE",
       menuItems: {
         create: [
           {
@@ -230,7 +230,7 @@ async function main() {
       deliveryTime: 20,
       imageUrl:
         "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=800&auto=format&fit=crop",
-      isActive: true,
+      status: "ACTIVE",
       menuItems: {
         create: [
           {
@@ -304,7 +304,7 @@ async function main() {
       deliveryTime: 40,
       imageUrl:
         "https://images.unsplash.com/photo-1579871494447-9811cf80d66c?w=800&auto=format&fit=crop",
-      isActive: true,
+      status: "ACTIVE",
       menuItems: {
         create: [
           {
@@ -378,7 +378,7 @@ async function main() {
       deliveryTime: 25,
       imageUrl:
         "https://images.unsplash.com/photo-1565299585323-38d6b0865b47?w=800&auto=format&fit=crop",
-      isActive: true,
+      status: "ACTIVE",
       menuItems: {
         create: [
           {
@@ -452,7 +452,7 @@ async function main() {
       deliveryTime: 20,
       imageUrl:
         "https://images.unsplash.com/photo-1601050690597-df0568f70950?w=800&auto=format&fit=crop",
-      isActive: true,
+      status: "ACTIVE",
       menuItems: {
         create: [
           {
@@ -516,7 +516,7 @@ async function main() {
       deliveryTime: 30,
       imageUrl:
         "https://images.unsplash.com/photo-1544025162-d76694265947?w=800&auto=format&fit=crop",
-      isActive: true,
+      status: "ACTIVE",
       menuItems: {
         create: [
           {
@@ -590,7 +590,7 @@ async function main() {
       deliveryTime: 25,
       imageUrl:
         "https://images.unsplash.com/photo-1589301760014-d929f3979dbc?w=800&auto=format&fit=crop",
-      isActive: true,
+      status: "ACTIVE",
       menuItems: {
         create: [
           {
@@ -664,7 +664,7 @@ async function main() {
       deliveryTime: 35,
       imageUrl:
         "https://images.unsplash.com/photo-1562565652-a0d8f0c59eb4?w=800&auto=format&fit=crop",
-      isActive: true,
+      status: "ACTIVE",
       menuItems: {
         create: [
           {
@@ -738,7 +738,7 @@ async function main() {
       deliveryTime: 40,
       imageUrl:
         "https://images.unsplash.com/photo-1547592166-23ac45744acd?w=800&auto=format&fit=crop",
-      isActive: true,
+      status: "ACTIVE",
       menuItems: {
         create: [
           {
@@ -802,7 +802,7 @@ async function main() {
       deliveryTime: 45,
       imageUrl:
         "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=800&auto=format&fit=crop",
-      isActive: true,
+      status: "ACTIVE",
       menuItems: {
         create: [
           {
@@ -876,7 +876,7 @@ async function main() {
       deliveryTime: 30,
       imageUrl:
         "https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?w=800&auto=format&fit=crop",
-      isActive: true,
+      status: "ACTIVE",
       menuItems: {
         create: [
           {
@@ -941,7 +941,7 @@ async function main() {
       deliveryTime: 35,
       imageUrl:
         "https://images.unsplash.com/photo-1534766438357-2b270dbd1b40?w=800&auto=format&fit=crop",
-      isActive: true,
+      status: "ACTIVE",
       menuItems: {
         create: [
           {
@@ -1015,7 +1015,7 @@ async function main() {
       deliveryTime: 20,
       imageUrl:
         "https://images.unsplash.com/photo-1626700051175-6818013e1d4f?w=800&auto=format&fit=crop",
-      isActive: true,
+      status: "ACTIVE",
       menuItems: {
         create: [
           {
@@ -1081,7 +1081,7 @@ async function main() {
       deliveryTime: 30,
       imageUrl:
         "https://images.unsplash.com/photo-1585937421612-70a008356fbe?w=800&auto=format&fit=crop",
-      isActive: true,
+      status: "ACTIVE",
       menuItems: {
         create: [
           {
@@ -1155,7 +1155,7 @@ async function main() {
       deliveryTime: 20,
       imageUrl:
         "https://images.unsplash.com/photo-1562376552-0d160a2f238d?w=800&auto=format&fit=crop",
-      isActive: true,
+      status: "ACTIVE",
       menuItems: {
         create: [
           {
@@ -1229,7 +1229,7 @@ async function main() {
       deliveryTime: 35,
       imageUrl:
         "https://images.unsplash.com/photo-1559847844-5315695dadae?w=800&auto=format&fit=crop",
-      isActive: true,
+      status: "ACTIVE",
       menuItems: {
         create: [
           {
@@ -1303,7 +1303,7 @@ async function main() {
       deliveryTime: 20,
       imageUrl:
         "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=800&auto=format&fit=crop",
-      isActive: true,
+      status: "ACTIVE",
       menuItems: {
         create: [
           {
@@ -1379,7 +1379,7 @@ async function main() {
       deliveryTime: 40,
       imageUrl:
         "https://images.unsplash.com/photo-1585937421612-70a008356fbe?w=800&auto=format&fit=crop",
-      isActive: true,
+      status: "ACTIVE",
       menuItems: {
         create: [
           {
@@ -1453,7 +1453,7 @@ async function main() {
       deliveryTime: 30,
       imageUrl:
         "https://images.unsplash.com/photo-1473093295043-cdd812d0e601?w=800&auto=format&fit=crop",
-      isActive: true,
+      status: "ACTIVE",
       menuItems: {
         create: [
           {

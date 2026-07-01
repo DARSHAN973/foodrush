@@ -98,11 +98,12 @@ export default function AdminRestaurantsClient({ restaurants }) {
     setPendingRestaurantId(Number(restaurant.id));
     setErrorMessage("");
 
-    // Toggle action — the full restaurant object gives us both id and isActive,
+    // Toggle action — the full restaurant object gives us both id and status,
     // so one handler can activate inactive rows and deactivate active rows.
-    const result = restaurant.isActive
-      ? await deactivateRestaurantAction(restaurant.id)
-      : await activeRestaurantAction(restaurant.id);
+    const result =
+      restaurant.status === "ACTIVE"
+        ? await deactivateRestaurantAction(restaurant.id)
+        : await activeRestaurantAction(restaurant.id);
     if (result?.error) {
       showErrorMessage(result.error);
       setPendingRestaurantId(null);
@@ -146,12 +147,12 @@ export default function AdminRestaurantsClient({ restaurants }) {
       <div className="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm">
         {restaurants.map((restaurant) => {
           const isStatusPending = pendingRestaurantId === restaurant.id;
-          const statusButtonText = restaurant.isActive
-            ? "Deactivate"
-            : "Activate";
-          const pendingStatusButtonText = restaurant.isActive
-            ? "Deactivating..."
-            : "Activating...";
+          const statusButtonText =
+            restaurant.status === "ACTIVE" ? "Deactivate" : "Activate";
+          const pendingStatusButtonText =
+            restaurant.status === "ACTIVE"
+              ? "Deactivating..."
+              : "Activating...";
 
           return (
             <div
@@ -191,12 +192,12 @@ export default function AdminRestaurantsClient({ restaurants }) {
                   </div>
                   <span
                     className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold uppercase border mt-2 ${
-                      restaurant.isActive
+                      restaurant.status === "ACTIVE"
                         ? "bg-green-50 text-green-700 border-green-200/60"
                         : "bg-gray-50 text-gray-500 border-gray-200/60"
                     }`}
                   >
-                    {restaurant.isActive ? "Active" : "Inactive"}
+                    {restaurant.status === "ACTIVE" ? "Active" : "Inactive"}
                   </span>
                 </div>
               </div>
@@ -225,7 +226,7 @@ export default function AdminRestaurantsClient({ restaurants }) {
                   onClick={() => handleToggleRestaurantStatus(restaurant)}
                   disabled={isStatusPending}
                   className={`rounded-xl border px-3 py-2 text-xs font-bold active:scale-95 transition-all text-center cursor-pointer ${
-                    restaurant.isActive
+                    restaurant.status === "ACTIVE"
                       ? "border-red-200 text-red-600 hover:bg-red-50"
                       : "border-green-200 text-green-700 hover:bg-green-50"
                   } disabled:cursor-not-allowed disabled:opacity-60`}
