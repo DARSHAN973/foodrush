@@ -56,5 +56,7 @@ export async function createVendorApplication(formData) {
 
   // Mark the profile page stale so Next.js refetches it and shows PENDING state.
   revalidatePath("/profile");
-  return { message: "Application submitted! We'll review it within 24–48 hours." };
+  return {
+    message: "Application submitted! We'll review it within 24–48 hours.",
+  };
 }

@@ -130,7 +130,6 @@ model Restaurant {
   address         String?
   phone           String?
   description     String?
-
   menuItems        MenuItem[]
   restaurantOrders RestaurantOrder[]
   operatingHours   OperatingHours[]

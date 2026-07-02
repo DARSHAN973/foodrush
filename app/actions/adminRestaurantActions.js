@@ -143,3 +143,78 @@ export async function createRestaurantAction(formData) {
 
   return { message: "Restaurant created successfully" };
 }
+
+// approveVendorAction — admin approves a PENDING vendor application.
+// Uses prisma.$transaction to update BOTH tables atomically:
+// If restaurant.status update succeeds but user.role update fails (or vice versa),
+// the whole operation rolls back — no partial/inconsistent DB state.
+export async function approveVendorAction(restaurantId, ownerId) {
+  if (!restaurantId || !ownerId) {
+    return { error: "Invalid restaurant or owner ID." };
+  }
+
+  await prisma.$transaction([
+    // Set the restaurant live on the platform
+    prisma.restaurant.update({
+      where: { id: Number(restaurantId) },
+      data: { status: "ACTIVE" },
+    }),
+    // Upgrade the user's role so they can access /vendor routes
+    prisma.user.update({
+      where: { id: Number(ownerId) },
+      data: { role: "VENDOR" },
+    }),
+  ]);
+
+  // Revalidate both pages — admin list refreshes and vendor's profile
+  // shows the ACTIVE state immediately after the action completes.
+  revalidatePath("/admin/restaurants");
+  revalidatePath("/profile");
+
+  return { message: "Vendor approved successfully. Restaurant is now live!" };
+}
+
+// rejectVendorAction — admin rejects a PENDING vendor application with a reason.
+// The rejectionReason is shown to the vendor in their profile (State 4 UI).
+export async function rejectVendorAction(restaurantId, reason) {
+  if (!restaurantId) {
+    return { error: "Invalid restaurant ID." };
+  }
+
+  if (!reason?.trim()) {
+    return { error: "A rejection reason is required." };
+  }
+
+  await prisma.restaurant.update({
+    where: { id: Number(restaurantId) },
+    data: {
+      status: "REJECTED",
+      rejectionReason: reason.trim(),
+    },
+  });
+
+  revalidatePath("/admin/restaurants");
+  revalidatePath("/profile");
+
+  return { message: "Application rejected. Vendor has been notified." };
+}
+
+// suspendVendorAction — admin force-suspends a restaurant.
+// Works on both PENDING applications and already-ACTIVE restaurants.
+// Vendor's profile shows SUSPENDED state (falls into the REJECTED UI branch
+// or we can add a 5th state — for now SUSPENDED stops orders from showing).
+export async function suspendVendorAction(restaurantId) {
+  if (!restaurantId) {
+    return { error: "Invalid restaurant ID." };
+  }
+
+  await prisma.restaurant.update({
+    where: { id: Number(restaurantId) },
+    data: { status: "SUSPENDED" },
+  });
+
+  revalidatePath("/admin/restaurants");
+  revalidatePath("/profile");
+
+  return { message: "Restaurant suspended successfully." };
+}

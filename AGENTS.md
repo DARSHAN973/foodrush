@@ -249,9 +249,12 @@ because a boolean can't express PENDING, SUSPENDED, REJECTED states.
   - State 2 (PENDING) → amber "Under Review" card
   - State 3 (ACTIVE) → green card + "Go to Vendor Dashboard" link
   - State 4 (REJECTED) → red card with admin's rejectionReason
-- [ ] **Admin Applications tab** — list PENDING restaurants, Approve/Reject with reason
-  - Approve: set status=ACTIVE + user.role=VENDOR
-  - Reject: set status=REJECTED + store rejectionReason
+- [x] **Admin Applications tab** — list PENDING restaurants, Approve/Reject/Suspend
+  - Approve: `prisma.$transaction` sets status=ACTIVE + user.role=VENDOR atomically
+  - Reject: set status=REJECTED + store rejectionReason (shown to vendor in profile)
+  - Suspend: admin can hard-suspend from PENDING or ACTIVE state
+  - UI: tab switcher on `/admin/restaurants`, application cards with all vendor details
+  - Admin Restaurants tab simplified — only Force Suspend / Unsuspend (vendor manages own details)
 - [ ] **Admin Vendor Controls** — Suspend/Unsuspend, Send Warning to vendor
 - [ ] **Vendor Layout + route protection** — `app/vendor/layout.js`,
       only VENDOR role can access, sidebar nav
@@ -263,17 +266,27 @@ because a boolean can't express PENDING, SUSPENDED, REJECTED states.
   - Tab 1: Restaurant Info (edit details, open/close toggle, operating hours)
   - Tab 2: Menu Items (add/edit/delete + available toggle)
 
-**New files created this session:**
+**New files created (across Sessions 1 & 2 of Step 5):**
 
-- `app/actions/vendorActions.js`
-- `components/VendorApplicationForm.js`
-- Modified: `app/(user)/profile/page.js`, `lib/restaurants.js`,
-  `components/AdminRestaurantsClient.js`, `app/actions/adminRestaurantActions.js`,
-  `prisma/seed.js`, `app/api/restaurants/[id]/route.js`
+- `app/actions/vendorActions.js` — `createVendorApplication` server action
+- `components/VendorApplicationForm.js` — vendor signup form (4-state profile UI)
+- Modified: `app/(user)/profile/page.js` — Vendor tab with 4 states
+- Modified: `lib/restaurants.js` — added `getPendingApplications()` with owner relation
+- Modified: `app/admin/restaurants/page.js` — `Promise.all` parallel fetch of both datasets
+- Modified: `components/AdminRestaurantsClient.js` — full rewrite with tabs + Applications UI
+- Modified: `app/actions/adminRestaurantActions.js` — added `approveVendorAction`,
+  `rejectVendorAction`, `suspendVendorAction`
 
-**Key concept learned:** `prisma generate` must be run after schema changes.
-`db push` does not always regenerate the client. When you see "Unknown argument",
-run `npx prisma generate` then delete `.next` and restart.
+**Key concepts learned this step:**
+- `prisma.$transaction([...])` — atomic multi-table update. If one fails, both roll back.
+  Use this whenever two DB writes MUST succeed or fail together.
+- `Promise.all([query1(), query2()])` — parallel DB queries for independent data.
+  Faster than sequential `await` when queries don't depend on each other.
+- `prisma generate` must be run after schema changes.
+  `db push` does not always regenerate the client. When you see "Unknown argument",
+  run `npx prisma generate` then delete `.next` and restart.
+- MySQL 8 `allowPublicKeyRetrieval=true` — required in DATABASE_URL for local dev
+  when MySQL uses `caching_sha2_password` auth plugin.
 
 - **Teaches:** multi-role auth, role-based route protection, platform architecture
 
@@ -387,17 +400,27 @@ run `npx prisma generate` then delete `.next` and restart.
 - Phase 1, Step 5 (Vendor Onboarding) is **IN PROGRESS** 🔄
   - Schema done ✅
   - Vendor signup form (Profile page Vendor tab) done ✅
-  - **Next session:** Admin Applications tab (approve/reject vendor applications)
-    → then Admin Vendor Controls → then full Vendor Panel (layout + dashboard + orders + management)
+  - Admin Applications tab (Approve/Reject/Suspend) done ✅
+  - **Next session:** Vendor Layout + route protection → Vendor Dashboard → Vendor Orders → Vendor Management
 
 ### Next Session Build Order
 
 ```
-1. Admin: Applications tab — see PENDING apps, Approve/Reject
-   (completes the signup flow so it's fully testable end-to-end)
-2. Admin: Vendor controls — Send Warning, Suspend/Unsuspend
-3. Vendor layout + route protection (VENDOR role only)
-4. Vendor Dashboard — stats + warnings bell
-5. Vendor Orders — incoming orders + status updates
-6. Vendor Management — restaurant info + menu items (tabbed)
+1. Vendor layout + route protection — app/vendor/layout.js
+   Only VENDOR role can access. Redirect USER/ADMIN to home.
+   Sidebar nav: Dashboard | Orders | Management
+
+2. Vendor Dashboard (/vendor) — stats card grid:
+   - Total orders received
+   - Total revenue
+   - Active menu items count
+   - Unread admin warnings bell icon (VendorWarning model)
+
+3. Vendor Orders (/vendor/orders) — list RestaurantOrders for vendor's restaurant
+   Status update buttons: Confirmed → Preparing → Out for Delivery → Delivered
+
+4. Vendor Management (/vendor/management) — two tabs:
+   Tab 1: Restaurant Info — edit name, cuisine, address, phone, description,
+           isOpen toggle (live open/close), operating hours per day
+   Tab 2: Menu Items — add/edit/delete items, toggle isAvailable per item
 ```
