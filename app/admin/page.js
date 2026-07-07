@@ -134,7 +134,9 @@ export default async function AdminDashboard() {
             <h2 className="mt-1.5 text-base sm:text-2xl font-black text-gray-900 truncate">
               {card.value}
             </h2>
-            <p className="mt-1 text-[9px] sm:text-xs text-gray-500 truncate">{card.subtext}</p>
+            <p className="mt-1 text-[9px] sm:text-xs text-gray-500 truncate">
+              {card.subtext}
+            </p>
           </div>
         ))}
       </div>
@@ -251,12 +253,18 @@ export default async function AdminDashboard() {
 
                   <div className="text-[11px] sm:text-xs space-y-1 text-gray-600">
                     <div className="flex justify-between">
-                      <span className="text-gray-400 font-medium">Customer:</span>
-                      <span className="text-gray-900 font-semibold">{order.user.name}</span>
+                      <span className="text-gray-400 font-medium">
+                        Customer:
+                      </span>
+                      <span className="text-gray-900 font-semibold">
+                        {order.user.name}
+                      </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-400 font-medium">Email:</span>
-                      <span className="text-gray-500 truncate max-w-[160px]">{order.user.email}</span>
+                      <span className="text-gray-500 truncate max-w-[160px]">
+                        {order.user.email}
+                      </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-400 font-medium">Placed:</span>
@@ -274,7 +282,9 @@ export default async function AdminDashboard() {
                   </div>
 
                   <div className="border-t border-gray-50 pt-2 flex items-center justify-between">
-                    <span className="text-[11px] text-gray-400 font-medium">Total Amount</span>
+                    <span className="text-[11px] text-gray-400 font-medium">
+                      Total Amount
+                    </span>
                     <span className="font-black text-xs sm:text-sm text-gray-900">
                       ₹{order.total.toLocaleString("en-IN")}
                     </span>

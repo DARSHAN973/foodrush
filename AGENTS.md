@@ -278,6 +278,7 @@ because a boolean can't express PENDING, SUSPENDED, REJECTED states.
   `rejectVendorAction`, `suspendVendorAction`
 
 **Key concepts learned this step:**
+
 - `prisma.$transaction([...])` — atomic multi-table update. If one fails, both roll back.
   Use this whenever two DB writes MUST succeed or fail together.
 - `Promise.all([query1(), query2()])` — parallel DB queries for independent data.
