@@ -358,3 +358,34 @@ export async function deleteMenuItem(itemId) {
   revalidatePath("/vendor/management");
   return { success: true };
 }
+
+// markWarningAsReadAction — Allows a vendor to dismiss a warning.
+export async function markWarningAsReadAction(warningId) {
+  const session = await getServerSession(authOptions);
+  if (!session) return { error: "Unauthorized." };
+
+  const validWarningId = Number(warningId);
+  if (Number.isNaN(validWarningId)) return { error: "Invalid warning ID." };
+
+  const restaurant = await prisma.restaurant.findUnique({
+    where: { ownerId: session.user.id },
+  });
+  if (!restaurant) return { error: "You are not a vendor." };
+
+  const warning = await prisma.vendorWarning.findUnique({
+    where: { id: validWarningId },
+  });
+  if (!warning) return { error: "Warning not found." };
+  
+  if (warning.restaurantId !== restaurant.id) {
+    return { error: "Unauthorized to read this warning." };
+  }
+
+  await prisma.vendorWarning.update({
+    where: { id: validWarningId },
+    data: { isRead: true },
+  });
+
+  revalidatePath("/vendor");
+  return { success: true };
+}

@@ -241,7 +241,7 @@ because a boolean can't express PENDING, SUSPENDED, REJECTED states.
 - [x] Next Image optimization pass
 - **Teaches:** SEO best practices, skeleton UI patterns
 
-#### [~] 5. Vendor Onboarding + Admin Approval (8–10 hrs)
+#### [x] 5. Vendor Onboarding + Admin Approval (8–10 hrs)
 
 **Sub-steps and build plan (8 total):**
 
@@ -261,16 +261,16 @@ because a boolean can't express PENDING, SUSPENDED, REJECTED states.
   - Suspend: admin can hard-suspend from PENDING or ACTIVE state
   - UI: tab switcher on `/admin/restaurants`, application cards with all vendor details
   - Admin Restaurants tab simplified — only Force Suspend / Unsuspend (vendor manages own details)
-- [ ] **Admin Vendor Controls** — Suspend/Unsuspend, Send Warning to vendor
-- [ ] **Vendor Layout + route protection** — `app/vendor/layout.js`,
+- [x] **Admin Vendor Controls** — Suspend/Unsuspend, Send Warning to vendor
+- [x] **Vendor Layout + route protection** — `app/vendor/layout.js`,
       only VENDOR role can access, sidebar nav
-- [ ] **Vendor Dashboard** (`/vendor`) — stats (orders, revenue, top items),
+- [x] **Vendor Dashboard** (`/vendor`) — stats (orders, revenue, top items),
       admin warnings bell icon
-- [ ] **Vendor Orders** (`/vendor/orders`) — incoming orders + status updates
+- [x] **Vendor Orders** (`/vendor/orders`) — incoming orders + status updates
       (Preparing → Out for Delivery → Delivered)
-- [ ] **Vendor Management** (`/vendor/management`) — two tabs:
-  - Tab 1: Restaurant Info (edit details, open/close toggle, operating hours)
-  - Tab 2: Menu Items (add/edit/delete + available toggle)
+- [x] **Vendor Management** (`/vendor/management`) — two tabs:
+  - [x] Tab 1: Restaurant Info (edit details, open/close toggle, operating hours)
+  - [x] Tab 2: Menu Items (add/edit/delete + available toggle)
 
 **New files created (across Sessions 1 & 2 of Step 5):**
 
@@ -404,30 +404,14 @@ because a boolean can't express PENDING, SUSPENDED, REJECTED states.
 - Phase 1, Step 2 (Mobile-First UI & Dedicated Profile Page) is complete ✅
 - Phase 1, Step 3 (Restaurant Search + Filter with searchParams) is complete ✅
 - Phase 1, Step 4 (Loading States + SEO Audit) is complete ✅
-- Phase 1, Step 5 (Vendor Onboarding) is **IN PROGRESS** 🔄
-  - Schema done ✅
-  - Vendor signup form (Profile page Vendor tab) done ✅
-  - Admin Applications tab (Approve/Reject/Suspend) done ✅
-  - **Next session:** Vendor Layout + route protection → Vendor Dashboard → Vendor Orders → Vendor Management
+- Phase 1, Step 5 (Vendor Onboarding) is complete ✅
 
 ### Next Session Build Order
 
 ```
-1. Vendor layout + route protection — app/vendor/layout.js
-   Only VENDOR role can access. Redirect USER/ADMIN to home.
-   Sidebar nav: Dashboard | Orders | Management
-
-2. Vendor Dashboard (/vendor) — stats card grid:
-   - Total orders received
-   - Total revenue
-   - Active menu items count
-   - Unread admin warnings bell icon (VendorWarning model)
-
-3. Vendor Orders (/vendor/orders) — list RestaurantOrders for vendor's restaurant
-   Status update buttons: Confirmed → Preparing → Out for Delivery → Delivered
-
-4. Vendor Management (/vendor/management) — two tabs:
-   Tab 1: Restaurant Info — edit name, cuisine, address, phone, description,
-           isOpen toggle (live open/close), operating hours per day
-   Tab 2: Menu Items — add/edit/delete items, toggle isAvailable per item
+1. Real-Time Order Tracking with SSE (Phase 1, Step 6)
+   - Setup Server-Sent Events (SSE) route handler: GET /api/orders/[id]/stream
+   - Stream order status changes from the database to the client
+   - Create real-time order tracking client component showing status updates dynamically:
+     (Placed → Preparing → Out for Delivery → Delivered)
 ```

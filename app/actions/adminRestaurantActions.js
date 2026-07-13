@@ -201,8 +201,7 @@ export async function rejectVendorAction(restaurantId, reason) {
 
 // suspendVendorAction — admin force-suspends a restaurant.
 // Works on both PENDING applications and already-ACTIVE restaurants.
-// Vendor's profile shows SUSPENDED state (falls into the REJECTED UI branch
-// or we can add a 5th state — for now SUSPENDED stops orders from showing).
+// Vendor's profile shows SUSPENDED state.
 export async function suspendVendorAction(restaurantId) {
   if (!restaurantId) {
     return { error: "Invalid restaurant ID." };
@@ -217,4 +216,32 @@ export async function suspendVendorAction(restaurantId) {
   revalidatePath("/profile");
 
   return { message: "Restaurant suspended successfully." };
+}
+
+// sendWarningAction — allows admins to send warnings to vendors.
+// Warning messages are written to the VendorWarning model and show up in the vendor panel.
+export async function sendWarningAction(restaurantId, message) {
+  try {
+    const resId = Number(restaurantId);
+    if (!Number.isInteger(resId) || resId <= 0) {
+      return { error: "Invalid restaurant ID." };
+    }
+
+    if (!message?.trim()) {
+      return { error: "Warning message cannot be empty." };
+    }
+    const warning = await prisma.vendorWarning.create({
+      data: {
+        restaurantId: resId,
+        message: message.trim(),
+      },
+    });
+
+    revalidatePath("/admin/restaurants");
+
+    return { message: "Warning sent successfully to the vendor!" };
+  } catch (error) {
+    console.error("Failed to send warning:", error);
+    return { error: "Failed to send warning. Please try again." };
+  }
 }

@@ -11,6 +11,7 @@ import {
   ToggleLeft,
   AlertTriangle,
 } from "lucide-react";
+import DismissWarningButton from "@/components/DismissWarningButton";
 
 // StatusBadge — maps RestaurantOrderStatus enum values to styled pill badges.
 // Same pattern as admin/page.js StatusBadge but scoped to vendor-relevant statuses.
@@ -142,17 +143,19 @@ export default async function VendorDashboard() {
 
       {/* Admin Warnings Banner — only renders if there are unread warnings */}
       {unreadWarnings.length > 0 && (
-        <div className="flex items-start gap-3 rounded-2xl border border-rose-200 bg-rose-50 p-4">
-          <AlertTriangle size={18} className="text-rose-500 mt-0.5 shrink-0" />
-          <div>
-            <p className="text-sm font-bold text-rose-700">
-              {unreadWarnings.length} Admin Warning
-              {unreadWarnings.length > 1 ? "s" : ""}
-            </p>
-            <p className="mt-0.5 text-xs text-rose-600">
-              {unreadWarnings[0].message}
-            </p>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-2xl border border-rose-200 bg-rose-50 p-4">
+          <div className="flex items-start gap-3">
+            <AlertTriangle size={18} className="text-rose-500 mt-0.5 shrink-0" />
+            <div>
+              <p className="text-sm font-bold text-rose-700">
+                {unreadWarnings.length} Admin Warning{unreadWarnings.length > 1 ? "s" : ""}
+              </p>
+              <p className="mt-0.5 text-xs text-rose-600">
+                {unreadWarnings[0].message}
+              </p>
+            </div>
           </div>
+          <DismissWarningButton warningId={unreadWarnings[0].id} />
         </div>
       )}
 

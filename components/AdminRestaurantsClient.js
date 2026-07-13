@@ -9,6 +9,7 @@ import {
   approveVendorAction,
   rejectVendorAction,
   suspendVendorAction,
+  sendWarningAction,
 } from "@/app/actions/adminRestaurantActions";
 
 export default function AdminRestaurantsClient({
@@ -40,6 +41,21 @@ export default function AdminRestaurantsClient({
     reason: "",
   });
 
+  // warningModal — drives the send warning modal.
+  const [warningModal, setWarningModal] = useState({
+    open: false,
+    restaurantId: null,
+    restaurantName: "",
+    message: "",
+  });
+
+  // warningsHistoryModal — drives the history modal.
+  const [warningsHistoryModal, setWarningsHistoryModal] = useState({
+    open: false,
+    restaurantName: "",
+    warnings: [],
+  });
+
   function showSuccessToast(message) {
     setSuccessMessage(message);
     setTimeout(() => setSuccessMessage(""), 2500);
@@ -57,6 +73,43 @@ export default function AdminRestaurantsClient({
       ownerId: null,
       reason: "",
     });
+  }
+
+  function closeWarningModal() {
+    setWarningModal({
+      open: false,
+      restaurantId: null,
+      restaurantName: "",
+      message: "",
+    });
+  }
+
+  function closeWarningsHistoryModal() {
+    setWarningsHistoryModal({
+      open: false,
+      restaurantName: "",
+      warnings: [],
+    });
+  }
+
+  async function handleSendWarningConfirm() {
+    setActionPendingId(warningModal.restaurantId);
+    setErrorMessage("");
+
+    const result = await sendWarningAction(
+      warningModal.restaurantId,
+      warningModal.message
+    );
+
+    if (result?.error) {
+      showErrorToast(result.error);
+      setActionPendingId(null);
+      return;
+    }
+    closeWarningModal();
+    showSuccessToast(result.message);
+    setActionPendingId(null);
+    router.refresh();
   }
 
   // handleToggleRestaurantStatus — used on the Restaurants tab.
@@ -238,25 +291,58 @@ export default function AdminRestaurantsClient({
                     </div>
                   </div>
 
-                  {/* Force Suspend / Unsuspend — admin override */}
-                  <button
-                    type="button"
-                    onClick={() => handleToggleRestaurantStatus(restaurant)}
-                    disabled={isRowPending}
-                    className={`shrink-0 rounded-xl border px-4 py-2 text-xs font-bold active:scale-95 transition-all cursor-pointer disabled:cursor-not-allowed disabled:opacity-60 ${
-                      restaurant.status === "ACTIVE"
-                        ? "border-red-200 text-red-600 hover:bg-red-50"
-                        : "border-green-200 text-green-700 hover:bg-green-50"
-                    }`}
-                  >
-                    {isRowPending
-                      ? restaurant.status === "ACTIVE"
-                        ? "Suspending..."
-                        : "Activating..."
-                      : restaurant.status === "ACTIVE"
-                        ? "Force Suspend"
-                        : "Unsuspend"}
-                  </button>
+                  {/* Action Controls */}
+                  <div className="flex items-center gap-2">
+                    {restaurant.warnings && restaurant.warnings.length > 0 && (
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setWarningsHistoryModal({
+                            open: true,
+                            restaurantName: restaurant.name,
+                            warnings: restaurant.warnings,
+                          })
+                        }
+                        className="shrink-0 rounded-xl border border-gray-200 text-gray-600 hover:bg-gray-50 px-3 py-2 text-xs font-bold active:scale-95 transition-all cursor-pointer"
+                      >
+                        History ({restaurant.warnings.length})
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setWarningModal({
+                          open: true,
+                          restaurantId: restaurant.id,
+                          restaurantName: restaurant.name,
+                          message: "",
+                        })
+                      }
+                      className="shrink-0 rounded-xl border border-amber-200 text-amber-600 hover:bg-amber-50 px-4 py-2 text-xs font-bold active:scale-95 transition-all cursor-pointer"
+                    >
+                      ⚠️ Send Warning
+                    </button>
+
+                    {/* Force Suspend / Unsuspend — admin override */}
+                    <button
+                      type="button"
+                      onClick={() => handleToggleRestaurantStatus(restaurant)}
+                      disabled={isRowPending}
+                      className={`shrink-0 rounded-xl border px-4 py-2 text-xs font-bold active:scale-95 transition-all cursor-pointer disabled:cursor-not-allowed disabled:opacity-60 ${
+                        restaurant.status === "ACTIVE"
+                          ? "border-red-200 text-red-600 hover:bg-red-50"
+                          : "border-green-200 text-green-700 hover:bg-green-50"
+                      }`}
+                    >
+                      {isRowPending
+                        ? restaurant.status === "ACTIVE"
+                          ? "Suspending..."
+                          : "Activating..."
+                        : restaurant.status === "ACTIVE"
+                          ? "Force Suspend"
+                          : "Unsuspend"}
+                    </button>
+                  </div>
                 </div>
               );
             })
@@ -452,6 +538,127 @@ export default function AdminRestaurantsClient({
                 className="rounded-xl bg-red-600 px-4 py-2 text-xs font-bold text-white hover:bg-red-700 active:scale-95 transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
               >
                 Confirm Reject
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ─── SEND WARNING MODAL ────────────────────────────────────── */}
+      {warningModal.open && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="w-full max-w-md rounded-2xl bg-white shadow-2xl overflow-hidden animate-zoom-in">
+            <div className="flex items-start justify-between border-b border-gray-100 px-5 py-4">
+              <div>
+                <h2 className="text-base font-bold text-gray-900">
+                  Send Warning to {warningModal.restaurantName}
+                </h2>
+                <p className="text-xs text-gray-500 mt-0.5">
+                  This warning will show up in the vendor's dashboard.
+                </p>
+              </div>
+              <button
+                onClick={closeWarningModal}
+                className="rounded-xl p-1.5 text-xl leading-none text-gray-400 hover:bg-gray-100 hover:text-gray-700 transition"
+              >
+                &times;
+              </button>
+            </div>
+
+            <div className="px-5 py-5">
+              {errorMessage && (
+                <p className="mb-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-xs font-semibold text-red-600">
+                  {errorMessage}
+                </p>
+              )}
+              <label className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-gray-500">
+                Warning Message
+              </label>
+              <textarea
+                rows={4}
+                value={warningModal.message}
+                onChange={(e) =>
+                  setWarningModal((prev) => ({
+                    ...prev,
+                    message: e.target.value,
+                  }))
+                }
+                placeholder="e.g. Please update your menu item prices. High deviation from standard platform rates observed."
+                className="w-full rounded-xl border border-gray-200 px-3.5 py-2.5 text-sm outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-100 transition-all resize-none"
+              />
+            </div>
+
+            <div className="flex justify-end gap-2.5 border-t border-gray-100 px-5 py-4">
+              <button
+                onClick={closeWarningModal}
+                className="rounded-xl border border-gray-200 px-4 py-2 text-xs font-bold text-gray-700 hover:bg-gray-50 transition cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSendWarningConfirm}
+                disabled={!warningModal.message.trim() || actionPendingId !== null}
+                className="rounded-xl bg-amber-600 px-4 py-2 text-xs font-bold text-white hover:bg-amber-700 active:scale-95 transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+              >
+                {actionPendingId === warningModal.restaurantId ? "Sending..." : "Send Warning"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ─── WARNINGS HISTORY MODAL ────────────────────────────────── */}
+      {warningsHistoryModal.open && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="w-full max-w-md rounded-2xl bg-white shadow-2xl overflow-hidden animate-zoom-in">
+            <div className="flex items-start justify-between border-b border-gray-100 px-5 py-4">
+              <div>
+                <h2 className="text-base font-bold text-gray-900">
+                  Warnings History
+                </h2>
+                <p className="text-xs text-gray-500 mt-0.5">
+                  {warningsHistoryModal.restaurantName}
+                </p>
+              </div>
+              <button
+                onClick={closeWarningsHistoryModal}
+                className="rounded-xl p-1.5 text-xl leading-none text-gray-400 hover:bg-gray-100 hover:text-gray-700 transition cursor-pointer"
+              >
+                &times;
+              </button>
+            </div>
+
+            <div className="max-h-96 overflow-y-auto px-5 py-5 space-y-4">
+              {warningsHistoryModal.warnings.map((warning) => (
+                <div key={warning.id} className="rounded-xl border border-gray-100 bg-gray-50 p-4">
+                  <div className="flex items-start justify-between gap-4">
+                    <p className="text-sm text-gray-700">{warning.message}</p>
+                    <span
+                      className={`shrink-0 inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold uppercase ${
+                        warning.isRead
+                          ? "bg-green-100 text-green-700"
+                          : "bg-amber-100 text-amber-700"
+                      }`}
+                    >
+                      {warning.isRead ? "Read" : "Unread"}
+                    </span>
+                  </div>
+                  <p className="mt-2 text-[10px] font-medium text-gray-400">
+                    {new Date(warning.createdAt).toLocaleString("en-IN", {
+                      dateStyle: "medium",
+                      timeStyle: "short",
+                    })}
+                  </p>
+                </div>
+              ))}
+            </div>
+
+            <div className="flex justify-end gap-2.5 border-t border-gray-100 px-5 py-4">
+              <button
+                onClick={closeWarningsHistoryModal}
+                className="rounded-xl bg-gray-900 px-4 py-2 text-xs font-bold text-white hover:bg-gray-800 active:scale-95 transition cursor-pointer"
+              >
+                Close
               </button>
             </div>
           </div>
