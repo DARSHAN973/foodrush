@@ -23,6 +23,10 @@ export default function NavbarClient({ cartCount }) {
 
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  // isLoggingOut — set to true the moment logout is clicked.
+  // signOut() takes a moment to clear the session cookie and redirect.
+  // The overlay keeps the UI blocked so the user doesn't click anything else.
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   const navRef = useRef(null);
   const dropdownRef = useRef(null);
@@ -53,100 +57,122 @@ export default function NavbarClient({ cartCount }) {
   ).toUpperCase();
 
   return (
-    <nav
-      ref={navRef}
-      className="sticky top-0 z-50 bg-orange-600/95 backdrop-blur-md text-white shadow-md border-b border-orange-500/20"
-    >
-      {/* --- TOP BAR (Logo & Mobile Toggle) --- */}
-      <div className="flex items-center justify-between px-4 py-3 sm:px-6">
-        <div>
-          <h2>
-            <Link
-              href="/"
-              className="flex items-center gap-2 group focus:outline-none select-none"
-            >
-              <div className="bg-amber-400 text-orange-600 p-1.5 rounded-xl shadow-inner group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
-                <Flame size={20} className="fill-orange-600 animate-pulse" />
-              </div>
-              <span className="text-2xl font-black italic tracking-tighter text-white">
-                Food
-                <span className="text-amber-300 group-hover:text-amber-400 transition-colors">
-                  Rush
-                </span>
-              </span>
-            </Link>
-          </h2>
-        </div>
-
-        {/* Mobile Hamburger Button with CSS animations */}
-        <button
-          className="sm:hidden text-white hover:text-orange-200 focus:outline-none transition-all p-2.5 -mr-2.5 active:scale-90 rounded-xl"
-          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-          aria-label="Toggle mobile menu"
-        >
-          <div className="relative w-5 h-5 flex items-center justify-center">
-            {/* Top Bar */}
-            <span
-              className={`absolute block h-0.5 w-5 bg-current transform transition-all duration-300 ease-in-out ${
-                isMobileMenuOpen ? "rotate-45" : "-translate-y-1.5"
-              }`}
-            />
-            {/* Middle Bar */}
-            <span
-              className={`absolute block h-0.5 w-5 bg-current transition-all duration-300 ease-in-out ${
-                isMobileMenuOpen ? "opacity-0" : "opacity-100"
-              }`}
-            />
-            {/* Bottom Bar */}
-            <span
-              className={`absolute block h-0.5 w-5 bg-current transform transition-all duration-300 ease-in-out ${
-                isMobileMenuOpen ? "-rotate-45" : "translate-y-1.5"
-              }`}
-            />
-          </div>
-        </button>
-
-        {/* --- DESKTOP MENU (Hidden on mobile) --- */}
-        <div className="hidden sm:block">
-          <ul className="flex items-center gap-2 lg:gap-4">
-            <NavLinks pathname={pathname} cartCount={cartCount} />
-            <UserMenu
-              session={session}
-              isDropdownOpen={isDropdownOpen}
-              setIsDropdownOpen={setIsDropdownOpen}
-              avatarLetter={avatarLetter}
-              dropdownRef={dropdownRef}
-            />
-          </ul>
-        </div>
-      </div>
-
-      {/* --- MOBILE MENU DROPDOWN (Obsidian Glassmorphic Card Layout) --- */}
-      <div
-        className={`absolute top-16 left-4 right-4 sm:hidden bg-orange-950/96 backdrop-blur-xl rounded-2xl border border-orange-500/20 p-4 shadow-2xl shadow-black/30 transition-all duration-300 transform origin-top-right z-50 ${
-          isMobileMenuOpen
-            ? "opacity-100 scale-100 translate-y-0"
-            : "opacity-0 scale-95 -translate-y-4 pointer-events-none"
-        }`}
-        aria-hidden={!isMobileMenuOpen}
+    <>
+      <nav
+        ref={navRef}
+        className="sticky top-0 z-50 bg-orange-600/95 backdrop-blur-md text-white shadow-md border-b border-orange-500/20"
       >
-        <ul className="flex flex-col gap-2">
-          <NavLinks pathname={pathname} cartCount={cartCount} isMobile={true} />
+        {/* --- TOP BAR (Logo & Mobile Toggle) --- */}
+        <div className="flex items-center justify-between px-4 py-3 sm:px-6">
+          <div>
+            <h2>
+              <Link
+                href="/"
+                className="flex items-center gap-2 group focus:outline-none select-none"
+              >
+                <div className="bg-amber-400 text-orange-600 p-1.5 rounded-xl shadow-inner group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
+                  <Flame size={20} className="fill-orange-600 animate-pulse" />
+                </div>
+                <span className="text-2xl font-black italic tracking-tighter text-white">
+                  Food
+                  <span className="text-amber-300 group-hover:text-amber-400 transition-colors">
+                    Rush
+                  </span>
+                </span>
+              </Link>
+            </h2>
+          </div>
 
-          {/* Divider line before user actions */}
-          <div className="mt-1.5 pt-3 border-t border-white/5">
-            <UserMenu
-              session={session}
-              isDropdownOpen={isDropdownOpen}
-              setIsDropdownOpen={setIsDropdownOpen}
-              avatarLetter={avatarLetter}
-              dropdownRef={dropdownRef}
+          {/* Mobile Hamburger Button with CSS animations */}
+          <button
+            className="sm:hidden text-white hover:text-orange-200 focus:outline-none transition-all p-2.5 -mr-2.5 active:scale-90 rounded-xl"
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            aria-label="Toggle mobile menu"
+          >
+            <div className="relative w-5 h-5 flex items-center justify-center">
+              {/* Top Bar */}
+              <span
+                className={`absolute block h-0.5 w-5 bg-current transform transition-all duration-300 ease-in-out ${
+                  isMobileMenuOpen ? "rotate-45" : "-translate-y-1.5"
+                }`}
+              />
+              {/* Middle Bar */}
+              <span
+                className={`absolute block h-0.5 w-5 bg-current transition-all duration-300 ease-in-out ${
+                  isMobileMenuOpen ? "opacity-0" : "opacity-100"
+                }`}
+              />
+              {/* Bottom Bar */}
+              <span
+                className={`absolute block h-0.5 w-5 bg-current transform transition-all duration-300 ease-in-out ${
+                  isMobileMenuOpen ? "-rotate-45" : "translate-y-1.5"
+                }`}
+              />
+            </div>
+          </button>
+
+          {/* --- DESKTOP MENU (Hidden on mobile) --- */}
+          <div className="hidden sm:block">
+            <ul className="flex items-center gap-2 lg:gap-4">
+              <NavLinks pathname={pathname} cartCount={cartCount} />
+              <UserMenu
+                session={session}
+                isDropdownOpen={isDropdownOpen}
+                setIsDropdownOpen={setIsDropdownOpen}
+                avatarLetter={avatarLetter}
+                dropdownRef={dropdownRef}
+                setIsLoggingOut={setIsLoggingOut}
+              />
+            </ul>
+          </div>
+        </div>
+
+        {/* --- MOBILE MENU DROPDOWN (Obsidian Glassmorphic Card Layout) --- */}
+        <div
+          className={`absolute top-16 left-4 right-4 sm:hidden bg-orange-950/96 backdrop-blur-xl rounded-2xl border border-orange-500/20 p-4 shadow-2xl shadow-black/30 transition-all duration-300 transform origin-top-right z-50 ${
+            isMobileMenuOpen
+              ? "opacity-100 scale-100 translate-y-0"
+              : "opacity-0 scale-95 -translate-y-4 pointer-events-none"
+          }`}
+          aria-hidden={!isMobileMenuOpen}
+        >
+          <ul className="flex flex-col gap-2">
+            <NavLinks
+              pathname={pathname}
+              cartCount={cartCount}
               isMobile={true}
             />
+
+            {/* Divider line before user actions */}
+            <div className="mt-1.5 pt-3 border-t border-white/5">
+              <UserMenu
+                session={session}
+                isDropdownOpen={isDropdownOpen}
+                setIsDropdownOpen={setIsDropdownOpen}
+                avatarLetter={avatarLetter}
+                dropdownRef={dropdownRef}
+                isMobile={true}
+                setIsLoggingOut={setIsLoggingOut}
+              />
+            </div>
+          </ul>
+        </div>
+      </nav>
+
+      {/* Full-screen logout overlay — placed outside the sticky <nav> wrapper so
+          that CSS containing blocks (like backdrop-blur-md) on the <nav> do not
+          constrain this fixed overlay from occupying the full viewport height/width. */}
+      {isLoggingOut && (
+        <div className="fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-black/60 backdrop-blur-sm">
+          <div className="flex flex-col items-center gap-4 rounded-2xl bg-white px-10 py-8 shadow-2xl">
+            <div className="h-10 w-10 animate-spin rounded-full border-4 border-orange-200 border-t-orange-600" />
+            <p className="text-sm font-bold text-gray-700">
+              Signing you out...
+            </p>
           </div>
-        </ul>
-      </div>
-    </nav>
+        </div>
+      )}
+    </>
   );
 }
 
@@ -218,6 +244,7 @@ function UserMenu({
   avatarLetter,
   dropdownRef,
   isMobile,
+  setIsLoggingOut,
 }) {
   if (!session) {
     return (
@@ -265,7 +292,11 @@ function UserMenu({
         </li>
         <li>
           <button
-            onClick={() => signOut({ callbackUrl: "/" })}
+            onClick={async () => {
+              setIsLoggingOut(true);
+              await signOut({ redirect: false });
+              window.location.href = "/";
+            }}
             className="flex w-full items-center gap-2 rounded-xl px-4 py-3 text-base font-bold text-red-300 hover:bg-red-500/10 active:scale-[0.98] transition-all"
           >
             <LogOut size={20} />
@@ -310,9 +341,11 @@ function UserMenu({
           </div>
           <div className="py-1">
             <button
-              onClick={() => {
+              onClick={async () => {
                 setIsDropdownOpen(false);
-                signOut({ callbackUrl: "/" });
+                setIsLoggingOut(true);
+                await signOut({ redirect: false });
+                window.location.href = "/";
               }}
               className="w-full text-left flex items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors cursor-pointer font-medium"
             >

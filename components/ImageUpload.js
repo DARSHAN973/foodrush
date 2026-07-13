@@ -51,9 +51,9 @@ export default function ImageUpload({ onUploadSuccess, defaultImageUrl = "" }) {
         setPreviewUrl(defaultImageUrl); // rollback preview on error
       } else if (result.success && result.url) {
         // Lifting State Up: Trigger the callback prop supplied by the parent.
-        // This updates the parent's state, updating the hidden input field's value
-        // so that the Cloudinary URL is included in the final form submission to MySQL.
-        onUploadSuccess(result.url);
+        // Both url and publicId are passed so the parent can store them in
+        // hidden inputs — publicId is needed later for Cloudinary deletion.
+        onUploadSuccess(result.url, result.publicId);
       }
     } catch (err) {
       setError("An unexpected error occurred during upload");
