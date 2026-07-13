@@ -60,3 +60,54 @@ export async function createVendorApplication(formData) {
     message: "Application submitted! We'll review it within 24–48 hours.",
   };
 }
+
+export async function updateOrderStatus(orderId, newStatus) {
+  const session = await getServerSession(authOptions);
+  if (!session) {
+    return { error: "You must be logged in to update order status." };
+  }
+
+  const validOrderId = Number(orderId);
+  if (Number.isNaN(validOrderId)) {
+    return { error: "Invalid order ID." };
+  }
+
+  const VALID_STATUS = [
+    "CONFIRMED",
+    "PREPARING",
+    "OUT_FOR_DELIVERY",
+    "DELIVERED",
+  ];
+  if (!VALID_STATUS.includes(newStatus)) {
+    return { error: "Invalid status." };
+  }
+
+  const restaurant = await prisma.restaurant.findUnique({
+    where: { ownerId: session.user.id },
+  });
+
+  if (!restaurant) {
+    return { error: "You are not a vendor." };
+  }
+
+  const restaurantOrder = await prisma.restaurantOrder.findUnique({
+    where: { id: validOrderId },
+  });
+
+  if (!restaurantOrder) {
+    return { error: "Order not found." };
+  }
+  if (restaurantOrder.restaurantId !== restaurant.id) {
+    return { error: "You are not authorized to update this order." };
+  }
+
+  await prisma.restaurantOrder.update({
+    where: { id: validOrderId },
+    data: { status: newStatus },
+  });
+
+  // Revalidate both pages — orders list + dashboard stats both reflect the new status.
+  revalidatePath("/vendor/orders");
+  revalidatePath("/vendor");
+  return { success: true };
+}

@@ -13,6 +13,10 @@ export default withAuth(
     ) {
       return NextResponse.redirect(new URL("/", req.url));
     }
+
+    if (path.startsWith("/vendor") && token?.role !== "VENDOR") {
+      return NextResponse.redirect(new URL("/", req.url));
+    }
   },
   {
     callbacks: {
@@ -27,5 +31,5 @@ export default withAuth(
 );
 
 export const config = {
-  matcher: ["/cart", "/admin/:path*"],
+  matcher: ["/cart", "/admin/:path*", "/vendor/:path*"],
 };

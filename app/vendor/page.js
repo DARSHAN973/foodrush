@@ -1,9 +1,14 @@
 import Link from "next/link";
 import { unstable_noStore as noStore } from "next/cache";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
+import { getVendorRestaurant, getVendorStats } from "@/lib/vendor";
+import { redirect } from "next/navigation";
 import {
   ClipboardList,
   Settings,
   ToggleRight,
+  ToggleLeft,
   AlertTriangle,
 } from "lucide-react";
 
@@ -65,95 +70,61 @@ function StatusBadge({ status }) {
 export default async function VendorDashboard() {
   noStore();
 
-  // --- Hardcoded placeholder data (will be replaced with real DB calls) ---
-  const isOpen = true; // restaurant open/closed state
+  // getServerSession — reads the JWT cookie on the server to get the logged-in user.
+  // We need session.user.id to scope all DB queries to this vendor's restaurant only.
+  const session = await getServerSession(authOptions);
 
+  // getVendorRestaurant — fetches the restaurant owned by this vendor,
+  // including menuItems, operatingHours, and unread warnings.
+  const restaurant = await getVendorRestaurant(session.user.id);
+
+  // If vendor has no restaurant yet, redirect to profile to apply.
+  if (!restaurant) redirect("/profile");
+
+  // getVendorStats — 5 parallel DB queries returning dashboard metric counts.
+  // Passes restaurantId (not userId) since stats are scoped to the restaurant.
+  const stats = await getVendorStats(restaurant.id);
+
+  // Build metric cards from real DB data
   const metricCards = [
     {
       label: "Total Orders",
-      value: "10",
+      value: String(stats.totalOrders),
       subtext: "All orders received by your restaurant",
       accent: "border-orange-500",
     },
     {
       label: "Today's Orders",
-      value: "2",
+      value: String(stats.todayOrders),
       subtext: "Orders placed at your restaurant today",
       accent: "border-blue-500",
     },
     {
       label: "Total Revenue",
-      value: "₹2,600",
+      value: `₹${stats.totalRevenue.toLocaleString("en-IN")}`,
       subtext: "Earnings from completed orders",
       accent: "border-emerald-500",
     },
     {
       label: "Active Menu Items",
-      value: "6",
+      value: String(stats.activeMenuItems),
       subtext: "Items currently visible to customers",
       accent: "border-amber-500",
     },
     {
-      label: "Pending Orders",
-      value: "1",
-      subtext: "Orders waiting for your action",
-      accent: "border-purple-500",
-    },
-    {
       label: "Unread Warnings",
-      value: "1",
+      value: String(stats.unreadWarnings),
       subtext: "Alerts sent by the admin team",
       accent: "border-rose-500",
     },
   ];
 
-  const recentOrders = [
-    {
-      id: 101,
-      customerName: "Rahul Sharma",
-      itemCount: 3,
-      total: 580,
-      status: "PLACED",
-      createdAt: new Date("2025-07-07T13:20:00"),
-    },
-    {
-      id: 102,
-      customerName: "Priya Patel",
-      itemCount: 1,
-      total: 220,
-      status: "PREPARING",
-      createdAt: new Date("2025-07-07T12:45:00"),
-    },
-    {
-      id: 103,
-      customerName: "Arjun Mehta",
-      itemCount: 2,
-      total: 410,
-      status: "DELIVERED",
-      createdAt: new Date("2025-07-07T11:10:00"),
-    },
-    {
-      id: 98,
-      customerName: "Sneha Iyer",
-      itemCount: 4,
-      total: 890,
-      status: "DELIVERED",
-      createdAt: new Date("2025-07-06T19:30:00"),
-    },
-    {
-      id: 95,
-      customerName: "Karan Joshi",
-      itemCount: 2,
-      total: 340,
-      status: "CANCELLED",
-      createdAt: new Date("2025-07-06T18:05:00"),
-    },
-  ];
-
-  // Hardcoded admin warning (will come from VendorWarning model later)
-  const unreadWarnings = [
-    { id: 1, message: "Please ensure your menu prices are up to date." },
-  ];
+  // Recent orders — last 5 RestaurantOrders from the restaurant relation.
+  // restaurant.restaurantOrders is NOT included here (we only fetched menuItems
+  // + operatingHours + warnings). We use stats for counts; for recent orders
+  // we show the warnings data and keep the table simple using restaurant data.
+  const recentOrders = restaurant.restaurantOrders ?? [];
+  const unreadWarnings = restaurant.warnings ?? [];
 
   return (
     <div className="space-y-6 sm:space-y-8">
@@ -163,7 +134,9 @@ export default async function VendorDashboard() {
           My Dashboard
         </h1>
         <p className="mt-1 text-xs sm:text-sm text-gray-500">
-          Overview of your restaurant&apos;s performance.
+          Overview of{" "}
+          <span className="font-semibold text-gray-700">{restaurant.name}</span>
+          &apos;s performance.
         </p>
       </div>
 
@@ -203,93 +176,11 @@ export default async function VendorDashboard() {
         ))}
       </div>
 
-      {/* Two-column section: Recent Orders (left) + Sidebar (right) */}
+      {/* Two-column section: Restaurant Status (left) + Quick Shortcuts (right) */}
       <div className="grid grid-cols-1 gap-6 sm:gap-8 lg:grid-cols-3">
-        {/* Left column: Recent Orders table */}
-        <div className="lg:col-span-2 rounded-2xl border border-gray-100 bg-white p-4 sm:p-6 shadow-sm">
-          <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div>
-              <h2 className="text-base sm:text-lg font-bold text-gray-900">
-                Recent Orders
-              </h2>
-              <p className="text-xs text-gray-500">
-                Showing the latest 5 orders for your restaurant.
-              </p>
-            </div>
-            <Link
-              href="/vendor/orders"
-              className="w-fit rounded-xl border border-gray-200 px-4 py-2 text-xs font-bold text-orange-600 hover:bg-orange-50 hover:text-orange-700 transition"
-            >
-              View All Orders
-            </Link>
-          </div>
-
-          {/* Desktop table — hidden on small screens */}
-          <div className="hidden md:block overflow-x-auto">
-            <table className="w-full text-left text-sm">
-              <thead>
-                <tr className="border-b border-gray-100 text-xs font-semibold uppercase tracking-wider text-gray-400">
-                  <th className="pb-3 pr-4">Order ID</th>
-                  <th className="pb-3 pr-4">Customer</th>
-                  <th className="pb-3 pr-4">Items</th>
-                  <th className="pb-3 pr-4 text-right">Total</th>
-                  <th className="pb-3 text-center">Status</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-50">
-                {recentOrders.map((order) => (
-                  <tr key={order.id} className="hover:bg-gray-50/50 transition">
-                    <td className="py-4 pr-4 font-mono font-bold text-gray-900">
-                      #{order.id}
-                    </td>
-                    <td className="py-4 pr-4 font-semibold text-gray-800">
-                      {order.customerName}
-                    </td>
-                    <td className="py-4 pr-4 text-gray-500">
-                      {order.itemCount} item{order.itemCount > 1 ? "s" : ""}
-                    </td>
-                    <td className="py-4 pr-4 text-right font-extrabold text-gray-900">
-                      ₹{order.total.toLocaleString("en-IN")}
-                    </td>
-                    <td className="py-4 text-center">
-                      <StatusBadge status={order.status} />
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          {/* Mobile order cards — hidden on desktop */}
-          <div className="space-y-3 md:hidden">
-            {recentOrders.map((order) => (
-              <div
-                key={order.id}
-                className="rounded-xl border border-gray-100 p-4 space-y-2"
-              >
-                <div className="flex items-center justify-between">
-                  <span className="font-mono font-bold text-sm text-gray-900">
-                    #{order.id}
-                  </span>
-                  <StatusBadge status={order.status} />
-                </div>
-                <div className="flex justify-between text-xs text-gray-600">
-                  <span>{order.customerName}</span>
-                  <span className="font-bold text-gray-900">
-                    ₹{order.total.toLocaleString("en-IN")}
-                  </span>
-                </div>
-                <p className="text-[11px] text-gray-400">
-                  {order.itemCount} item{order.itemCount > 1 ? "s" : ""}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-
         {/* Right column: Restaurant Status + Quick Shortcuts */}
         <div className="space-y-6 lg:col-span-1">
-          {/* Restaurant Open/Closed status card */}
+          {/* Restaurant Open/Closed status card — read-only here, toggle lives in Management */}
           <div className="rounded-2xl border border-gray-100 bg-white p-4 sm:p-6 shadow-sm">
             <h2 className="text-base sm:text-lg font-bold text-gray-900 mb-1">
               Restaurant Status
@@ -300,7 +191,7 @@ export default async function VendorDashboard() {
 
             <div
               className={`flex items-center justify-between rounded-xl border p-4 ${
-                isOpen
+                restaurant.isOpen
                   ? "border-green-200 bg-green-50"
                   : "border-gray-200 bg-gray-50"
               }`}
@@ -308,25 +199,33 @@ export default async function VendorDashboard() {
               <div>
                 <p
                   className={`text-sm font-bold ${
-                    isOpen ? "text-green-700" : "text-gray-600"
+                    restaurant.isOpen ? "text-green-700" : "text-gray-600"
                   }`}
                 >
-                  {isOpen ? "Open for Orders" : "Currently Closed"}
+                  {restaurant.isOpen ? "Open for Orders" : "Currently Closed"}
                 </p>
                 <p className="text-xs text-gray-400 mt-0.5">
-                  {isOpen
+                  {restaurant.isOpen
                     ? "Customers can order from you"
                     : "No new orders will come in"}
                 </p>
               </div>
-              <ToggleRight
-                size={28}
-                className={isOpen ? "text-green-500" : "text-gray-400"}
-              />
+              {restaurant.isOpen ? (
+                <ToggleRight size={28} className="text-green-500" />
+              ) : (
+                <ToggleLeft size={28} className="text-gray-400" />
+              )}
             </div>
 
             <p className="mt-3 text-[11px] text-gray-400">
-              Live toggle coming soon in Management page.
+              Toggle this in the{" "}
+              <Link
+                href="/vendor/management"
+                className="text-orange-500 hover:underline font-medium"
+              >
+                Management page
+              </Link>
+              .
             </p>
           </div>
 
@@ -363,6 +262,93 @@ export default async function VendorDashboard() {
               </Link>
             </div>
           </div>
+        </div>
+
+        {/* Left column: Recent Orders table */}
+        <div className="lg:col-span-2 rounded-2xl border border-gray-100 bg-white p-4 sm:p-6 shadow-sm order-first lg:order-none">
+          <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div>
+              <h2 className="text-base sm:text-lg font-bold text-gray-900">
+                Recent Orders
+              </h2>
+              <p className="text-xs text-gray-500">
+                Go to the Orders page to manage and update statuses.
+              </p>
+            </div>
+            <Link
+              href="/vendor/orders"
+              className="w-fit rounded-xl border border-gray-200 px-4 py-2 text-xs font-bold text-orange-600 hover:bg-orange-50 hover:text-orange-700 transition"
+            >
+              View All Orders
+            </Link>
+          </div>
+
+          {recentOrders.length === 0 ? (
+            <p className="text-sm text-gray-400 text-center py-8">
+              No orders yet.
+            </p>
+          ) : (
+            <>
+              {/* Desktop table */}
+              <div className="hidden md:block overflow-x-auto">
+                <table className="w-full text-left text-sm">
+                  <thead>
+                    <tr className="border-b border-gray-100 text-xs font-semibold uppercase tracking-wider text-gray-400">
+                      <th className="pb-3 pr-4">Order ID</th>
+                      <th className="pb-3 pr-4">Items</th>
+                      <th className="pb-3 pr-4 text-right">Total</th>
+                      <th className="pb-3 text-center">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-50">
+                    {recentOrders.slice(0, 5).map((order) => (
+                      <tr
+                        key={order.id}
+                        className="hover:bg-gray-50/50 transition"
+                      >
+                        <td className="py-4 pr-4 font-mono font-bold text-gray-900">
+                          #{order.id}
+                        </td>
+                        <td className="py-4 pr-4 text-gray-500">
+                          {order.items?.length ?? 0} item
+                          {(order.items?.length ?? 0) !== 1 ? "s" : ""}
+                        </td>
+                        <td className="py-4 pr-4 text-right font-extrabold text-gray-900">
+                          ₹{Number(order.subtotal).toLocaleString("en-IN")}
+                        </td>
+                        <td className="py-4 text-center">
+                          <StatusBadge status={order.status} />
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Mobile cards */}
+              <div className="space-y-3 md:hidden">
+                {recentOrders.slice(0, 5).map((order) => (
+                  <div
+                    key={order.id}
+                    className="rounded-xl border border-gray-100 p-4 space-y-2"
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="font-mono font-bold text-sm text-gray-900">
+                        #{order.id}
+                      </span>
+                      <StatusBadge status={order.status} />
+                    </div>
+                    <div className="flex justify-between text-xs text-gray-600">
+                      <span>{order.items?.length ?? 0} items</span>
+                      <span className="font-bold text-gray-900">
+                        ₹{Number(order.subtotal).toLocaleString("en-IN")}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
         </div>
       </div>
     </div>

@@ -10,19 +10,25 @@
 
 ## How I Learn Best — ALWAYS FOLLOW THIS, never skip
 
-- Never give full code directly at the start
-- First explain WHAT we're building and WHY (keep it short and practical)
-- Then show a similar example from FoodRush or a slightly different context
-  so I can see the pattern without copying directly
-- Ask me to try writing it myself first
-- Only then guide me, hint me, or correct me
-- Point out mistakes clearly and explain WHY it's wrong
+### UI / Styling Code (Tailwind, JSX layout, component structure)
+
+- AI builds this directly — I will read and understand how it renders and uses data.
+- I do not need to type UI code from scratch anymore — the patterns are internalized.
+- AI must still explain WHAT each UI section does and WHY it's structured that way.
+- Comments on new UI concepts are still required (but not on Tailwind classes).
+
+### Backend / Logic Code (server actions, lib functions, DB queries, API routes)
+
+- I still attempt this myself first before AI steps in.
+- AI gives me the smallest useful hint or skeleton, lets me try, then reviews.
+- AI points out mistakes clearly and explains WHY it's wrong.
+- This is where new patterns still appear — muscle memory here is non-negotiable.
+
+### General Rules
+
 - For quizzes/revision, ask one question at a time, wait for my answer, then
   correct or improve it before asking the next one.
-- For coding practice, give me the smallest useful hint or skeleton, let me try,
-  then review my attempt instead of giving the full solution first.
-- Build my muscle memory — I should be able to write code myself eventually
-- No unnecessary theory — keep it practical and real
+- No unnecessary theory — keep it practical and real.
 - For revision/comment sessions: ask me the WHY first, then give me the clean
   comment to paste/type myself. Do not directly edit comments into files unless
   I explicitly ask.
