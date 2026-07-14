@@ -23,6 +23,7 @@ import {
   CheckCircle2,
   XCircle,
   ExternalLink,
+  Navigation,
 } from "lucide-react";
 import VendorApplicationForm from "@/components/VendorApplicationForm";
 
@@ -46,6 +47,12 @@ function StatusBadge({ status }) {
       dot: "bg-blue-500",
       cls: "bg-blue-50 border-blue-200 text-blue-700",
     },
+    // CONFIRMED — RestaurantOrderStatus: restaurant acknowledged the order
+    CONFIRMED: {
+      label: "Confirmed",
+      dot: "bg-teal-500",
+      cls: "bg-teal-50 border-teal-200 text-teal-700",
+    },
     PREPARING: {
       label: "Preparing",
       dot: "bg-orange-500",
@@ -58,6 +65,18 @@ function StatusBadge({ status }) {
     },
     DELIVERED: {
       label: "Delivered",
+      dot: "bg-green-500",
+      cls: "bg-green-50 border-green-200 text-green-700",
+    },
+    // PARTIALLY_COMPLETED — ParentOrderStatus: some restaurants delivered, others still pending
+    PARTIALLY_COMPLETED: {
+      label: "Partially Completed",
+      dot: "bg-indigo-500",
+      cls: "bg-indigo-50 border-indigo-200 text-indigo-700",
+    },
+    // COMPLETED — ParentOrderStatus: all restaurants in this checkout delivered
+    COMPLETED: {
+      label: "Completed",
       dot: "bg-green-500",
       cls: "bg-green-50 border-green-200 text-green-700",
     },
@@ -432,13 +451,31 @@ export default async function ProfilePage({ searchParams }) {
                             <span>Delivery: ₹{order.deliveryFee}</span>
                             <span>Platform: ₹{order.platformFee}</span>
                           </div>
-                          <div className="flex items-center gap-2">
-                            <span className="text-xs font-bold text-gray-500">
-                              Paid:
-                            </span>
-                            <span className="text-base font-extrabold text-orange-600">
-                              ₹{order.total.toFixed(2)}
-                            </span>
+                          <div className="flex items-center gap-3">
+                            <div className="flex items-center gap-2">
+                              <span className="text-xs font-bold text-gray-500">
+                                Paid:
+                              </span>
+                              <span className="text-base font-extrabold text-orange-600">
+                                ₹{order.total.toFixed(2)}
+                              </span>
+                            </div>
+                            {/* Show Track Order only for active (non-terminal) orders.
+                                DELIVERED and CANCELLED orders have nothing to track. */}
+                            {/* Terminal ParentOrder statuses — no live tracking needed */}
+                            {![
+                              "COMPLETED",
+                              "CANCELLED",
+                              "PAYMENT_PENDING",
+                            ].includes(order.status) && (
+                              <Link
+                                href={`/orders/${order.id}/track`}
+                                className="inline-flex items-center gap-1.5 rounded-xl bg-orange-600 px-3 py-1.5 text-xs font-bold text-white shadow-sm hover:bg-orange-700 transition"
+                              >
+                                <Navigation size={12} />
+                                Track Order
+                              </Link>
+                            )}
                           </div>
                         </div>
                       </div>

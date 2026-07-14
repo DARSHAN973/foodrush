@@ -19,18 +19,9 @@ export default async function VendorOrdersPage() {
 
   // getVendorOrders — all RestaurantOrders for this restaurant, newest first.
   // Includes items (with menuItem name) and parentOrder (for customer info).
+  // Decimal serialization is handled inside getVendorOrders in lib/vendor.js —
+  // all Decimal fields (price, subtotal, deliveryFee, etc.) come back as plain numbers.
   const orders = await getVendorOrders(restaurant.id);
 
-  // Serialize Decimal fields before passing to Client Component.
-  // Prisma Decimal objects can't cross the server/client boundary as-is.
-  const serializedOrders = orders.map((order) => ({
-    ...order,
-    subtotal: Number(order.subtotal),
-    items: order.items.map((item) => ({
-      ...item,
-      price: Number(item.price),
-    })),
-  }));
-
-  return <VendorOrdersClient orders={serializedOrders} />;
+  return <VendorOrdersClient orders={orders} />;
 }

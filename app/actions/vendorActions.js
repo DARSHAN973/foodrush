@@ -101,14 +101,45 @@ export async function updateOrderStatus(orderId, newStatus) {
     return { error: "You are not authorized to update this order." };
   }
 
-  await prisma.restaurantOrder.update({
-    where: { id: validOrderId },
-    data: { status: newStatus },
+  // prisma.$transaction — wraps multiple DB writes atomically.
+  // If the ParentOrder update fails, the RestaurantOrder update also rolls back.
+  // Both succeed or both fail — no partial state where sub-order is DELIVERED
+  // but ParentOrder still shows PLACED.
+  // See lib/orders.js → getOrderById for the read side of this pattern.
+  await prisma.$transaction(async (tx) => {
+    // Step 1: Update this restaurant's sub-order to the new status.
+    await tx.restaurantOrder.update({
+      where: { id: validOrderId },
+      data: { status: newStatus },
+    });
+
+    // Step 2: Recalculate the ParentOrder status only when a sub-order is DELIVERED.
+    // (Other transitions like PREPARING → OUT_FOR_DELIVERY don't affect the parent.)
+    if (newStatus === "DELIVERED") {
+      // Fetch ALL sibling sub-orders under the same ParentOrder.
+      // Within a transaction, this read sees the write above — so the current
+      // sub-order already reflects status: "DELIVERED" in this query result.
+      const siblings = await tx.restaurantOrder.findMany({
+        where: { parentOrderId: restaurantOrder.parentOrderId },
+        select: { status: true },
+      });
+
+      // If every sibling is DELIVERED → order is fully complete.
+      // If at least one is still pending → partially completed.
+      const allDelivered = siblings.every((s) => s.status === "DELIVERED");
+
+      await tx.parentOrder.update({
+        where: { id: restaurantOrder.parentOrderId },
+        data: { status: allDelivered ? "COMPLETED" : "PARTIALLY_COMPLETED" },
+      });
+    }
   });
 
-  // Revalidate both pages — orders list + dashboard stats both reflect the new status.
+  // Revalidate all affected pages — vendor dashboard, orders list, and the
+  // user's profile orders tab which shows the ParentOrder status badge.
   revalidatePath("/vendor/orders");
   revalidatePath("/vendor");
+  revalidatePath("/profile");
   return { success: true };
 }
 
@@ -376,7 +407,7 @@ export async function markWarningAsReadAction(warningId) {
     where: { id: validWarningId },
   });
   if (!warning) return { error: "Warning not found." };
-  
+
   if (warning.restaurantId !== restaurant.id) {
     return { error: "Unauthorized to read this warning." };
   }

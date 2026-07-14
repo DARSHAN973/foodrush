@@ -1,10 +1,10 @@
-// Client Component boundary — needed because this layout uses usePathname(),
-// which reads browser navigation state and cannot run in a Server Component.
 "use client";
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, ClipboardList, Settings, Flame } from "lucide-react";
+import { LayoutDashboard, ClipboardList, Settings, Flame, ExternalLink, LogOut } from "lucide-react";
+import LogoutButton from "@/components/LogoutButton";
+
 
 // Nested admin layout — gives every /admin route the same dashboard shell.
 export default function VendorLayout({ children }) {
@@ -64,18 +64,30 @@ export default function VendorLayout({ children }) {
             <span>Management</span>
           </Link>
         </nav>
+
+        {/* Bottom actions — visit main site + logout */}
+        <div className="absolute bottom-6 left-6 right-6 space-y-2 border-t border-gray-100 pt-4">
+          <Link
+            href="/"
+            className="flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold text-gray-500 hover:bg-gray-50 hover:text-orange-600 transition-all"
+          >
+            <ExternalLink size={16} />
+            <span>Visit FoodRush</span>
+          </Link>
+          <LogoutButton className="w-full !justify-start !px-4" />
+        </div>
       </aside>
 
       <div className="lg:pl-64">
         {/* Sticky Mobile Header / Desktop Topbar */}
         <header className="sticky top-0 z-40 border-b border-gray-100 bg-white/95 backdrop-blur-md px-4 py-4 sm:px-6">
-          <div className="flex items-center justify-between lg:justify-start">
+          <div className="flex items-center justify-between">
             <h2 className="text-base font-extrabold text-gray-900 tracking-tight sm:text-lg">
               Vendor Panel
             </h2>
 
-            {/* Branding badge in header on mobile */}
-            <div className="lg:hidden">
+            {/* Right side — branding (mobile) + logout icon */}
+            <div className="flex items-center gap-3 lg:hidden">
               <Link
                 href="/"
                 className="flex items-center gap-1.5 focus:outline-none select-none"
@@ -87,6 +99,7 @@ export default function VendorLayout({ children }) {
                   Food<span className="text-amber-500">Rush</span>
                 </span>
               </Link>
+              <LogoutButton iconOnly />
             </div>
           </div>
 
