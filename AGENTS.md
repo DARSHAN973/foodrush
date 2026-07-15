@@ -297,20 +297,81 @@ because a boolean can't express PENDING, SUSPENDED, REJECTED states.
 
 - **Teaches:** multi-role auth, role-based route protection, platform architecture
 
-#### [ ] 6. Real-Time Order Tracking with SSE (4–6 hrs)
+#### [x] 6. Real-Time Order Tracking with SSE (4–6 hrs)
 
 - Use **Server-Sent Events (SSE)** — correct tool for server→client only updates
 - `GET /api/orders/[id]/stream` — streams status updates to the client
-- Order tracking page shows live status (Placed → Preparing → Out for Delivery → Delivered)
+- Order tracking page shows live status (Placed → Confirmed → Preparing → Out for Delivery → Delivered)
 - **Note:** SSE is native to HTTP, works on Vercel (unlike raw WebSockets).
   WebSockets require a persistent server — learn separately via a mini chat project.
-- **Teaches:** SSE, ReadableStream in Next.js, real-time UX pattern
 
-#### [ ] 7. Reviews + Ratings (5–6 hrs)
+**New files created:**
 
-- Users can rate and review a restaurant after an order is delivered
-- Star rating component, review text, posted with user name
-- Restaurant card shows average rating (recalculate on new review)
+- `app/api/orders/[id]/stream/route.js` — SSE route handler. Polls DB every 3s,
+  sends per-restaurant status snapshots. Uses ReadableStream + TextEncoder.
+  Closes on terminal states (COMPLETED/CANCELLED) or client disconnect (AbortSignal).
+- `components/OrderTracker.js` — Client Component. Opens EventSource to stream route,
+  renders one `RestaurantStepper` per sub-order. Closes EventSource on unmount (cleanup).
+- `app/(user)/orders/[id]/track/page.js` — Server Component tracking page.
+  Fetches initial order with `getOrderById`, passes per-restaurant statuses as
+  `initialRestaurants` prop so the stepper renders immediately (no blank flash).
+
+**Modified files:**
+
+- `lib/orders.js` — added `getOrderById(orderId, userId)`. Uses `findFirst` with
+  both `id + userId` in WHERE clause (IDOR attack prevention).
+- `app/(user)/profile/page.js` — added "Track Order" button on active orders.
+  Only shows for non-terminal ParentOrder statuses (not COMPLETED/CANCELLED/PAYMENT_PENDING).
+  Added missing StatusBadge configs: CONFIRMED, PARTIALLY_COMPLETED, COMPLETED.
+- `app/actions/vendorActions.js` — upgraded `updateOrderStatus` to use
+  `prisma.$transaction`. On DELIVERED: checks all sibling RestaurantOrders and
+  updates ParentOrder to PARTIALLY_COMPLETED or COMPLETED atomically.
+- `components/VendorOrdersClient.js` — upgraded OrderCard to show full item list
+  with quantities/prices, customer delivery address + phone. Active orders shown
+  first, completed/cancelled below.
+- `app/vendor/layout.js` — added Logout button + "Visit FoodRush" link to desktop
+  sidebar. Added `iconOnly` logout to mobile topbar.
+- `components/LogoutButton.js` — added `iconOnly` prop.
+
+**Key concepts learned this step:**
+
+- **SSE vs WebSockets vs Polling** — SSE is server→client only, native HTTP, works
+  on Vercel serverless. WebSockets need a persistent server. Polling is wasteful.
+  Rule: use SSE for one-way real-time updates (order tracking, notifications).
+- **ReadableStream** — Web Streams API. `start(controller)` runs on stream open.
+  `controller.enqueue(bytes)` writes a chunk. `controller.close()` ends the stream.
+  Must use `TextEncoder` to convert strings → Uint8Array before enqueueing.
+- **SSE wire format** — every message must be `data: <payload>\n\n`.
+  The double `\n\n` is the message delimiter. `EventSource` splits on this.
+- **EventSource** — browser's built-in SSE client. Auto-reconnects on drop.
+  `es.onmessage` fires on every `data:` chunk. Close with `es.close()`.
+  Always close in useEffect cleanup to prevent server-side memory leaks.
+- **AbortSignal** — `request.signal` in route handlers. Fires "abort" event when
+  the client disconnects. Use to clearInterval + controller.close() to stop
+  server-side polling when nobody is listening (resource leak prevention).
+- **`revalidatePath` vs SSE** — `revalidatePath` busts the server cache for the
+  NEXT visitor. It does NOT push updates to the browser already on the page.
+  SSE pushes to the currently connected browser in real time.
+- **IDOR prevention** — always combine resource ID + user ID in WHERE clause.
+  `findFirst({ where: { id, userId } })` — a user can never access another
+  user's data by guessing IDs.
+- **Atomic ParentOrder recalculation** — on each RestaurantOrder DELIVERED,
+  `$transaction` updates the sub-order + recalculates ParentOrder.status in one
+  atomic write. PARTIALLY_COMPLETED if some still pending, COMPLETED if all done.
+
+- **Teaches:** SSE, ReadableStream in Next.js, real-time UX pattern, IDOR prevention, atomic status aggregation
+
+#### [x] 7. Reviews + Ratings (5–6 hrs)
+
+- [x] Star rating component, review text, posted with user name
+- [x] "Write a Review" button on DELIVERED orders in profile/My Orders tab
+- [x] Restaurant detail page shows reviews section (ReviewForm + ReviewList)
+- [x] ReviewForm: 5-star click input, comment textarea, server action submit
+- [x] ReviewList: summary header (avg + breakdown bars), individual review cards
+- [x] DB limit: take:5 + count query — never fetches 1000 rows
+- [x] Restaurant card shows average rating (recalculate on new review)
+- [x] Vendor dashboard: Customer Reviews section (rating badge + recent reviews)
+- [x] Admin panel: rating + review count shown per restaurant row
 - **Teaches:** aggregate queries in Prisma, review/trust-signal UX pattern
 
 ---
@@ -405,13 +466,13 @@ because a boolean can't express PENDING, SUSPENDED, REJECTED states.
 - Phase 1, Step 3 (Restaurant Search + Filter with searchParams) is complete ✅
 - Phase 1, Step 4 (Loading States + SEO Audit) is complete ✅
 - Phase 1, Step 5 (Vendor Onboarding) is complete ✅
+- Phase 1, Step 6 (Real-Time Order Tracking with SSE) is complete ✅
+- Phase 1, Step 7 (Reviews + Ratings) is complete ✅
 
 ### Next Session Build Order
 
 ```
-1. Real-Time Order Tracking with SSE (Phase 1, Step 6)
-   - Setup Server-Sent Events (SSE) route handler: GET /api/orders/[id]/stream
-   - Stream order status changes from the database to the client
-   - Create real-time order tracking client component showing status updates dynamically:
-     (Placed → Preparing → Out for Delivery → Delivered)
+1. Framer Motion Animations (Phase 2, Step 8)
+   - Page transitions, cart item animations, micro-interactions
+   - Framer Motion is React-native (not GSAP which is DOM-level)
 ```

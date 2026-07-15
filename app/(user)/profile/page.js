@@ -24,6 +24,7 @@ import {
   XCircle,
   ExternalLink,
   Navigation,
+  Star,
 } from "lucide-react";
 import VendorApplicationForm from "@/components/VendorApplicationForm";
 
@@ -441,6 +442,22 @@ export default async function ProfilePage({ searchParams }) {
                                   </div>
                                 ))}
                               </div>
+
+                              {/* Write a Review — only shown for DELIVERED sub-orders.
+                                  Links to the restaurant page which shows the ReviewForm
+                                  when the server confirms the user has a DELIVERED order
+                                  and hasn't reviewed yet. */}
+                              {ro.status === "DELIVERED" && (
+                                <div className="mt-3 flex justify-end">
+                                  <Link
+                                    href={`/restaurants/${ro.restaurant.id}#reviews`}
+                                    className="inline-flex items-center gap-1.5 rounded-xl border border-orange-200 bg-orange-50 px-3 py-1.5 text-xs font-bold text-orange-600 hover:bg-orange-100 transition"
+                                  >
+                                    <Star size={12} />
+                                    Write a Review
+                                  </Link>
+                                </div>
+                              )}
                             </div>
                           ))}
                         </div>

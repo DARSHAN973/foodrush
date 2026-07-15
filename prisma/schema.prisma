@@ -108,6 +108,7 @@ model User {
   cart            Cart?
   ownedRestaurant Restaurant?
   parentOrders    ParentOrder[]
+  reviews         Review[]
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @default(now()) @updatedAt
 }
@@ -134,6 +135,7 @@ model Restaurant {
   restaurantOrders RestaurantOrder[]
   operatingHours   OperatingHours[]
   warnings         VendorWarning[]
+  reviews          Review[]
   owner            User?             @relation(fields: [ownerId], references: [id])
   createdAt        DateTime          @default(now())
   updatedAt        DateTime          @default(now()) @updatedAt
@@ -236,6 +238,7 @@ model RestaurantOrder {
   parentOrder   ParentOrder           @relation(fields: [parentOrderId], references: [id])
   restaurant    Restaurant            @relation(fields: [restaurantId], references: [id])
   items         OrderItem[]
+  reviews       Review[]
   createdAt     DateTime              @default(now())
   updatedAt     DateTime              @default(now()) @updatedAt
 }
@@ -297,5 +300,20 @@ model VendorWarning {
   restaurant   Restaurant @relation(fields: [restaurantId], references: [id])
   createdAt    DateTime   @default(now())
 
+  @@index([restaurantId])
+}
+
+model Review {
+  id           Int        @id @default(autoincrement()) 
+  userId       Int
+  restaurantId Int
+  orderId      Int
+  rating       Int
+  comment      String?    @db.Text
+  user         User       @relation(fields: [userId], references: [id])
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id])
+  restaurantOrder RestaurantOrder @relation(fields: [orderId], references: [id])
+  createdAt    DateTime   @default(now())
+  @@unique([userId, restaurantId])
   @@index([restaurantId])
 }

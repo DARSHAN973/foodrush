@@ -3,6 +3,7 @@ import { unstable_noStore as noStore } from "next/cache";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { getVendorRestaurant, getVendorStats } from "@/lib/vendor";
+import { getRestaurantReviews } from "@/lib/reviews";
 import { redirect } from "next/navigation";
 import {
   ClipboardList,
@@ -10,6 +11,7 @@ import {
   ToggleRight,
   ToggleLeft,
   AlertTriangle,
+  Star,
 } from "lucide-react";
 import DismissWarningButton from "@/components/DismissWarningButton";
 
@@ -82,9 +84,14 @@ export default async function VendorDashboard() {
   // If vendor has no restaurant yet, redirect to profile to apply.
   if (!restaurant) redirect("/profile");
 
-  // getVendorStats — 5 parallel DB queries returning dashboard metric counts.
-  // Passes restaurantId (not userId) since stats are scoped to the restaurant.
-  const stats = await getVendorStats(restaurant.id);
+  // getVendorStats + getRestaurantReviews run in parallel since both depend
+  // on restaurant.id but are independent of each other. Faster than sequential awaits.
+  const [stats, reviewData] = await Promise.all([
+    getVendorStats(restaurant.id),
+    getRestaurantReviews(restaurant.id),
+  ]);
+
+  const { reviews = [], totalCount = 0 } = reviewData ?? {};
 
   // Build metric cards from real DB data
   const metricCards = [
@@ -353,6 +360,80 @@ export default async function VendorDashboard() {
             </>
           )}
         </div>
+      </div>
+      {/* Customer Reviews section */}
+      <div className="rounded-2xl border border-gray-100 bg-white p-4 sm:p-6 shadow-sm">
+        <div className="mb-4 flex items-center justify-between">
+          <div>
+            <h2 className="text-base sm:text-lg font-bold text-gray-900">
+              Customer Reviews
+            </h2>
+            <p className="text-xs text-gray-500 mt-0.5">
+              What customers are saying about {restaurant.name}.
+            </p>
+          </div>
+          {/* Overall rating badge */}
+          <div className="flex items-center gap-1.5 rounded-xl border border-amber-100 bg-amber-50 px-3 py-2">
+            <Star size={14} className="fill-amber-400 text-amber-400" />
+            <span className="text-sm font-black text-gray-900">
+              {Number(restaurant.rating).toFixed(1)}
+            </span>
+            <span className="text-xs text-gray-400">({totalCount})</span>
+          </div>
+        </div>
+
+        {reviews.length === 0 ? (
+          <p className="py-6 text-center text-sm text-gray-400">
+            No reviews yet. Complete your first deliveries to start getting feedback!
+          </p>
+        ) : (
+          <div className="space-y-3">
+            {reviews.map((review) => (
+              <div
+                key={review.id}
+                className="rounded-xl border border-gray-100 bg-gray-50 p-4"
+              >
+                <div className="flex items-start gap-3">
+                  {/* Reviewer avatar */}
+                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-orange-500 text-xs font-bold text-white">
+                    {review.user.name?.charAt(0).toUpperCase() ?? "?"}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between gap-2">
+                      <p className="text-sm font-semibold text-gray-800 truncate">
+                        {review.user.name}
+                      </p>
+                      {/* Star rating display */}
+                      <div className="flex shrink-0 gap-0.5">
+                        {[1, 2, 3, 4, 5].map((s) => (
+                          <Star
+                            key={s}
+                            size={10}
+                            className={
+                              s <= review.rating
+                                ? "fill-amber-400 text-amber-400"
+                                : "fill-gray-100 text-gray-300"
+                            }
+                          />
+                        ))}
+                      </div>
+                    </div>
+                    {review.comment && (
+                      <p className="mt-1 text-xs text-gray-600 leading-relaxed">
+                        {review.comment}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))}
+            {totalCount > reviews.length && (
+              <p className="text-center text-xs text-gray-400">
+                Showing {reviews.length} of {totalCount} reviews
+              </p>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

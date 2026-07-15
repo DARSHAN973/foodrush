@@ -1,8 +1,13 @@
 import Link from "next/link";
 import Image from "next/image";
 import { notFound } from "next/navigation";
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/lib/auth";
 import { getRestaurants, getRestaurant } from "@/lib/restaurants";
+import { getRestaurantReviews, canUserReviewRestaurant } from "@/lib/reviews";
 import MenuClient from "@/components/MenuClient";
+import ReviewForm from "@/components/ReviewForm";
+import ReviewList from "@/components/ReviewList";
 
 // generateStaticParams — tells Next.js which dynamic routes to pre-build
 // at build time. This is SSG for known restaurant detail pages.
@@ -46,13 +51,36 @@ export async function generateMetadata({ params }) {
 // Dynamic route params — [id] in the folder name becomes params.id,
 // so one page component can render different restaurant detail pages.
 export default async function RestaurantDetails({ params }) {
-  // params contains the dynamic URL values for this route, like /restaurants/5.
   const { id } = await params;
-  const restaurant = await getRestaurant(id);
+
+  // Parallel fetch — restaurant data, reviews, and the session are all
+  // independent. Running them simultaneously with Promise.all is faster
+  // than three sequential awaits (avoids waterfall requests).
+  const [restaurant, reviewData, session] = await Promise.all([
+    getRestaurant(id),
+    getRestaurantReviews(id),
+    getServerSession(authOptions),
+  ]);
+
+  // getRestaurantReviews returns { reviews, totalCount } — destructure both.
+  // reviews = the 5 most recent. totalCount = the true DB count for the header.
+  const { reviews, totalCount } = reviewData ?? { reviews: [], totalCount: 0 };
+
   // notFound() belongs in the page, not the shared helper.
   // The helper returns null for missing data; the page decides to show not-found.js.
   if (restaurant === null) {
     notFound();
+  }
+
+  // canUserReviewRestaurant — runs only if the user is logged in.
+  // Returns { canReview: true, orderId } if the user has a DELIVERED order
+  // for this restaurant and has not yet reviewed it. Null otherwise.
+  let reviewPermission = { canReview: false, orderId: null };
+  if (session?.user?.id) {
+    const result = await canUserReviewRestaurant(session.user.id, id);
+    if (result) {
+      reviewPermission = result;
+    }
   }
 
   return (
@@ -125,6 +153,30 @@ export default async function RestaurantDetails({ params }) {
         </section>
 
         <MenuClient menuItems={restaurant.menuItems} />
+
+        {/* Reviews section — shown below the menu for all visitors.
+            ReviewForm is only shown when the server confirms the user
+            has a DELIVERED order and hasn't reviewed yet. */}
+        <section id="reviews" className="mt-10">
+          <h2 className="mb-5 text-xl font-bold text-gray-900">
+            Customer Reviews
+          </h2>
+
+          <div className="space-y-6">
+            {reviewPermission.canReview && (
+              <ReviewForm
+                restaurantId={restaurant.id}
+                orderId={reviewPermission.orderId}
+              />
+            )}
+
+            <ReviewList
+              reviews={reviews}
+              totalCount={totalCount}
+              restaurantRating={restaurant.rating}
+            />
+          </div>
+        </section>
       </div>
     </main>
   );

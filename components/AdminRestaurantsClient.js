@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { Star } from "lucide-react";
 import {
   deactivateRestaurantAction,
   activeRestaurantAction,
@@ -276,6 +277,17 @@ export default function AdminRestaurantsClient({
                       <p className="text-xs text-gray-500 font-medium mt-0.5">
                         {restaurant.cuisine}
                       </p>
+                      {/* Rating + review count — sourced from the live restaurant.rating
+                          field which is recalculated on every new customer review. */}
+                      <div className="flex items-center gap-1 mt-1">
+                        <Star size={10} className="fill-amber-400 text-amber-400" />
+                        <span className="text-xs font-bold text-gray-700">
+                          {restaurant.rating}
+                        </span>
+                        <span className="text-xs text-gray-400">
+                          ({restaurant.reviewCount ?? 0} reviews)
+                        </span>
+                      </div>
                       {/* Status pill — color-coded by enum value */}
                       <span
                         className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold uppercase border mt-1.5 ${
