@@ -372,14 +372,20 @@ export default async function VendorDashboard() {
               What customers are saying about {restaurant.name}.
             </p>
           </div>
-          {/* Overall rating badge */}
-          <div className="flex items-center gap-1.5 rounded-xl border border-amber-100 bg-amber-50 px-3 py-2">
-            <Star size={14} className="fill-amber-400 text-amber-400" />
-            <span className="text-sm font-black text-gray-900">
-              {Number(restaurant.rating).toFixed(1)}
+          {/* Rating badge — only shown when the restaurant has actual reviews */}
+          {totalCount > 0 ? (
+            <div className="flex items-center gap-1.5 rounded-xl border border-amber-100 bg-amber-50 px-3 py-2">
+              <Star size={14} className="fill-amber-400 text-amber-400" />
+              <span className="text-sm font-black text-gray-900">
+                {Number(restaurant.rating).toFixed(1)}
+              </span>
+              <span className="text-xs text-gray-400">({totalCount})</span>
+            </div>
+          ) : (
+            <span className="rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 text-xs text-gray-400">
+              No reviews yet
             </span>
-            <span className="text-xs text-gray-400">({totalCount})</span>
-          </div>
+          )}
         </div>
 
         {reviews.length === 0 ? (

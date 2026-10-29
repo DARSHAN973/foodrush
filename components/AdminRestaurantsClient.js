@@ -99,7 +99,7 @@ export default function AdminRestaurantsClient({
 
     const result = await sendWarningAction(
       warningModal.restaurantId,
-      warningModal.message
+      warningModal.message,
     );
 
     if (result?.error) {
@@ -277,17 +277,22 @@ export default function AdminRestaurantsClient({
                       <p className="text-xs text-gray-500 font-medium mt-0.5">
                         {restaurant.cuisine}
                       </p>
-                      {/* Rating + review count — sourced from the live restaurant.rating
-                          field which is recalculated on every new customer review. */}
-                      <div className="flex items-center gap-1 mt-1">
-                        <Star size={10} className="fill-amber-400 text-amber-400" />
-                        <span className="text-xs font-bold text-gray-700">
-                          {restaurant.rating}
-                        </span>
-                        <span className="text-xs text-gray-400">
-                          ({restaurant.reviewCount ?? 0} reviews)
-                        </span>
-                      </div>
+                      {/* Rating + review count — only shown when the restaurant has actual reviews.
+                          Hiding 0.0 (0 reviews) avoids confusing the admin for new restaurants. */}
+                      {restaurant.reviewCount > 0 && (
+                        <div className="flex items-center gap-1 mt-1">
+                          <Star
+                            size={10}
+                            className="fill-amber-400 text-amber-400"
+                          />
+                          <span className="text-xs font-bold text-gray-700">
+                            {restaurant.rating}
+                          </span>
+                          <span className="text-xs text-gray-400">
+                            ({restaurant.reviewCount} reviews)
+                          </span>
+                        </div>
+                      )}
                       {/* Status pill — color-coded by enum value */}
                       <span
                         className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold uppercase border mt-1.5 ${
@@ -609,10 +614,14 @@ export default function AdminRestaurantsClient({
               </button>
               <button
                 onClick={handleSendWarningConfirm}
-                disabled={!warningModal.message.trim() || actionPendingId !== null}
+                disabled={
+                  !warningModal.message.trim() || actionPendingId !== null
+                }
                 className="rounded-xl bg-amber-600 px-4 py-2 text-xs font-bold text-white hover:bg-amber-700 active:scale-95 transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
               >
-                {actionPendingId === warningModal.restaurantId ? "Sending..." : "Send Warning"}
+                {actionPendingId === warningModal.restaurantId
+                  ? "Sending..."
+                  : "Send Warning"}
               </button>
             </div>
           </div>
@@ -642,7 +651,10 @@ export default function AdminRestaurantsClient({
 
             <div className="max-h-96 overflow-y-auto px-5 py-5 space-y-4">
               {warningsHistoryModal.warnings.map((warning) => (
-                <div key={warning.id} className="rounded-xl border border-gray-100 bg-gray-50 p-4">
+                <div
+                  key={warning.id}
+                  className="rounded-xl border border-gray-100 bg-gray-50 p-4"
+                >
                   <div className="flex items-start justify-between gap-4">
                     <p className="text-sm text-gray-700">{warning.message}</p>
                     <span
